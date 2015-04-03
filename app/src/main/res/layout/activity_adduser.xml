@@ -1,0 +1,135 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/firstColor"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="0px"
+        android:layout_height="0px"
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="@color/firstColor"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_glaces"
+                android:alpha="0.3"
+                android:layout_marginTop="40dp"/>
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/adduser_title"
+                android:gravity="center"
+                android:textSize="30dp"
+                android:layout_marginTop="10dp"
+                app:customFont="proximanova_sbold.otf"
+                android:textColor="@color/blanc"/>
+
+            <LinearLayout
+                android:layout_width="55dp"
+                android:layout_height="2dp"
+                android:layout_margin="18dp"
+                android:background="@color/secondColor"/>
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/adduser_subtitle"
+                android:gravity="center"
+                android:textSize="15dp"
+                android:textColor="@color/blanc"
+                app:customFont="proximanova_light.otf"
+                android:alpha="0.4"/>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_marginTop="10dp">
+
+                <ListView
+                    android:id="@+id/listviewUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fadingEdge="none"
+                    android:fadingEdgeLength="0px"
+                    android:divider="@color/firstColor"
+                    android:background="@color/firstColorLight"
+                    android:dividerHeight="1dp"/>
+
+                <com.pleek.app.bean.ViewLoadingFooter
+                    android:id="@+id/loadeur"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"/>
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:background="@drawable/shadow_bot"/>
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/shadow_top"/>
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:id="@+id/btnNext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:background="@drawable/disable_transition">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:id="@+id/txtBtnNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/adduser_btn_next"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    android:layout_margin="5dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_centerInParent="true"
+                    app:customFont="proximanova_sbold.otf"
+                    android:textColor="@color/blanc"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_arrow_right_light"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

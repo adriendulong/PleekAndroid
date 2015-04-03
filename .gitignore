@@ -1,0 +1,9 @@
+.gradle
+/local.properties
+/.idea/workspace.xml
+.DS_Store
+/build
+
+/facebook/build
+/lib-android/build
+app/src/main/assets/crashlytics-build.properties

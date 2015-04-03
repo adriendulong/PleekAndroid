@@ -1,0 +1,27 @@
+apply plugin: 'android-library'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: '*.jar')
+    compile 'com.android.support:support-v4:20.0.+'
+}
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion '20.0.0'
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 20
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+        }
+    }
+}

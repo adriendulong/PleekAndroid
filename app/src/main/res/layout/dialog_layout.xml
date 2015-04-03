@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <com.goandup.lib.widget.TextViewFont
+            android:id="@+id/txtTitle"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="@string/app_name"
+            android:textSize="16dp"
+            android:gravity="center"
+            android:textColor="@color/blanc"
+            app:customFont="proximanova_sbold.otf"
+            android:background="@drawable/dialog_top"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@color/blanc">
+
+            <ImageView
+                android:id="@+id/imgIcone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:visibility="gone"
+                android:src="@drawable/icon_notif"/>
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="@color/noir"
+                app:customFont="proximanova_light.otf"
+                android:padding="30dp"
+                android:gravity="center"
+                android:background="@color/blanc"/>
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/grisSeparate"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/btnNok"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:background="@drawable/dialog_btn_left">
+
+                <ImageView
+                    android:id="@+id/imgBtnNok"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_nok"/>
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/grisSeparate"/>
+
+            <LinearLayout
+                android:id="@+id/btnOk"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:background="@drawable/dialog_btn_right">
+
+                <ImageView
+                    android:id="@+id/imgBtnOk"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_ok_rose"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

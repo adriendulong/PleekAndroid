@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Pleek</string>
+
+    <!-- LAUNCHER -->
+    <string name="baseline">React with your camera !</string>
+
+    <!-- PHONENUMBER -->
+    <string name="phonenumber_title">No bots allowed.</string>
+    <string name="phonenumber_subtitle">Enter your cell number</string>
+    <string name="phonenumber_placeholder">Phone</string>
+    <string name="phonenumber_btn_next">TEXT ME A 4 DIGITS CODE</string>
+    <string name="phonenumber_change_country">Change country</string>
+    <string name="phonenumber_numberinvalid">Sorry but your phone number is not valid</string>
+    <string name="phonenumber_no_network">We had a problem while connecting you with your phone number, can you try again ?</string>
+
+    <!-- DIGITSCODE -->
+    <string name="digitscode_title">Code sent.</string>
+    <string name="digitscode_label">CODE</string>
+    <string name="digitscode_btn_next">CHECK MY CELL NUMBER</string>
+    <string name="digitscode_badcode">Invalid code. Try again or check your phone number.</string>
+    <string name="digitscode_no_network">Error while getting the confirmation code. Please try again later.</string>
+
+    <!-- USERNAME -->
+    <string name="username_title">Big time now.</string>
+    <string name="username_subtitle">Choose a username</string>
+    <string name="username_label">USERNAME</string>
+    <string name="username_mention">You confirm that you\'ve read and accept the</string>
+    <string name="username_mention_tc">T&amp;C.</string>
+    <string name="username_btn_next">LET\'S GET STARTED</string>
+    <string name="username_nosapce">Unauthorized space.</string>
+    <string name="username_usernameinvalid">This username is already taken. Try again!</string>
+    <string name="username_tc_view">Terms &amp; Conditions</string>
+    <string name="username_check_no_network">Can\'t check your username for now. Try again ?</string>
+    <string name="username_no_network">Can\'t create your account for now. Try again ?</string>
+    <string name="username_is_sending">Your account is already being created</string>
+
+    <!-- ADDUSER -->
+    <string name="adduser_title">Surprise.</string>
+    <string name="adduser_subtitle">We have some cool friends here. Add them ?</string>
+    <string name="adduser_btn_next">_nbstay_ PEOPLE LEFT TO ADD</string>
+    <string name="adduser_btn_next_done">ALL SET!</string>
+
+    <!-- HOME -->
+    <string name="home_firstreply">FIRST REPLY</string>
+    <string name="home_new">NEW</string>
+    <string name="home_delete">DELETE</string>
+    <string name="home_hide">HIDE</string>
+    <string name="home_popup_remove_title">CONFIRMATION</string>
+    <string name="home_popup_remove_texte">Are you sure you want to delete this Pleek ? There is no way to get back then.</string>
+    <string name="home_piki_remove_nok">Can\'t remove your pleek for now. Try again ?</string>
+    <string name="home_piki_nok">Can\'t recover your Pleek for now. Try again ?</string>
+    <string name="home_tuto_friend">Find more friends to get more Pleeks</string>
+    <string name="home_tuto_pleek">This is a PLEEK</string>
+
+    <!-- PIKI -->
+    <string name="piki_friend">friend</string>
+    <string name="piki_report_title">Report</string>
+    <string name="piki_report_texte">Do you want to report this Pleek ?</string>
+    <string name="piki_report_ok">This Pleek has been reported.</string>
+    <string name="piki_report_nok">Could not report this Pleek for now.</string>
+    <string name="piki_savereact_nok">Can\'t save this React for now.</string>
+    <string name="piki_react_nok">Can\'t recover this Pleek for now.</string>
+    <string name="piki_popup_remove_title">CONFIRMATION</string>
+    <string name="piki_popup_remove_texte">Are you sure you want to delete this reaction ? There is no way to get back then.</string>
+    <string name="piki_popup_report_title">REPORT</string>
+    <string name="piki_popup_report_texte">Are you sure you want to report this reaction ?</string>
+    <string name="piki_alert_report_texte">This react has been reported. Thank you.</string>
+    <string name="piki_react_remove_nok">Can\'t remove your reaction for now.</string>
+    <string name="piki_popup_adduser_title">ADD THIS USER</string>
+    <string name="piki_popup_mute_title">MUTE THIS USER</string>
+    <string name="piki_popup_unmute_title">UNMUTE THIS USER</string>
+    <string name="piki_share_impossible">Can\'t share this Pleek for now</string>
+    <string name="piki_tuto_add">Add your own reaction</string>
+    <string name="piki_tuto_react">This is a reaction</string>
+
+    <!-- PIKIFRIENDS -->
+    <string name="pikifriends_text_topbar">To _nb_ people</string>
+    <string name="pikifriends_action_nok">Action impossible for now.</string>
+
+    <!-- FRIENDS -->
+    <string name="friends_hint">Search a user</string>
+    <string name="friends_tab1">FIND</string>
+    <string name="friends_tab2">FRIENDS</string>
+    <string name="friends_section_on">FRIENDS ON PLEEK</string>
+    <string name="friends_section_out">FRIENDS NOT YET ON PLEEK</string>
+    <string name="friends_section">FRIENDS</string>
+    <string name="friends_section_pikiuser">PLEEK USER</string>
+    <string name="friends_nofriend">You have no friends yet!</string>
+    <string name="friends_nocontact">You have no contacts in your phone ?! </string>
+    <string name="friends_noresult">No result</string>
+    <string name="sms_invit">Download Pleek here ! http://pleekapp.com/getpleek/</string>
+
+    <!-- RECIPIENTS -->
+    <string name="recipients_title">Send to...</string>
+    <string name="recipients_everyone">EVERYONE</string>
+    <string name="recipients_selected">SELECTED</string>
+    <string name="recipients_sendeveryone">SEND TO EVERYONE</string>
+    <string name="recipients_savepiki_nok">Can\'t save your Pleek for now.</string>
+
+
+    <!-- PARAMETER -->
+    <string name="param_title">Settings</string>
+    <string name="param_username">Change username</string>
+    <string name="param_categ_notif">NOTIFICATIONS</string>
+    <string name="param_notif">Notifications</string>
+    <string name="param_categ_help">HELP / BUGS</string>
+    <string name="param_mail">Send us an email ?</string>
+    <string name="param_twitter"> Tweet us ?</string>
+    <string name="param_categ_other">OTHER</string>
+    <string name="param_sendapp">Send the app to someone</string>
+    <string name="param_username_placeholder">\@username</string>
+    <string name="param_username_popup_title">ERROR</string>
+    <string name="param_username_popup_texte">Sorry but this username is already taken. Please choose an other one.</string>
+    <string name="param_username_saveok">Your new username has been saved</string>
+    <string name="param_username_tooshort">Your new username has too short</string>
+    <string name="param_mail_to">tellme@pleekapp.com</string>
+    <string name="param_mail_subject">Hey you!</string>
+    <string name="param_mail_texte">I wanted to let you know that ...</string>
+    <string name="param_twitter_texte">Hey @Pleekeapp</string>
+    <string name="param_sendapp_text">Download Pleek! Communicate with your friends trough beautiful photos mozaics! http://pleekapp.com/getpleek</string>
+
+
+    <!-- BEAN -->
+    <string name="last_piki_ago">Last Pleek at _date_</string>
+    <string name="second">second</string>
+    <string name="minute">minute</string>
+    <string name="hour">hour</string>
+
+    <!-- CAPTURE -->
+    <string name="capture_saveok">Your Pleek has been saved.</string>
+    <string name="error_pikidata">Can\'t creare Pleek with this image.</string>
+    <string name="reactwithyoutcamera">React with your camera</string>
+    <string name="select_picture">Select Image</string>
+
+
+
+    <!-- SHARE -->
+    <string name="share_onpleek">on Pleek</string>
+    <string name="share_replies">replies on the app</string>
+    <string name="share_title">Share your Pleek</string>
+    <string name="share_text">I love this new Pleek of</string>
+
+    <!-- FACEBOOK -->
+    <!--<string name="app_id">381972298527872</string>-->
+    <string name="app_id">454781551329588</string>
+
+    <string name="action_settings">Settings</string>
+
+    <!-- TAG -->
+    <string name="tag_downpresse">tag_downpresse</string>
+    <string name="tag_longpresse">tag_longpresse</string>
+
+    <string name="arobase">\@</string>
+
+    <string name="craft">Crafted by</string>
+    <string name="goandup"><![CDATA[<font color="#83a848"><b>Go</b></font> <small>and</small> <font color="#f89446"><b>Up</b></font>]]></string>
+
+</resources>

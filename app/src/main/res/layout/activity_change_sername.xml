@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/firstColorLight">
+
+
+        <com.goandup.lib.widget.TextViewFont
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/param_username"
+            android:textSize="20dp"
+            app:customFont="proximanova_sbold.ttf"
+            android:layout_weight="1"
+            android:textColor="@color/blanc"
+            android:layout_centerInParent="true"/>
+
+        <LinearLayout
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:clickable="true"
+            android:layout_alignParentLeft="true"
+            android:background="@color/firstColorLight">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_arrow_left_light"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnTopBar"
+            android:layout_width="85dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:clickable="true"
+            android:layout_alignParentRight="true"
+            android:background="@color/firstColorLight">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_validate"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <com.goandup.lib.widget.EditTextFont
+        android:id="@+id/editUsername"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="25dp"
+        android:textColor="@color/noir"
+        android:hint="@string/param_username_placeholder"
+        android:background="@color/transparent"
+        app:customFont="proximanova_sbold.otf"
+        android:gravity="top"
+        android:layout_margin="10dp"
+        android:inputType="textFilter"
+        android:textCursorDrawable="@drawable/cursor"
+        android:maxLength="30"
+        android:digits="abcdefghijklmnopqrstuvwxyz0123456789"/>
+
+
+
+</LinearLayout>

@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/firstColorLight">
+
+        <com.goandup.lib.widget.TextViewFont
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/param_title"
+            android:textSize="20dp"
+            app:customFont="proximanova_sbold.ttf"
+            android:layout_weight="1"
+            android:textColor="@color/blanc"
+            android:layout_centerInParent="true"/>
+
+        <com.goandup.lib.widget.TextViewFont
+            android:id="@+id/txtVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/param_title"
+            android:textSize="12dp"
+            app:customFont="proximanova_sbold.ttf"
+            android:layout_weight="1"
+            android:layout_marginBottom="3dp"
+            android:textColor="@color/blanc"
+            android:layout_centerInParent="true"
+            android:layout_alignParentBottom="true"/>
+
+        <LinearLayout
+            android:id="@+id/btnTopBar"
+            android:layout_width="85dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:clickable="true"
+            android:layout_alignParentRight="true"
+            android:background="@color/firstColorLight">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_cross_flat"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shadow_bot"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/btnUsername"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:padding="15dp"
+                android:gravity="center">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_username"
+                    android:textSize="20dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:layout_weight="1"
+                    android:textColor="@color/noir"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_arrow_right_little"/>
+
+            </LinearLayout>
+
+            <!--NOTIFICATION-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:paddingLeft="15dp"
+                android:background="@color/grisLabele">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_categ_notif"
+                    android:textSize="14dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:textColor="@color/blanc"/>
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/btnNotification"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:padding="15dp"
+                android:gravity="center">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_notif"
+                    android:textSize="20dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:layout_weight="1"
+                    android:textColor="@color/noir"/>
+
+                <CheckBox
+                    android:id="@+id/chbxNotif"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+            <!--AIDE / BUG-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:paddingLeft="15dp"
+                android:background="@color/grisLabele">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_categ_help"
+                    android:textSize="14dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:textColor="@color/blanc"/>
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/btnEmail"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:padding="15dp"
+                android:gravity="center">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_mail"
+                    android:textSize="20dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:layout_weight="1"
+                    android:textColor="@color/noir"/>
+
+            </LinearLayout>
+
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="1px" android:background="@color/grisLabele"/>
+
+            <LinearLayout
+                android:id="@+id/btnTwitter"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:padding="15dp"
+                android:gravity="center">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_twitter"
+                    android:textSize="20dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:layout_weight="1"
+                    android:textColor="@color/noir"/>
+
+            </LinearLayout>
+
+            <!--AUTER-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:gravity="center"
+                android:paddingLeft="15dp"
+                android:background="@color/grisLabele">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_categ_other"
+                    android:textSize="14dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:textColor="@color/blanc"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btnSendapp"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:padding="15dp"
+                android:gravity="center">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/param_sendapp"
+                    android:textSize="20dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:layout_weight="1"
+                    android:textColor="@color/noir"/>
+
+            </LinearLayout>
+
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="1px" android:background="@color/grisLabele"/>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/txtGoandup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="6dp"
+            android:orientation="horizontal" >
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/craft"
+                android:textColor="@color/grisGoandUp"
+                android:textSize="10dp"
+                app:customFont="roboto_light.ttf" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="3dp"
+                android:gravity="center"
+                android:text="@string/goandup"
+                android:textColor="@color/grisGoandUp"
+                android:textSize="12dp"
+                app:customFont="roboto_light.ttf"
+                app:fromHTML="true" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/hand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/hand"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="7dp"
+            android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@+id/txtGoandup"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+</LinearLayout>

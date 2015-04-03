@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="DefautEditText">
+        <attr name="defautText" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="CircleTimer">
+        <attr name="startAngle" format="integer" />
+        <attr name="color" format="color" />
+        <attr name="colorBorder" format="color" />
+        <attr name="widthBorder" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="CustomFont">
+        <attr name="customFont" format="string"/>
+        <attr name="fromHTML" format="boolean"/>
+    </declare-styleable>
+    
+    <declare-styleable name="CoverFlow">
+        <attr name="unselectedAlpha" format="float"/>
+        <attr name="unselectedSaturation" format="float"/>
+        <attr name="unselectedScale" format="float"/>
+        <attr name="maxRotation" format="integer"/>
+        <attr name="scaleDownGravity" format="float"/>
+        <attr name="gapItem" format="integer"/>
+        <attr name="actionDistance" format="integer">
+            <enum name="auto" value="2147483647" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="ParamCameraView">
+        <attr name="autoStart" format="boolean" />
+        <attr name="faceCamera" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="FlipImageView">
+        <attr name="isAnimated" format="boolean" />
+        <attr name="isFlipped" format="boolean" />
+        <attr name="flipDrawable" format="reference" />
+        <attr name="flipDuration" format="integer" />
+        <attr name="flipInterpolator" format="reference" />
+        <attr name="flipRotations">
+            <flag name="none" value="0" />
+            <flag name="x" value="1" />
+            <flag name="y" value="2" />
+            <flag name="z" value="4" />
+        </attr>
+        <attr name="reverseRotation" format="boolean"></attr>
+    </declare-styleable>
+
+    <declare-styleable name="ProgressWheel">
+        <attr name="progressIndeterminate" format="boolean" />
+        <attr name="barColor" format="color" />
+        <attr name="rimColor" format="color" />
+        <attr name="rimWidth" format="dimension" />
+        <attr name="spinSpeed" format="float" />
+        <attr name="barSpinCycleTime" format="integer" />
+        <attr name="circleRadius" format="dimension" />
+        <attr name="fillRadius" format="boolean" />
+        <attr name="barWidth" format="dimension" />
+        <attr name="linearProgress" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="ButtonRoundedMaterialDesign">
+        <attr name="buttonPicto" format="integer" />
+        <attr name="buttonColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="CircularImageView">
+        <attr name="border" format="boolean"></attr>
+        <attr name="border_width" format="dimension"></attr>
+        <attr name="border_color" format="color"></attr>
+        <attr name="shadow" format="boolean"></attr>
+        <attr name="shadow_width" format="dimension"></attr>
+        <attr name="shadow_color" format="color"></attr>
+    </declare-styleable>
+
+    <declare-styleable name="circularImageViewStyleTheme">
+        <attr name="circularImageViewStyle" format="reference"></attr>
+    </declare-styleable>
+
+</resources>

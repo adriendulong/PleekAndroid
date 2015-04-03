@@ -1,0 +1,49 @@
+<resources>
+    <color name="firstColor">#3137A2</color>
+    <color name="firstColorDark">#2d337f</color>
+    <color name="firstColorDark2">#ff292f69</color>
+    <color name="firstColorLight">#4048B7</color>
+    <color name="secondColor">#FC3281</color>
+    <color name="secondColorDark">#E93673</color>
+    <color name="secondColorDark2">#d3366a</color>
+    <color name="secondColorDark3">#B12857</color>
+    <color name="secondColorLight">#FC68A1</color>
+    <color name="disable">#C7CAD1</color>
+
+    <color name="progressBackground">#F5F5F5</color>
+    <color name="blanc">#FFFFFF</color>
+    <color name="noir">#000000</color>
+    <color name="noirTouchDown">#33000000</color>
+    <color name="noirOverlay">#D0000000</color>
+    <color name="noirOverlayLight">#60000000</color>
+    <color name="blancTouchDown">#33FFFFFF</color>
+    <color name="blancBackShare">#D0FFFFFF</color>
+    <color name="transparent">#00000000</color>
+    <color name="grisLabele">#D1D4DA</color>
+    <color name="grisSeparate">#EAEAEA</color>
+    <color name="grisFondList">#FBFBFB</color>
+    <color name="grisFondPikiBack">#1A1B1F</color>
+    <color name="grisFondPikiPlaceholder1">#E6E7EA</color>
+    <color name="grisFondPikiPlaceholder2">#ECEEF0</color>
+    <color name="grisTransparetn">#F41A1B1F</color>
+    <color name="grisTextDisable">#D8D8D8</color>
+    <color name="grisGoandUp">#4c4c4c</color>
+
+    <!--LOADER-->
+    <color name="loaderBackColor">#DDCCCCCC</color>
+    <color name="loaderColor1">#FC68A1</color>
+    <color name="loaderColor2">#ff642032</color>
+
+    <color name="overlay">#10000000</color>
+
+    <color name="deleteOn">#E1113C</color>
+    <color name="deleteOff">#D1D4DA</color>
+
+    <!--COLOR OLD PIKI-->
+    <color name="rouge_piki">#fe767a</color>
+    <color name="bleu_piki">#2ca4e2</color><!-- #46abe0 -->
+    <color name="vert_piki">#2ecc71</color>
+    <color name="jaune_piki">#f1c40f</color><!-- #f2e33a -->
+    <color name="violet_piki">#9b59b6</color>
+    <color name="bleufonce_piki">#34495e</color>
+</resources>

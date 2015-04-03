@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:background="@color/firstColorLight"
+    android:gravity="center_horizontal"
+    android:layout_height="75dp">
+
+    <LinearLayout
+        android:id="@+id/layoutOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:background="@color/firstColor"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="8dp"
+        android:paddingRight="16dp">
+
+        <com.makeramen.RoundedImageView
+            android:id="@+id/imgUser"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginRight="8dp"
+            android:scaleType="fitCenter"
+            app:riv_corner_radius="30dip"
+            app:riv_mutate_background="true" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_marginRight="5dp">
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtUserName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/phonenumber_title"
+                android:gravity="center_vertical"
+                android:textSize="20dp"
+                app:customFont="proximanova_sbold.otf"
+                android:textColor="@color/blanc" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtUserBaseline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/phonenumber_title"
+                android:gravity="center_vertical"
+                android:layout_marginTop="3dp"
+                android:textSize="16dp"
+                android:alpha="0.5"
+                app:customFont="proximanova_light.otf"
+                android:textColor="@color/blanc" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/pictoAddUser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/picto_adduser"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

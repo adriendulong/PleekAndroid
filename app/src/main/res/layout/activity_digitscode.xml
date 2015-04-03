@@ -1,0 +1,262 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/firstColorLight"
+    android:orientation="vertical">
+
+    <!--<LinearLayout-->
+        <!--android:layout_width="0px"-->
+        <!--android:layout_height="0px"-->
+        <!--android:focusable="true"-->
+        <!--android:focusableInTouchMode="true"/>-->
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="@color/firstColor"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_plane_lock"
+                android:layout_marginTop="5dp"/>
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/digitscode_title"
+                android:gravity="center"
+                android:textSize="30dp"
+                android:layout_marginTop="10dp"
+                app:customFont="proximanova_sbold.otf"
+                android:textColor="@color/blanc"/>
+
+            <LinearLayout
+                android:layout_width="55dp"
+                android:layout_height="2dp"
+                android:layout_margin="18dp"
+                android:background="@color/secondColor"/>
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtPhoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/username_subtitle"
+                android:gravity="center"
+                android:textSize="15dp"
+                android:textColor="@color/blanc"
+                app:customFont="proximanova_light.otf"
+                android:alpha="0.4"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="25dp"
+                android:layout_marginRight="25dp"
+                android:gravity="center_horizontal">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/digitscode_label"
+                    android:textSize="10dp"
+                    app:customFont="proximanova_light.otf"
+                    android:textColor="@color/blanc"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <!--CODE 1-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="1">
+
+                        <com.goandup.lib.widget.EditTextFont
+                            android:id="@+id/editCode1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="30dp"
+                            android:textColor="@color/blanc"
+                            android:background="@color/transparent"
+                            app:customFont="proximanova_sbold.otf"
+                            android:inputType="number"
+                            android:lines="1"
+                            android:gravity="center"
+                            android:textCursorDrawable="@drawable/cursor"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:background="@color/blanc"/>
+
+                    </LinearLayout>
+
+                    <!--CODE 2-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="1">
+
+                        <com.goandup.lib.widget.EditTextFont
+                            android:id="@+id/editCode2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="30dp"
+                            android:textColor="@color/blanc"
+                            android:background="@color/transparent"
+                            app:customFont="proximanova_sbold.otf"
+                            android:inputType="number"
+                            android:lines="1"
+                            android:gravity="center"
+                            android:textCursorDrawable="@drawable/cursor"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:background="@color/blanc"/>
+
+                    </LinearLayout>
+
+                    <!--CODE 3-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="1">
+
+                        <com.goandup.lib.widget.EditTextFont
+                            android:id="@+id/editCode3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="30dp"
+                            android:textColor="@color/blanc"
+                            android:background="@color/transparent"
+                            app:customFont="proximanova_sbold.otf"
+                            android:inputType="number"
+                            android:lines="1"
+                            android:gravity="center"
+                            android:textCursorDrawable="@drawable/cursor"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:background="@color/blanc"/>
+
+                    </LinearLayout>
+
+                    <!--CODE 4-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="1">
+
+                        <com.goandup.lib.widget.EditTextFont
+                            android:id="@+id/editCode4"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="30dp"
+                            android:textColor="@color/blanc"
+                            android:background="@color/transparent"
+                            app:customFont="proximanova_sbold.otf"
+                            android:inputType="number"
+                            android:lines="1"
+                            android:gravity="center"
+                            android:textCursorDrawable="@drawable/cursor"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:background="@color/blanc"/>
+
+                    </LinearLayout>
+
+                    <!--HERE-->
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1"/>
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtBadCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/digitscode_badcode"
+                android:textSize="14dp"
+                app:customFont="proximanova_light.otf"
+                android:textColor="@color/secondColor"
+                android:visibility="invisible"/>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shadow_top"
+                android:layout_marginTop="2dp"/>
+            <RelativeLayout
+                android:id="@+id/btnBack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:background="@drawable/warning_transition">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/digitscode_btn_next"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    android:layout_margin="5dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_centerInParent="true"
+                    app:customFont="proximanova_sbold.otf"
+                    android:textColor="@color/blanc"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_arrow_left_light"
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerInParent="true"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

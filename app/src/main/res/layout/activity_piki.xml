@@ -1,0 +1,594 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/rootView">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:gravity="center_vertical"
+                    android:background="@color/firstColorLight">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:gravity="center_vertical"
+                        android:layout_weight="1">
+
+                        <LinearLayout
+                            android:id="@+id/btnBack"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="10dp"
+                                android:src="@drawable/picto_arrow_left_light"/>
+
+                            <com.goandup.lib.widget.TextViewFont
+                                android:id="@+id/txtNamePiki"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/app_name"
+                                android:minWidth="60dp"
+                                android:textSize="20dp"
+                                app:customFont="proximanova_sbold.otf"
+                                android:layout_marginRight="5dp"
+                                android:layout_marginLeft="10dp"
+                                android:textColor="@color/blanc"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:id="@+id/btnShare"
+                        android:layout_width="85dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:background="@color/firstColor">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/picto_share"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutOverlayReplyTop"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:background="@color/noirOverlay"/>
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff
+                    android:id="@+id/refreshSwipe"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <com.goandup.lib.widget.ListViewScrollingOff
+                        android:id="@+id/listViewPiki"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:fadingEdge="none"
+                        android:divider="@color/grisSeparate"
+                        android:dividerHeight="1dp"
+                        android:fadingEdgeLength="0px"/>
+                </com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff>
+
+                <LinearLayout
+                    android:id="@+id/layoutOverlayReply"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:background="@color/noirOverlay"/>
+
+                <RelativeLayout
+                    android:id="@+id/layoutCamera"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:background="@color/noir"
+                    android:visibility="gone">
+
+                    <com.goandup.lib.widget.CameraView
+                        android:id="@+id/cameraView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:autoStart="false"
+                        app:faceCamera="false"/>
+
+                    <com.goandup.lib.widget.FlipImageView
+                        android:id="@+id/imgSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_margin="10dp"
+                        android:src="@drawable/picto_switch"
+                        app:flipDrawable="@drawable/picto_switch2"
+                        app:flipDuration="600"
+                        app:flipInterpolator="@android:anim/overshoot_interpolator"
+                        app:flipRotations="y"/>
+
+                    <LinearLayout
+                        android:id="@+id/layoutTextReact"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <com.goandup.lib.widget.EditTextFont
+                            android:id="@+id/edittexteReact"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:inputType="textShortMessage|textMultiLine|textNoSuggestions"
+                            android:textColor="@color/blanc"
+                            android:textSize="30dp"
+                            android:textCursorDrawable="@drawable/cursor_big"
+                            app:customFont="proximanova_sbold.otf"
+                            android:background="@color/noirOverlayLight"
+                            android:gravity="center"
+                            android:visibility="gone"
+                            android:privateImeOptions="nm"/>
+
+                        <ImageView
+                            android:id="@+id/imgviewReact"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/noirOverlayLight"
+                            android:visibility="gone"/>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shadow_bot"/>
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shadow_top"
+                    android:layout_alignParentBottom="true"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutTopInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:background="@color/grisTransparetn"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:id="@+id/txtNbReply"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="123"
+                        android:textSize="20dp"
+                        app:customFont="proximanova_sbold.otf"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="20dp"
+                        android:textColor="@color/blanc"/>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/picto_reply_little"/>
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:id="@+id/txtNbFriendTopbar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="18"
+                        android:textSize="20dp"
+                        app:customFont="proximanova_sbold.otf"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="15dp"
+                        android:textColor="@color/blanc"/>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/picto_friends_little"/>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"/>
+
+                    <com.makeramen.RoundedImageView
+                        android:id="@+id/imgPikiMini"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_margin="5dp"
+                        app:riv_corner_radius="3dip"/>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/layoutReply"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <RelativeLayout
+                android:id="@+id/layoutBtnRoundedReply"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true">
+
+                <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+                    android:id="@+id/btnReply"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    app:buttonColor="@color/secondColor"
+                    app:buttonPicto="@drawable/picto_reply_arrow"/>
+
+                <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+                    android:id="@+id/btnCapture"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    app:buttonColor="@color/secondColor"
+                    app:buttonPicto="@drawable/picto_reply"
+                    android:visibility="gone"/>
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutBtnReply"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/btnReplyHearth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/btn_ronded"/>
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/emoji_heart"
+                        android:layout_centerInParent="true"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/btnReplyOk"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/btn_ronded"/>
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/emoji_ok"
+                        android:layout_centerInParent="true"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/btnReplyStuck"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/btn_ronded"/>
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/emoji_stuck"
+                        android:layout_centerInParent="true"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"
+                    android:paddingTop="5dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/btnReplyTexte"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/btn_ronded"/>
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/reply_text"
+                        android:layout_centerInParent="true"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"
+                    android:visibility="gone">
+                    <ImageView
+                        android:id="@+id/btnReplyClose"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_centerInParent="true"/>
+                    <ImageView
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:src="@drawable/picto_cross"
+                        android:layout_centerInParent="true"
+                        android:paddingTop="5dp"/>
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+
+
+
+
+
+
+        <RelativeLayout
+            android:id="@+id/layoutOverlayShare"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/noirOverlay"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/layoutShare"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutActionShare"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginBottom="-201dp"
+                    android:background="@color/blancBackShare"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+                android:id="@+id/btnConfrimShare"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                app:buttonColor="@color/secondColor"
+                app:buttonPicto="@drawable/picto_share"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout android:id="@+id/removeFocus" android:focusableInTouchMode="true" android:focusable="true" android:layout_width="0px" android:layout_height="0px"/>
+
+        <RelativeLayout
+            android:id="@+id/layoutTuto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:id="@+id/layoutTutoTop"
+                    android:layout_width="match_parent"
+                    android:layout_height="380dp"
+                    android:background="@color/noirOverlay"/>
+
+                <LinearLayout
+                    android:id="@+id/layoutTutoCenter"
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp"
+                    android:orientation="horizontal">
+                    <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/noirOverlay"
+                        android:layout_weight="1"/>
+                    <RelativeLayout
+                        android:layout_width="2dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/noirOverlay"/>
+                    <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"/>
+                    <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/noirOverlay"
+                        android:layout_weight="1"/>
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/noirOverlay"/>
+
+            </LinearLayout>
+
+            <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+                android:id="@+id/btnReplyTuto"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="30dp"
+                app:buttonColor="@color/secondColor"
+                app:buttonPicto="@drawable/picto_reply_arrow"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="85dp"
+                android:gravity="right">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginRight="20dp">
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/piki_tuto_add"
+                        android:textSize="20dp"
+                        android:gravity="right"
+                        app:customFont="gotham-rounded-bold.ttf"
+                        android:textColor="@color/blanc"/>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="15dp"
+                        android:src="@drawable/emoji_biere"/>
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/img_lineaddreact"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="52dp"/>
+            </LinearLayout>
+
+
+
+            <LinearLayout
+                android:id="@+id/layoutTutoReact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="290dp"
+                android:gravity="center">
+
+                <LinearLayout
+                    android:layout_width="230dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginLeft="-60dp">
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/piki_tuto_react"
+                        android:textSize="20dp"
+                        android:layout_weight="1"
+                        android:gravity="right"
+                        app:customFont="gotham-rounded-bold.ttf"
+                        android:textColor="@color/blanc"/>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:src="@drawable/emoji_fete"/>
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/img_linereact"
+                    android:layout_marginLeft="-30dp"
+                    android:layout_marginTop="5dp"/>
+            </LinearLayout>
+
+        </RelativeLayout>
+
+
+    </RelativeLayout>
+
+
+</RelativeLayout>

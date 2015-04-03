@@ -1,0 +1,195 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- FAKE layout for get first focus -->
+    <LinearLayout
+        android:focusable="true" android:focusableInTouchMode="true"
+        android:layout_width="0px" android:layout_height="0px"/>
+
+    <!-- TOP BAR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:gravity="center_vertical"
+        android:background="@color/firstColorLight">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="15dp"
+            android:src="@drawable/picto_arrow_left_light"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:src="@drawable/picto_search"/>
+
+        <com.goandup.lib.widget.EditTextFont
+            android:id="@+id/editSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18dp"
+            app:customFont="proximanova_sbold.ttf"
+            android:layout_margin="5dp"
+            android:padding="5dp"
+            android:singleLine="true"
+            android:lines="1"
+            android:maxLines="1"
+            android:hint="@string/friends_hint"
+            android:textColorHint="@color/firstColorDark"
+            android:layout_weight="1"
+            android:textColor="@color/blanc"
+            android:background="@color/firstColorLight"/>
+
+        <LinearLayout
+            android:id="@+id/btnTopBar"
+            android:layout_width="85dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:clickable="true"
+            android:background="@color/firstColor">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_setting"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!-- PAGER TAB -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/blanc">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <RelativeLayout
+                android:id="@+id/btnTab1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="16dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:text="@string/friends_tab1"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:padding="5dp"
+                    android:textColor="@color/grisTextDisable"/>
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="16dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:text="@string/friends_tab1"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:padding="5dp"
+                    android:textColor="@color/firstColor"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/btnTab2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="16dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:text="@string/friends_tab2"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:padding="5dp"
+                    android:textColor="@color/grisTextDisable"/>
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="16dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:text="@string/friends_tab2"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:padding="5dp"
+                    android:textColor="@color/firstColor"
+                    android:alpha="0"/>
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:id="@+id/txtTab2Add"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textSize="16dp"
+                    app:customFont="proximanova_sbold.ttf"
+                    android:text="@string/friends_tab2"
+                    android:gravity="center"
+                    android:textStyle="bold"
+                    android:padding="5dp"
+                    android:textColor="@color/secondColor"
+                    android:alpha="0"/>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/tabIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/secondColor"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@color/transparent"/>
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+
+    <!-- CONTENT -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/shadow_bot"/>
+
+    </RelativeLayout>
+
+</LinearLayout>
