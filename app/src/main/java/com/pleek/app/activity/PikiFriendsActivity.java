@@ -16,6 +16,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.adapter.FriendsAdapter;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.squareup.picasso.Picasso;
@@ -41,7 +42,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     private static Piki _piki;
     private Piki piki;
     private FriendsAdapter adapter;
-    private List<FriendsAdapter.Friend> listFriend;
+    private List<Friend> listFriend;
 
     public static void initActivity(Piki piki)
     {
@@ -96,7 +97,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     private boolean fromCache;
     private int currentPage;
     private final int NB_BY_PAGE = 50;
-    private List<FriendsAdapter.Friend> listBeforreRequest;
+    private List<Friend> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
     private boolean loadNext()
@@ -108,8 +109,8 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         if(endOfLoading) return false;
 
         //copie de la liste actuel des piki
-        if(listFriend == null) listFriend = new ArrayList<FriendsAdapter.Friend>();
-        listBeforreRequest = new ArrayList<FriendsAdapter.Friend>(listFriend);
+        if(listFriend == null) listFriend = new ArrayList<Friend>();
+        listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         ParseUser currentUser = ParseUser.getCurrentUser();
         final List<String> usersFriend = currentUser.containsKey("usersFriend") ? currentUser.<String>getList("usersFriend") : new ArrayList<String>();
@@ -134,7 +135,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
                     if(!fromCache) currentPage++;
 
                     //copie de la liste d'avant la request
-                    listFriend = new ArrayList<FriendsAdapter.Friend>(listBeforreRequest);
+                    listFriend = new ArrayList<Friend>(listBeforreRequest);
                     for(ParseUser user : list)
                     {
                         int image = -1;
@@ -142,7 +143,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
                         {
                             image = usersIMuted.contains(user.getObjectId()) ? R.drawable.picto_mute_user_on : R.drawable.picto_mute_user;
                         }
-                        FriendsAdapter.Friend friend = adapter.new Friend((String)null, image);
+                        Friend friend = new Friend((String)null, image);
                         friend.username = user.getUsername();
                         friend.parseId = user.getObjectId();
                         listFriend.add(friend);
@@ -186,7 +187,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     }
 
     @Override
-    public void clickOnName(final FriendsAdapter.Friend friend)
+    public void clickOnName(final Friend friend)
     {
         final FunctionCallback callback = new FunctionCallback<Object>()
         {

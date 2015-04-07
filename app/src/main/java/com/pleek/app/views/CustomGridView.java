@@ -4,8 +4,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
-import in.srain.cube.views.GridViewWithHeaderAndFooter;
-
 /**
  * Created by tiago on 07/04/2015.
  */

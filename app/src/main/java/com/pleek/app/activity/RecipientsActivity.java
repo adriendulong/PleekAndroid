@@ -38,6 +38,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.pleek.app.R;
 import com.pleek.app.adapter.FriendsAdapter;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ViewLoadingFooter;
 
 import org.json.JSONException;
@@ -76,7 +77,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     private byte[] pikiData;
     private int initialWidthMarginLeftBtnSearch;
     private FriendsAdapter adapter;
-    private ArrayList<FriendsAdapter.Friend> listFriend;
+    private ArrayList<Friend> listFriend;
 
     public static void initActivity(byte[] pikiData)
     {
@@ -202,7 +203,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     private boolean fromCache;
     private int currentPage;
     private final int NB_BY_PAGE = 50;
-    private List<FriendsAdapter.Friend> listBeforreRequest;
+    private List<Friend> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
     private boolean loadNext()
@@ -217,8 +218,8 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         if(listFriends == null || listFriends.isEmpty()) return false;
 
         //copie de la liste actuel des piki
-        if(listFriend == null) listFriend = new ArrayList<FriendsAdapter.Friend>();
-        listBeforreRequest = new ArrayList<FriendsAdapter.Friend>(listFriend);
+        if(listFriend == null) listFriend = new ArrayList<Friend>();
+        listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         isLoading = true;
         fromCache = true;
@@ -237,11 +238,11 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
                 {
                     if(!fromCache) currentPage++;
 
-                    listFriend = new ArrayList<FriendsAdapter.Friend>(listBeforreRequest);
+                    listFriend = new ArrayList<Friend>(listBeforreRequest);
 
                     for (ParseUser user : parseObjects)
                     {
-                        FriendsAdapter.Friend friend = adapter.new Friend(null, R.string.friends_section, R.drawable.picto_recipient_off);
+                        Friend friend = new Friend(null, R.string.friends_section, R.drawable.picto_recipient_off);
                         friend.username = user.getString("username");
                         friend.parseId = user.getObjectId();
                         listFriend.add(friend);
@@ -302,7 +303,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
             boolean isPublic = true;
             if(listFriend != null)
             {
-                for(FriendsAdapter.Friend f : listFriend)//crash #3 listFriend=null
+                for(Friend f : listFriend)//crash #3 listFriend=null
                 {
                     if(f.image == R.drawable.picto_recipient_on)
                     {
@@ -333,7 +334,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         if(!isPublic)
         {
             tmpListRecipients = new ArrayList<String>();
-            for(FriendsAdapter.Friend f : listFriend)
+            for(Friend f : listFriend)
             {
                 if(f.image == R.drawable.picto_recipient_on) tmpListRecipients.add(f.parseId);
             }
@@ -447,7 +448,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     {
         try
         {
-            ArrayList<FriendsAdapter.Friend> listFiltred = new ArrayList<FriendsAdapter.Friend>();
+            ArrayList<Friend> listFiltred = new ArrayList<Friend>();
 
             boolean nofriend = listFriend == null || listFriend.size() == 0;
             boolean nofiltre = filtreSearch == null;
@@ -456,7 +457,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
 
             if(!nofriend)
             {
-                for(FriendsAdapter.Friend friend : listFriend)
+                for(Friend friend : listFriend)
                 {
                     if(filtreSearch == null || (friend.username != null && friend.username.toLowerCase().contains(filtreSearch)))
                     {
@@ -603,13 +604,13 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     }
 
     @Override
-    public void clickOnName(FriendsAdapter.Friend friend)
+    public void clickOnName(Friend friend)
     {
         friend.image = friend.image == R.drawable.picto_recipient_off ? R.drawable.picto_recipient_on : R.drawable.picto_recipient_off;
         adapter.notifyDataSetChanged();
 
         int nbFirendChecked = 0;
-        for(FriendsAdapter.Friend f : listFriend)
+        for(Friend f : listFriend)
         {
             if(f.image == R.drawable.picto_recipient_on) nbFirendChecked++;
         }

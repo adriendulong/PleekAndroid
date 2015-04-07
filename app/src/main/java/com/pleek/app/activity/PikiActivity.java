@@ -79,8 +79,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import in.srain.cube.views.GridViewWithHeaderAndFooter;
-
 /**
  * Created by nicolas on 18/12/14.
  */

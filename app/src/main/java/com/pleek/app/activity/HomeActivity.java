@@ -54,6 +54,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
     private PikiAdapter adapter;
     private List<Piki> listPiki;
+    private List<ParseObject> friends;
 
     private int initialX;
 
@@ -161,7 +162,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private List<Piki> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
-    private boolean loadNext(boolean withCache)
+    private boolean loadNext(final boolean withCache)
     {
         //si déjà en train de loader, on fait rien
         if(isLoading) return false;
@@ -170,11 +171,12 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         if(endOfLoading) return false;
 
         //on récupère le currentUser, si il n'existe pas, on fait rien
-        ParseUser currentUser = ParseUser.getCurrentUser();
+        final ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return false;
 
         //copie de la liste actuel des piki
-        if(listPiki == null) listPiki = new ArrayList<Piki>();
+        if (listPiki == null) listPiki = new ArrayList<Piki>();
+        if (friends == null) friends = new ArrayList<ParseObject>();
         listBeforreRequest = new ArrayList<Piki>(listPiki);
 
         //flag pour reconnaitre réponse Parse du cache et réponse Parse network
@@ -184,11 +186,41 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         listViewPiki.addFooterView(footer);
         isLoading = true;
 
-        //Parse Query
-        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.whereEqualTo("user", currentUser);
+        if (friends == null || friends.size() == 0) {
+            //Parse Query Friends
+            ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+            innerQuery.whereEqualTo("user", currentUser);
+            innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+                @Override
+                public void done(List<ParseObject> list, ParseException e) {
+                    if (e == null && list != null) {
+                        friends.addAll(list);
+                    }
+
+                    loadPikis(withCache);
+                }
+            });
+        } else {
+            loadPikis(withCache);
+        }
+
+        return true;
+    }
+
+    private void loadPikis(boolean withCache) {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null) return;
+
+        friends.add(currentUser);
+
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-        query.whereMatchesQuery("user", innerQuery);
+        query.whereContainedIn("user", friends);
+        query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
+        query.include("user");
+        query.orderByDescending("lastUpdate");
+        query.setSkip(currentPage * NB_BY_PAGE);
+        query.setLimit(NB_BY_PAGE);
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> parseObjects, ParseException e) {
@@ -223,8 +255,6 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                 fromCache = false;
             }
         });
-
-        return true;
     }
 
     private void showTuto()

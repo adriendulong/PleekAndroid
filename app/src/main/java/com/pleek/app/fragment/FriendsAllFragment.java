@@ -18,6 +18,7 @@ import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.activity.FriendsActivity;
 import com.pleek.app.adapter.FriendsAdapter;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ViewLoadingFooter;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     private ViewLoadingFooter footer;
 
     private FriendsAdapter adapter;
-    private List<FriendsAdapter.Friend> listFriend;
+    private List<Friend> listFriend;
 
     private String currentFiltreSearch;
 
@@ -92,7 +93,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     private boolean fromCache;
     private int currentPage;
     private final int NB_BY_PAGE = 50;
-    private List<FriendsAdapter.Friend> listBeforreRequest;
+    private List<Friend> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
     private boolean loadNext()
@@ -107,8 +108,8 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         if(listFriends == null || listFriends.isEmpty()) return false;
 
         //copie de la liste actuel des piki
-        if(listFriend == null) listFriend = new ArrayList<FriendsAdapter.Friend>();
-        listBeforreRequest = new ArrayList<FriendsAdapter.Friend>(listFriend);
+        if(listFriend == null) listFriend = new ArrayList<Friend>();
+        listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         ParseUser parseUser = ParseUser.getCurrentUser();
         final List<String> usersIMuted = parseUser.getList("usersIMuted");
@@ -131,11 +132,11 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
                     if(!fromCache) currentPage++;
 
                     //copie de la liste d'avant la request
-                    listFriend = new ArrayList<FriendsAdapter.Friend>(listBeforreRequest);
+                    listFriend = new ArrayList<Friend>(listBeforreRequest);
                     for (ParseUser user : parseObjects)
                     {
                         int image = usersIMuted != null && usersIMuted.contains(user.getObjectId()) ? R.drawable.picto_mute_user_on : R.drawable.picto_mute_user;
-                        FriendsAdapter.Friend friend = adapter.new Friend(null, R.string.friends_section, image);
+                        Friend friend = new Friend(null, R.string.friends_section, image);
                         friend.username = user.getString("username");
                         friend.parseId = user.getObjectId();
                         listFriend.add(friend);
@@ -173,7 +174,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         {
             currentFiltreSearch = filtreSearch;
 
-            ArrayList<FriendsAdapter.Friend> listFiltred = new ArrayList<FriendsAdapter.Friend>();
+            ArrayList<Friend> listFiltred = new ArrayList<Friend>();
 
             boolean nofriend = listFriend == null || listFriend.size() == 0;
             boolean nofiltre = filtreSearch == null;
@@ -182,7 +183,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
             if(!nofriend)
             {
-                for(FriendsAdapter.Friend friend : listFriend)
+                for(Friend friend : listFriend)
                 {
                     if(filtreSearch == null
                             || (friend.name != null && friend.name.toLowerCase().contains(filtreSearch))
@@ -208,7 +209,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     }
 
     @Override
-    public void clickOnName(final FriendsAdapter.Friend friend)
+    public void clickOnName(final Friend friend)
     {
         if(friend.sectionLabel == R.string.friends_section)//mute
         {

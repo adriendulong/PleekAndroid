@@ -27,6 +27,7 @@ import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.activity.FriendsActivity;
 import com.pleek.app.adapter.FriendsAdapter;
+import com.pleek.app.bean.Friend;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +46,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     private StickyListHeadersListView listView;
     private TextView txtNoContact;
 
-    private List<FriendsAdapter.Friend> listFriend;
+    private List<Friend> listFriend;
     private FriendsAdapter adapter;
     private String currentFiltreSearch;
 
@@ -85,7 +86,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
 
     public void init()
     {
-        listFriend = new ArrayList<FriendsAdapter.Friend>();
+        listFriend = new ArrayList<Friend>();
 
         //get all contact phone number
         Cursor phones = getActivity().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
@@ -100,7 +101,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
 
                 if(isMobile(phoneNumber))
                 {
-                    FriendsAdapter.Friend friend = adapter.new Friend(name, R.string.friends_section_out, R.drawable.picto_sms);
+                    Friend friend = new Friend(name, R.string.friends_section_out, R.drawable.picto_sms);
                     friend.phoneNumber = formatNumber(phoneNumber);
                     listFriend.remove(friend);
                     listFriend.add(friend);
@@ -113,7 +114,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         if(listFriend.size() > 0)
         {
             List<String> listNumber = new ArrayList<String>();
-            for(FriendsAdapter.Friend friend : listFriend)
+            for(Friend friend : listFriend)
             {
                 listNumber.add(friend.phoneNumber);
             }
@@ -135,7 +136,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                         {
                             if(usersFriend == null || !usersFriend.contains(user.get("userObjectId")))
                             {
-                                FriendsAdapter.Friend friend = adapter.new Friend(getNameByNum(user.get("phoneNumber")), R.string.friends_section_on, R.drawable.picto_adduser);
+                                Friend friend = new Friend(getNameByNum(user.get("phoneNumber")), R.string.friends_section_on, R.drawable.picto_adduser);
                                 friend.username = user.get("username");
                                 friend.phoneNumber = user.get("phoneNumber");
                                 friend.parseId = user.get("userObjectId");
@@ -172,7 +173,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
 
     private String getNameByNum(String phoneNumber)
     {
-        for(FriendsAdapter.Friend friend : listFriend)
+        for(Friend friend : listFriend)
         {
             if(phoneNumber.equals(friend.phoneNumber))
             {
@@ -259,7 +260,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         {
             currentFiltreSearch = filtreSearch;
 
-            ArrayList<FriendsAdapter.Friend> listFiltred = new ArrayList<FriendsAdapter.Friend>();
+            ArrayList<Friend> listFiltred = new ArrayList<Friend>();
 
             boolean nofriend = listFriend == null || listFriend.size() == 0;
             boolean nofiltre = filtreSearch == null;
@@ -268,7 +269,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
 
             if(!nofriend)
             {
-                for(FriendsAdapter.Friend friend : listFriend)
+                for(Friend friend : listFriend)
                 {
                     if(filtreSearch == null
                             || (friend.name != null && friend.name.toLowerCase().contains(filtreSearch))
@@ -329,7 +330,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                         if(list.size() > 0)
                         {
                             txtNoContact.setVisibility(View.GONE);
-                            adapter.addPikiUser(adapter.new Friend(list.get(0), R.string.friends_section_pikiuser));
+                            adapter.addPikiUser(new Friend(list.get(0), R.string.friends_section_pikiuser));
                         }
                         else
                         {
@@ -342,7 +343,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     }
 
     @Override
-    public void clickOnName(final FriendsAdapter.Friend friend)
+    public void clickOnName(final Friend friend)
     {
         if(friend.sectionLabel == R.string.friends_section_on)//add
         {
