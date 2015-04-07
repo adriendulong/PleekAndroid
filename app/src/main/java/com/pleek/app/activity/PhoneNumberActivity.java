@@ -158,6 +158,7 @@ public class PhoneNumberActivity extends ParentActivity implements View.OnClickL
                             HashMap<String, Object> repMap = (HashMap<String, Object>) rep.get(0);
                             goodCodeTmp = repMap.get("randomNumber")+"";
                             usernameTmp = (String)repMap.get("username");
+                            System.out.println("NUMBER : " + goodCodeTmp);
                         }
                         else
                         {

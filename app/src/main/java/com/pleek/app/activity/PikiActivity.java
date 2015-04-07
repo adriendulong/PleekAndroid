@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -61,6 +62,7 @@ import com.parse.SaveCallback;
 import com.pleek.app.R;
 import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.adapter.ReactAdapter;
+import com.pleek.app.adapter.ReactAdapterBis;
 import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
@@ -69,6 +71,7 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.lucasr.twowayview.widget.TwoWayView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -83,7 +86,7 @@ import java.util.Map;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapterBis.Listener
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -91,7 +94,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View btnBack;
     private View btnShare;
     private TextView txtNamePiki;
-    private ListViewScrollingOff listViewPiki;
+    private TwoWayView listViewPiki;
     private TextView txtNbFriend;
     private TextView txtNbReply;
     private View pikiHeader;
@@ -131,7 +134,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private static Piki _piki;
     private Piki piki;
-    private ReactAdapter adapter;
+    private ReactAdapterBis adapter;
     private int initialX;
     private List<Reaction> listReact;
     private boolean isKeyboardShow;
@@ -177,9 +180,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         btnShare.setOnTouchListener(new DownTouchListener(colorDown, colorUp));
 
         txtNamePiki = (TextView)findViewById(R.id.txtNamePiki);
-        listViewPiki = (ListViewScrollingOff)findViewById(R.id.listViewPiki);
-        listViewPiki.setOnTouchListener(new MyListTouchListener());
-        listViewPiki.setOnScrollListener(new MyOnScrollListener());
+        listViewPiki = (TwoWayView)findViewById(R.id.listViewPiki);
+        listViewPiki.setHasFixedSize(true);
+        // TODO listViewPiki.setOnScrollListener(new MyOnScrollListener());
 
         //header
         pikiHeader = LayoutInflater.from(this).inflate(R.layout.item_piki_header, null, false);
@@ -193,7 +196,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         txtTroisPoints = (TextView) pikiHeader.findViewById(R.id.txtTroisPoints);
         txtTroisPoints.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
         txtTroisPoints.setOnClickListener(this);
-        listViewPiki.addHeaderView(pikiHeader);
+        // TODO listViewPiki.addHeaderView(pikiHeader);
 
         //footer listview
         footer = new ViewLoadingFooter(this);
@@ -357,14 +360,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         });
 
-        adapter = new ReactAdapter(new ArrayList<Reaction>(), PikiActivity.this);
+        adapter = new ReactAdapterBis(new ArrayList<Reaction>(), PikiActivity.this);
         //wait listViewPiki is created for get height
-        listViewPiki.post(new Runnable()
-        {
+        listViewPiki.post(new Runnable() {
             @Override
-            public void run()
-            {
-                adapter.setHeightListView(listViewPiki.getHeight());
+            public void run() {
                 listViewPiki.setAdapter(adapter);
             }
         });
@@ -476,7 +476,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         //il n'y a plus rien a charger
         if(endOfLoading) return false;
 
-        listViewPiki.addFooterView(footer);
+        // TODO listViewPiki.addFooterView(footer);
 
         if(listReact == null) listReact = new ArrayList<Reaction>();
         listBeforreRequest = new ArrayList<Reaction>(listReact);
@@ -523,7 +523,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 if(!fromCache)
                 {
                     refreshSwipe.setRefreshing(false);
-                    listViewPiki.removeFooterView(footer);
+                    // TODO listViewPiki.removeFooterView(footer);
                     listViewPiki.post(new Runnable()
                     {
                         @Override
@@ -562,18 +562,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
-    public void clickOnReaction(Reaction react)
-    {
-        if(react.isTmpReaction() && react.isLoadError())
-        {
+    public void clickOnReaction(Reaction react) {
+        if (react.isTmpReaction() && react.isLoadError()) {
             adapter.markLoadError(react, false);
             sendReact(react);
         }
     }
 
     @Override
-    public void doubleTapReaction(Reaction react)
-    {
+    public void doubleTapReaction(Reaction react) {
         if(react == null || react.getParseObject() == null) return;//fix : CRASH #11
 
         final ParseUser userReact = react.getParseObject().getParseUser("user");
@@ -631,7 +628,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void showPlaceHolderItem(boolean show) {
-        listViewPiki.setScrollingEnabled(!show);
+        // TODO listViewPiki.setScrollingEnabled(!show);
     }
 
     @Override
@@ -758,7 +755,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             {
                 int action = event.getAction();
 
-                if(action == MotionEvent.ACTION_MOVE && listViewPiki.isScrollingHorizontalLeft())
+                if(action == MotionEvent.ACTION_MOVE /*&& TODO listViewPiki.isScrollingHorizontalLeft()*/)
                 {
                     if(downItem == null)
                     {
@@ -815,7 +812,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         View backView = downItem.findViewById(R.id.back);
                         if(frontView != null && backView != null && downItem.getTag() != null)
                         {
-                            adapter.stopCurrentVideo();
+                            // TODO adapter.stopCurrentVideo();
 
                             int moveX = initialX - (int)event.getRawX();
 
@@ -922,25 +919,18 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                                         }
                                     });
                                 }
-                                else
-                                {
+                                else {
                                     ///////////////
                                     // POPUP REPORT
-                                    showDialog(R.string.piki_popup_report_title, R.string.piki_popup_report_texte, new MyDialogListener()
-                                    {
+                                    showDialog(R.string.piki_popup_report_title, R.string.piki_popup_report_texte, new MyDialogListener() {
                                         @Override
-                                        public void closed(boolean accept)
-                                        {
+                                        public void closed(boolean accept) {
                                             // REPORT
-                                            if(accept)
-                                            {
+                                            if (accept) {
                                                 animRestorePositionItem(downItem, moveX);
-                                                reportOrRemoveReact(adapter.getReaction(position));
-
-                                                //showAlert(R.string.piki_popup_report_title, R.string.piki_alert_report_texte);
+                                                reportOrRemoveReact(adapter.getItem(position));
                                             }
-                                            else // NOT REPORT
-                                            {
+                                            else { // NOT REPORT
                                                 animRestorePositionItem(downItem, moveX);
                                             }
                                         }
@@ -1469,7 +1459,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             Utile.fadeIn(btnCapture, TIME_ANIM);
             Utile.fadeOut(btnReply, TIME_ANIM);
 
-            listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
+            // TODO listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
         }
         else
         {
@@ -1594,7 +1584,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             @Override
             public void run()
             {
-                listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, 0);
+                // TODO listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, 0);
             }
         });
     }
@@ -1688,7 +1678,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     protected void onPause() {
         super.onPause();
         CameraView.release();
-        if(adapter != null) adapter.stopCurrentVideo();
+        // TODO if(adapter != null) adapter.stopCurrentVideo();
     }
 
     @Override
