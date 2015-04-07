@@ -161,6 +161,8 @@
         <!--CRASHLYTICS-->
         <meta-data android:name="com.crashlytics.ApiKey" android:value="5dfc9ad45afaab124f10ac787496b15317d6a32d"/>
 
+        <!-- MIXPANEL -->
+        <activity android:name="com.mixpanel.android.surveys.SurveyActivity" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
