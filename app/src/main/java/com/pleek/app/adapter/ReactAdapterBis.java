@@ -82,7 +82,7 @@ public class ReactAdapterBis extends RecyclerView.Adapter<ReactViewHolder> {
                 if (react.getUrlPhoto() != null) { //is Parse React
                     Drawable drawablePlaceHolder = new BitmapDrawable(mContext.getResources(), react.getTmpPhoto());
                     Picasso.with(mContext)
-                            .load(react.getUrlPhoto()).resize((int) (heightPiki), (int) (heightPiki))
+                            .load(react.getUrlPhoto()).resize((int) (heightPiki * 0.45), (int) (heightPiki * 0.45))
                             .placeholder(drawablePlaceHolder).into(reactViewHolder.imgReact);
 
                     reactViewHolder.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);

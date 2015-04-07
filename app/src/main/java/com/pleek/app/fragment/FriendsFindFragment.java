@@ -350,7 +350,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
 
             Map<String, Object> param = new HashMap<String, Object>();
             param.put("friendId", friend.parseId);
-            ParseCloud.callFunctionInBackground("addFriend", param, new FunctionCallback<Object>()
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>()
             {
                 @Override
                 public void done(Object o, ParseException e)
@@ -447,7 +447,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
             {
                 Map<String, Object> param = new HashMap<String, Object>();
                 param.put("friendId", friend.parseId);
-                ParseCloud.callFunctionInBackground("addFriend", param, new FunctionCallback<Object>()
+                ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>()
                 {
                     @Override
                     public void done(Object o, ParseException e)

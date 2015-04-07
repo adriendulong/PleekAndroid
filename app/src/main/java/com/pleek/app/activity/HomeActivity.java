@@ -185,26 +185,20 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         isLoading = true;
 
         //Parse Query
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.whereEqualTo("user", currentUser);
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-        query.whereEqualTo("recipients", currentUser.getObjectId());
-        query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
-        query.include("user");
-        query.orderByDescending("lastUpdate");
-        query.setSkip(currentPage * NB_BY_PAGE);
-        query.setLimit(NB_BY_PAGE);
-        query.findInBackground(new FindCallback<ParseObject>()
-        {
+        query.whereMatchesQuery("user", innerQuery);
+        query.findInBackground(new FindCallback<ParseObject>() {
             @Override
-            public void done(List<ParseObject> parseObjects, ParseException e)
-            {
-                if(e == null && parseObjects != null)
-                {
-                    if(!fromCache) currentPage++;
+            public void done(List<ParseObject> parseObjects, ParseException e) {
+                if (e == null && parseObjects != null) {
+                    if (!fromCache) currentPage++;
 
                     //copie de la liste d'avant la request
                     listPiki = new ArrayList<Piki>(listBeforreRequest);
-                    for (ParseObject parsePiki : parseObjects)
-                    {
+
+                    for (ParseObject parsePiki : parseObjects) {
                         listPiki.add(new Piki(parsePiki));
                     }
                     adapter.setListPiki(listPiki);
@@ -214,16 +208,13 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
                     //affichage du tuto si necessaire
                     showTuto();
-                }
-                else if(e != null)
-                {
-                    if(!fromCache) Utile.showToast(R.string.home_piki_nok, HomeActivity.this);
+                } else if (e != null) {
+                    if (!fromCache) Utile.showToast(R.string.home_piki_nok, HomeActivity.this);
                     e.printStackTrace();
                 }
 
                 //si réponse network (2eme reponse)
-                if(!fromCache)
-                {
+                if (!fromCache) {
                     refreshSwipe.setRefreshing(false);
                     listViewPiki.removeFooterView(footer);
                     isLoading = false;

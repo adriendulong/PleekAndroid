@@ -14,15 +14,15 @@ import com.parse.SaveCallback;
  */
 public class PleekApplication extends Application
 {
-//    public static final String MIXPANEL_TOKEN = "4b77ab10bab4b1d18103525dd39a7630";//DEV (Nico Up)
-    public static final String MIXPANEL_TOKEN = "bdde62cd933f58205b7cb98da8a2bca8";//PROD (Piki team)
+    public static final String MIXPANEL_TOKEN = "4b77ab10bab4b1d18103525dd39a7630";//DEV (Nico Up)
+    //public static final String MIXPANEL_TOKEN = "bdde62cd933f58205b7cb98da8a2bca8";//PROD (Piki team)
 
     @Override
     public void onCreate()
     {
         //Parse init
-        //Parse.initialize(this, "BA7FMG5LmMRx0RIPw3XdrOkR7FTnnSe4SIMRrnRG", "DrWgjs7EII2Sm1tVYwJICkjoWGA23oW42JXcI3BF");//DEV
-        Parse.initialize(this, "Yw204Svyg7sXIwvWdAZ9EmOOglqxpqk71ICpHDY9", "EPCJfqJIWtsTzARaPE4GvFsWHzfST8atBw3NCuxj");//PROD
+        Parse.initialize(this, "BA7FMG5LmMRx0RIPw3XdrOkR7FTnnSe4SIMRrnRG", "DrWgjs7EII2Sm1tVYwJICkjoWGA23oW42JXcI3BF");//DEV
+        //Parse.initialize(this, "Yw204Svyg7sXIwvWdAZ9EmOOglqxpqk71ICpHDY9", "EPCJfqJIWtsTzARaPE4GvFsWHzfST8atBw3NCuxj");//PROD
         ParsePush.subscribeInBackground("", new SaveCallback()
         {
             @Override
@@ -33,7 +33,7 @@ public class PleekApplication extends Application
             }
         });
 
-        if(ParseUser.getCurrentUser() != null) ParseUser.getCurrentUser().fetchInBackground();
+        if (ParseUser.getCurrentUser() != null) ParseUser.getCurrentUser().fetchInBackground();
 
         super.onCreate();
     }

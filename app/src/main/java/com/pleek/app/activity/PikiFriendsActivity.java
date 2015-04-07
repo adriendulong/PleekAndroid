@@ -218,7 +218,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         {
             adapter.addFriendLoading(friend);
 
-            ParseCloud.callFunctionInBackground("addFriend", param, new FunctionCallback<Object>()
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>()
             {
                 @Override
                 public void done(Object o, ParseException e)

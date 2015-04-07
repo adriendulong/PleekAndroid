@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -45,7 +44,6 @@ import com.goandup.lib.widget.CameraView;
 import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.FlipImageView;
-import com.goandup.lib.widget.ListViewScrollingOff;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
 import com.parse.CountCallback;
 import com.parse.FindCallback;
@@ -65,6 +63,7 @@ import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.views.CustomGridView;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -80,6 +79,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import in.srain.cube.views.GridViewWithHeaderAndFooter;
+
 /**
  * Created by nicolas on 18/12/14.
  */
@@ -91,7 +92,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View btnBack;
     private View btnShare;
     private TextView txtNamePiki;
-    private ListViewScrollingOff listViewPiki;
+    private CustomGridView gridViewPiki;
     private TextView txtNbFriend;
     private TextView txtNbReply;
     private View pikiHeader;
@@ -140,6 +141,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private AutoResizeFontTextWatcher fontTextWatcher;
     private boolean isPreviewVisible;
 
+    private int initMarginBottom = 0;
+
     public static void initActivity(Piki piki)
     {
         _piki = piki;
@@ -177,9 +180,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         btnShare.setOnTouchListener(new DownTouchListener(colorDown, colorUp));
 
         txtNamePiki = (TextView)findViewById(R.id.txtNamePiki);
-        listViewPiki = (ListViewScrollingOff)findViewById(R.id.listViewPiki);
-        listViewPiki.setOnTouchListener(new MyListTouchListener());
-        listViewPiki.setOnScrollListener(new MyOnScrollListener());
+        gridViewPiki = (CustomGridView) findViewById(R.id.gridViewPiki);
+        gridViewPiki.setOnTouchListener(new MyListTouchListener());
+        gridViewPiki.setOnScrollListener(new MyOnScrollListener());
 
         //header
         pikiHeader = LayoutInflater.from(this).inflate(R.layout.item_piki_header, null, false);
@@ -193,7 +196,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         txtTroisPoints = (TextView) pikiHeader.findViewById(R.id.txtTroisPoints);
         txtTroisPoints.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
         txtTroisPoints.setOnClickListener(this);
-        listViewPiki.addHeaderView(pikiHeader);
+        gridViewPiki.addHeaderView(pikiHeader);
 
         //footer listview
         footer = new ViewLoadingFooter(this);
@@ -329,12 +332,26 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         layoutCamera = findViewById(R.id.layoutCamera);
         layoutCamera.setOnClickListener(this);
-        int layoutCameraSize = screen.getWidth() / 3;
-        layoutCamera.setLayoutParams(new RelativeLayout.LayoutParams(layoutCameraSize, layoutCameraSize - screen.dpToPx(1)));
+
+        pikiHeader.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int layoutCameraSize = screen.getWidth() / 3;
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutCamera.getLayoutParams();
+                params.width = layoutCameraSize;
+                params.height = layoutCameraSize - screen.dpToPx(1);
+                initMarginBottom = (int) (rootView.getHeight() - pikiHeader.getHeight() - layoutCameraSize - 60 * screen.getDensity());
+                params.setMargins(0, 0, 0, initMarginBottom); // 60 is the size of the share layout
+                layoutCamera.setLayoutParams(params);
+
+                pikiHeader.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
+        });
+
         cameraView = (CameraView) findViewById(R.id.cameraView);
         imgSwitch = (FlipImageView) findViewById(R.id.imgSwitch);
 
-        //Open/Close Keyboard detection
+        // Open/Close Keyboard detection
         rootView = findViewById(R.id.rootView);
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
         {
@@ -358,14 +375,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         });
 
         adapter = new ReactAdapter(new ArrayList<Reaction>(), PikiActivity.this);
-        //wait listViewPiki is created for get height
-        listViewPiki.post(new Runnable()
+        //wait gridViewPiki is created for get height
+        gridViewPiki.post(new Runnable()
         {
             @Override
             public void run()
             {
-                adapter.setHeightListView(listViewPiki.getHeight());
-                listViewPiki.setAdapter(adapter);
+                adapter.setHeightListView(gridViewPiki.getHeight());
+                gridViewPiki.setAdapter(adapter);
             }
         });
 
@@ -476,7 +493,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         //il n'y a plus rien a charger
         if(endOfLoading) return false;
 
-        listViewPiki.addFooterView(footer);
+        if (footer.getParent() != null) {
+            ViewGroup par = (ViewGroup) footer.getParent();
+            par.removeView(footer);
+        }
+        gridViewPiki.addFooterView(footer);
 
         if(listReact == null) listReact = new ArrayList<Reaction>();
         listBeforreRequest = new ArrayList<Reaction>(listReact);
@@ -523,8 +544,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 if(!fromCache)
                 {
                     refreshSwipe.setRefreshing(false);
-                    listViewPiki.removeFooterView(footer);
-                    listViewPiki.post(new Runnable()
+                    gridViewPiki.removeFooterView(footer);
+                    gridViewPiki.post(new Runnable()
                     {
                         @Override
                         public void run()
@@ -622,7 +643,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     {
                         Map<String, Object> param = new HashMap<String, Object>();
                         param.put("friendId", userReact.getObjectId());
-                        ParseCloud.callFunctionInBackground("addFriend", param, callback);
+                        ParseCloud.callFunctionInBackground("addFriendV2", param, callback);
                     }
                 }
             }
@@ -631,7 +652,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void showPlaceHolderItem(boolean show) {
-        listViewPiki.setScrollingEnabled(!show);
+        gridViewPiki.setScrollingEnabled(!show);
     }
 
     @Override
@@ -758,7 +779,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             {
                 int action = event.getAction();
 
-                if(action == MotionEvent.ACTION_MOVE && listViewPiki.isScrollingHorizontalLeft())
+                if(action == MotionEvent.ACTION_MOVE && gridViewPiki.isScrollingHorizontalLeft())
                 {
                     if(downItem == null)
                     {
@@ -768,19 +789,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                         // Find the child view that was touched (perform a hit test)
                         Rect rect = new Rect();
-                        int childCount = listViewPiki.getChildCount();
+                        int childCount = gridViewPiki.getChildCount();
                         int[] listViewCoords = new int[2];
-                        listViewPiki.getLocationOnScreen(listViewCoords);
+                        gridViewPiki.getLocationOnScreen(listViewCoords);
                         int x = (int) event.getRawX() - listViewCoords[0];
                         int y = (int) event.getRawY() - listViewCoords[1];
                         for (int i = 0; i < childCount; i++)
                         {
-                            View child = listViewPiki.getChildAt(i);
+                            View child = gridViewPiki.getChildAt(i);
                             child.getHitRect(rect);
-                            if (rect.contains(x, y))
-                            {
-                                int col = (int) Math.floor((float)x / (listViewPiki.getWidth() / 3f));
-                                if(child instanceof ViewGroup) downItem = ((ViewGroup)child).getChildAt(col);
+                            if (rect.contains(x, y)) {
+                                if(child instanceof ViewGroup) downItem = child;
                                 break;
                             }
                         }
@@ -1098,7 +1117,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         if(isVisible)
                         {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                            mlpCamera.topMargin = yPos;
+                            mlpCamera.bottomMargin = initMarginBottom - yPos;
                             layoutCamera.setLayoutParams(mlpCamera);
                             if(isVisible && !isPreviewVisible)
                             {
@@ -1469,7 +1488,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             Utile.fadeIn(btnCapture, TIME_ANIM);
             Utile.fadeOut(btnReply, TIME_ANIM);
 
-            listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
+            gridViewPiki.smoothScrollToPositionFromTop(2, gridViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
         }
         else
         {
@@ -1492,7 +1511,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             Utile.fadeOut(btnCapture, TIME_ANIM >> 1);
             Utile.fadeIn(btnReply, TIME_ANIM >> 1);
 
-            listViewPiki.smoothScrollToPosition(0);
+            gridViewPiki.smoothScrollToPosition(0);
         }
 
         final int leftMarginShow = (screen.getWidth() - layoutBtnRoundedReply.getWidth()) >> 1;
@@ -1589,12 +1608,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         p3.bottomMargin = initialLayoutBtnReplyMarginBottom;
         layoutBtnRoundedReply.setLayoutParams(p3);
 
-        listViewPiki.post(new Runnable()
+        gridViewPiki.post(new Runnable()
         {
             @Override
             public void run()
             {
-                listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, 0);
+                gridViewPiki.smoothScrollToPositionFromTop(2, gridViewPiki.getHeight() - screen.getWidth()/3, 0);
             }
         });
     }

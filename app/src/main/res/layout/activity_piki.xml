@@ -92,14 +92,15 @@
                     android:id="@+id/refreshSwipe"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                    <com.goandup.lib.widget.ListViewScrollingOff
-                        android:id="@+id/listViewPiki"
+                    <com.pleek.app.views.CustomGridView
+                        android:id="@+id/gridViewPiki"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:fadingEdge="none"
-                        android:divider="@color/grisSeparate"
-                        android:dividerHeight="1dp"
-                        android:fadingEdgeLength="0px"/>
+                        android:horizontalSpacing="3dp"
+                        android:verticalSpacing="1dp"
+                        android:numColumns="3"
+                        android:listSelector="@null"
+                        android:background="@color/grisSeparate" />
                 </com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff>
 
                 <LinearLayout
@@ -115,7 +116,9 @@
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:background="@color/noir"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    android:layout_marginBottom="200dp"
+                    android:layout_alignParentBottom="true">
 
                     <com.goandup.lib.widget.CameraView
                         android:id="@+id/cameraView"
@@ -167,8 +170,6 @@
                     </LinearLayout>
 
                 </RelativeLayout>
-
-
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -442,7 +443,8 @@
             android:id="@+id/layoutTuto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"

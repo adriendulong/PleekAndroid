@@ -21,14 +21,14 @@
                 android:id="@+id/imgActionOff"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/picto_delete_item_big_off"/>
+                android:src="@drawable/picto_delete_item_big_off" />
 
             <ImageView
                 android:id="@+id/imgActionOn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0"
-                android:src="@drawable/picto_delete_item_big_on"/>
+                android:src="@drawable/picto_delete_item_big_on" />
 
         </RelativeLayout>
 
@@ -41,21 +41,20 @@
         android:visibility="visible"
         android:gravity="center">
 
-        <!--<SurfaceView
-            android:id="@+id/videoReact"
+        <LinearLayout
+            android:id="@+id/layoutVideo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"/>-->
+            android:orientation="horizontal">
+
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/imgReact"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:background="@color/grisFondPikiPlaceholder1"/>
+            android:background="@color/grisFondPikiPlaceholder1" />
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -65,7 +64,7 @@
             android:indeterminateDrawable="@drawable/progress"
             android:layout_centerInParent="true"
             android:visibility="gone"
-            android:alpha="0.85"/>
+            android:alpha="0.85" />
 
         <ImageView
             android:id="@+id/imgPlay"
@@ -73,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:src="@drawable/picto_play"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/imgMute"
@@ -83,7 +82,7 @@
             android:layout_alignParentBottom="true"
             android:layout_margin="10dp"
             android:src="@drawable/picto_mute"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/imgError"
@@ -91,7 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:src="@drawable/picto_loaderror"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <com.goandup.lib.widget.TextViewFont
             android:id="@+id/txtUserName"
@@ -114,7 +113,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/overlay"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
     </RelativeLayout>
 

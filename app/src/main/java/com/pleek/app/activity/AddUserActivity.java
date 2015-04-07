@@ -156,7 +156,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
                     {
                         Map<String, Object> param = new HashMap<String, Object>();
                         param.put("friendId", u.id);
-                        ParseCloud.callFunctionInBackground("addFriend", param, functionCallback);
+                        ParseCloud.callFunctionInBackground("addFriendV2", param, functionCallback);
                     }
                 }
                 else
