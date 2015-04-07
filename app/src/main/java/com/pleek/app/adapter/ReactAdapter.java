@@ -7,7 +7,6 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -29,8 +28,7 @@ import java.util.List;
 /**
  * Created by nicolas on 19/12/14.
  */
-public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
-{
+public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
     private final int NB_COLUMN = 3;
 
     private List<Reaction> listReact;
@@ -47,13 +45,13 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
     private Screen screen;
     private DoubletapRunnable doubletapRunnable;
 
-    public ReactAdapter(List<Reaction> listReact, Listener listener)
-    {
+    int oneDp, heightPiki, widthPiki;
+
+    public ReactAdapter(List<Reaction> listReact, Listener listener) {
         this(listReact, listener, listener instanceof Context ? (Context) listener : null);
     }
 
-    public ReactAdapter(List<Reaction> listReact, Listener listener, Context context)
-    {
+    public ReactAdapter(List<Reaction> listReact, Listener listener, Context context) {
         this.listReact = listReact;
         this.listener = listener;
         this.context = context;
@@ -61,13 +59,17 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
         screen = Screen.getInstance(context);
         listTextViewUsername = new ArrayList<View>();
         doubletapRunnable = new DoubletapRunnable();
+
+        oneDp = screen.dpToPx(1);
+        heightPiki = (screen.getWidth() - screen.dpToPx(NB_COLUMN - 1)) / NB_COLUMN;//(screen widt - NB_COLUMN-1 divider) / NB_COLUMN
+        widthPiki = heightPiki + oneDp;
     }
 
     private int nbRow = -1;
     private int minNbRow = -1;
+
     @Override
-    public int getCount()
-    {
+    public int getCount() {
         if(nbRow == -1 || minNbRow == -1)
         {
             nbRow = (int) Math.ceil((float) (listReact.size() + 1) / NB_COLUMN);
@@ -91,16 +93,10 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
     }
 
     @Override
-    public View getView(int i, View view, ViewGroup parent)
-    {
+    public View getView(int i, View view, ViewGroup parent) {
         clearView(view);
 
-        if (view == null)
-        {
-            int oneDp = screen.dpToPx(1);
-            int heightPiki = (screen.getWidth() - screen.dpToPx(NB_COLUMN - 1)) / NB_COLUMN;//(screen widt - NB_COLUMN-1 divider) / NB_COLUMN
-            int widthPiki = heightPiki + oneDp;
-
+        if (view == null) {
             LinearLayout row = new LinearLayout(context);
             row.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, heightPiki));
             for(int c = 0; c < NB_COLUMN; c++)
@@ -116,13 +112,11 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
         }
 
         ViewGroup row = (ViewGroup) view;
-        for(int c = 0; c < NB_COLUMN || c < row.getChildCount(); c++)
-        {
+        for(int c = 0; c < NB_COLUMN || c < row.getChildCount(); c++) {
             int numItem = i * NB_COLUMN + c;
 
             ViewGroup itemReact = (ViewGroup)row.getChildAt(c);
-            if(itemReact != null)
-            {
+            if(itemReact != null) {
                 //all other itm is item_react or placeholder
                 final ImageView imgReact = (ImageView) itemReact.findViewById(R.id.imgReact);
                 View imgPlay = itemReact.findViewById(R.id.imgPlay);
@@ -133,28 +127,26 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
                 listTextViewUsername.remove(txtUserName);
                 listTextViewUsername.add(txtUserName);
                 boolean isPlaceHolder = false;
-                if(imgReact != null)
-                {
+
+                if (imgReact != null) {
                     imgReact.setVisibility(View.VISIBLE);
                     progressBar.setVisibility(View.GONE);
                     imgError.setVisibility(View.GONE);
                     imgMute.setVisibility(View.GONE);
                     txtUserName.setVisibility(isUsernameShow ? View.VISIBLE : View.GONE);
-                    if(numItem >= 1 && numItem <= listReact.size()) //is item_react item
-                    {
-                        Reaction react = listReact.get(numItem-1);
-                        txtUserName.setText("@"+react.getNameUser());
 
-                        if(react.getUrlPhoto() != null)//is Parse React
-                        {
+                    if (numItem >= 1 && numItem <= listReact.size()) { //is item_react item
+                        Reaction react = listReact.get(numItem - 1);
+                        txtUserName.setText("@" + react.getNameUser());
+
+                        if (react.getUrlPhoto() != null) { //is Parse React
                             Drawable drawablePlaceHolder = new BitmapDrawable(context.getResources(), react.getTmpPhoto());
-                            Picasso.with(context).load(react.getUrlPhoto()).placeholder(drawablePlaceHolder).into(imgReact);
+                            Picasso.with(context).load(react.getUrlPhoto()).resize((int) (heightPiki * 0.45), (int) (heightPiki * 0.45)).placeholder(drawablePlaceHolder).into(imgReact);
 
                             imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
                             react.loadVideoToTempFile(context);
                         }
-                        else //is tmp React, between creating and uploaded
-                        {
+                        else { //is tmp React, between creating and uploaded
                             imgReact.setImageBitmap(react.getTmpPhoto());
                             imgPlay.setVisibility(View.GONE);
                             progressBar.setVisibility(react.isLoadError() ? View.GONE : View.VISIBLE);
@@ -191,60 +183,59 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
     }
 
     @Override
-    public boolean onTouch(View view, MotionEvent event)
-    {
-        int action = event.getAction();
-
-        if(view.getTag() instanceof Integer)
-        {
-            int position = (Integer)view.getTag();
-
-            DownRunnable down = (DownRunnable)view.getTag(R.string.tag_downpresse);
-            LongpressRunnable longpress = (LongpressRunnable)view.getTag(R.string.tag_longpresse);
-            if(action == MotionEvent.ACTION_DOWN)
-            {
-                //highlight with 90ms delay. Because I dont want highlight if user scroll
-                handler.postDelayed(down, DOWN_TIME);
-                handler.postDelayed(longpress, LOGNPRESS_TIME);
-                if(isLastTapForDoubleTap && listener != null)
-                {
-                    listener.doubleTapReaction(listReact.get(position));
-                }
-                else
-                {
-                    isLastTapForDoubleTap = true;
-                    handler.postDelayed(doubletapRunnable, DOUBLETAP_TIME);//this runnable just pass "isLastTapForDoubleTap" to false in 300ms
-                }
-            }
-            else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP)
-            {
-                //finger move, cancel highlight
-                handler.removeCallbacks(down);
-                handler.removeCallbacks(longpress);
-                if(isUsernameShow) showUsername(false);
-
-                itemMarkDown(view, false);
-            }
-            if(action == MotionEvent.ACTION_UP)
-            {
-                //highlight just after clicked during 90ms
-                itemMarkDown(view, true);
-
-                handler.postDelayed(down, DOWN_TIME);
-
-                //send to listener
-                if(position >= 0)
-                {
-                    Reaction react = listReact.get(position);
-                    if (react.isVideo())
-                    {
-                        if (react.equals(currentReactPlay)) tggleMuteVideo(view);
-                        else playVideo(react, view);
-                    }
-                    else if(listener != null) listener.clickOnReaction(react);
-                }
-            }
-        }
+    public boolean onTouch(View view, MotionEvent event) {
+//        int action = event.getAction();
+//
+//        if(view.getTag() instanceof Integer)
+//        {
+//            int position = (Integer)view.getTag();
+//
+//            DownRunnable down = (DownRunnable)view.getTag(R.string.tag_downpresse);
+//            LongpressRunnable longpress = (LongpressRunnable)view.getTag(R.string.tag_longpresse);
+//            if(action == MotionEvent.ACTION_DOWN)
+//            {
+//                //highlight with 90ms delay. Because I dont want highlight if user scroll
+//                handler.postDelayed(down, DOWN_TIME);
+//                handler.postDelayed(longpress, LOGNPRESS_TIME);
+//                if(isLastTapForDoubleTap && listener != null)
+//                {
+//                    listener.doubleTapReaction(listReact.get(position));
+//                }
+//                else
+//                {
+//                    isLastTapForDoubleTap = true;
+//                    handler.postDelayed(doubletapRunnable, DOUBLETAP_TIME);//this runnable just pass "isLastTapForDoubleTap" to false in 300ms
+//                }
+//            }
+//            else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP)
+//            {
+//                //finger move, cancel highlight
+//                handler.removeCallbacks(down);
+//                handler.removeCallbacks(longpress);
+//                if(isUsernameShow) showUsername(false);
+//
+//                itemMarkDown(view, false);
+//            }
+//            if(action == MotionEvent.ACTION_UP)
+//            {
+//                //highlight just after clicked during 90ms
+//                itemMarkDown(view, true);
+//
+//                handler.postDelayed(down, DOWN_TIME);
+//
+//                //send to listener
+//                if(position >= 0)
+//                {
+//                    Reaction react = listReact.get(position);
+//                    if (react.isVideo())
+//                    {
+//                        if (react.equals(currentReactPlay)) tggleMuteVideo(view);
+//                        else playVideo(react, view);
+//                    }
+//                    else if(listener != null) listener.clickOnReaction(react);
+//                }
+//            }
+//        }
         return true;
     }
 
@@ -280,6 +271,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
             itemMarkDown(view, !isVisible);
         }
     }
+
     private final int LOGNPRESS_TIME = 700;//ms
     class LongpressRunnable implements Runnable
     {
@@ -289,6 +281,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
             showUsername(true);
         }
     }
+
     private final int DOUBLETAP_TIME = 300;//ms
     private boolean isLastTapForDoubleTap;
     class DoubletapRunnable implements Runnable
@@ -384,78 +377,78 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
                 stopCurrentVideo();
             }
 
-            final SurfaceView videoReact = (SurfaceView) item.findViewById(R.id.videoReact);
+            //final SurfaceView videoReact = (SurfaceView) item.findViewById(R.id.videoReact);
             final View imgReact = item.findViewById(R.id.imgReact);
             final View imgPlay = item.findViewById(R.id.imgPlay);
             final ImageView imgError = (ImageView) item.findViewById(R.id.imgError);
             final View imgMute = item.findViewById(R.id.imgMute);
             final View progressBar = item.findViewById(R.id.progressBar);
-            if(videoReact != null)
-            {
-                imgPlay.setVisibility(View.GONE);
-                imgError.setVisibility(View.GONE);
-
-                if(react.isLoadError())
-                {
-                    //show error
-                    imgError.setVisibility(View.VISIBLE);
-                    imgError.setImageResource(R.drawable.picto_loaderror);
-                    isPreparePlaying = false;
-                }
-                else if(react.isLoaded())
-                {
-                    //play video
-                    videoReact.setVisibility(View.VISIBLE);
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
-                    {
-                        @Override
-                        public void onPrepared(MediaPlayer mediaPlayer)
-                        {
-                            imgReact.setVisibility(View.GONE);
-
-                            mediaPlayer.start();
-
-                            currentItemPlay = item;
-                            currentReactPlay = react;
-
-                            isPreparePlaying = false;
-                        }
-                    });
-                    mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener()
-                    {
-                        @Override
-                        public boolean onError(MediaPlayer mediaPlayer, int what, int extra)
-                        {
-                            L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
-                            imgError.setVisibility(View.VISIBLE);
-                            isPreparePlaying = false;
-                            return false;
-                        }
-                    });
-                    imgMute.setVisibility(View.GONE);
-                    mediaPlayer.setVolume(1,1);
-                    mediaPlayer.setLooping(true);
-                    mediaPlayer.setDisplay(videoReact.getHolder());
-                    mediaPlayer.setDataSource(react.getTempFilePath(context));
-                    mediaPlayer.prepareAsync();
-                }
-                else//loading
-                {
-                    //wait loading
-                    progressBar.setVisibility(View.VISIBLE);
-                    react.setLoadVideoEndListener(new Reaction.LoadVideoEndListener()
-                    {
-                        @Override
-                        public void done(boolean ok, Reaction react)
-                        {
-                            progressBar.setVisibility(View.GONE);
-                            isPreparePlaying = false;
-                            playVideo(react, item);
-                        }
-                    });
-                }
-            }
+//            if(videoReact != null)
+//            {
+//                imgPlay.setVisibility(View.GONE);
+//                imgError.setVisibility(View.GONE);
+//
+//                if(react.isLoadError())
+//                {
+//                    //show error
+//                    imgError.setVisibility(View.VISIBLE);
+//                    imgError.setImageResource(R.drawable.picto_loaderror);
+//                    isPreparePlaying = false;
+//                }
+//                else if(react.isLoaded())
+//                {
+//                    //play video
+//                    videoReact.setVisibility(View.VISIBLE);
+//                    mediaPlayer = new MediaPlayer();
+//                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+//                    {
+//                        @Override
+//                        public void onPrepared(MediaPlayer mediaPlayer)
+//                        {
+//                            imgReact.setVisibility(View.GONE);
+//
+//                            mediaPlayer.start();
+//
+//                            currentItemPlay = item;
+//                            currentReactPlay = react;
+//
+//                            isPreparePlaying = false;
+//                        }
+//                    });
+//                    mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener()
+//                    {
+//                        @Override
+//                        public boolean onError(MediaPlayer mediaPlayer, int what, int extra)
+//                        {
+//                            L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
+//                            imgError.setVisibility(View.VISIBLE);
+//                            isPreparePlaying = false;
+//                            return false;
+//                        }
+//                    });
+//                    imgMute.setVisibility(View.GONE);
+//                    mediaPlayer.setVolume(1,1);
+//                    mediaPlayer.setLooping(true);
+//                    mediaPlayer.setDisplay(videoReact.getHolder());
+//                    mediaPlayer.setDataSource(react.getTempFilePath(context));
+//                    mediaPlayer.prepareAsync();
+//                }
+//                else//loading
+//                {
+//                    //wait loading
+//                    progressBar.setVisibility(View.VISIBLE);
+//                    react.setLoadVideoEndListener(new Reaction.LoadVideoEndListener()
+//                    {
+//                        @Override
+//                        public void done(boolean ok, Reaction react)
+//                        {
+//                            progressBar.setVisibility(View.GONE);
+//                            isPreparePlaying = false;
+//                            playVideo(react, item);
+//                        }
+//                    });
+//                }
+//            }
         }
         catch (Exception e)
         {
@@ -476,14 +469,14 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener
     {
         if(currentItemPlay != null && currentReactPlay != null)
         {
-            final SurfaceView videoReact = (SurfaceView) currentItemPlay.findViewById(R.id.videoReact);
+            //final SurfaceView videoReact = (SurfaceView) currentItemPlay.findViewById(R.id.videoReact);
             final View imgReact = currentItemPlay.findViewById(R.id.imgReact);
             final View imgPlay = currentItemPlay.findViewById(R.id.imgPlay);
             final View imgError = currentItemPlay.findViewById(R.id.imgError);
             final View imgMute = currentItemPlay.findViewById(R.id.imgMute);
             final View progressBar = currentItemPlay.findViewById(R.id.progressBar);
 
-            videoReact.setVisibility(View.GONE);
+            //videoReact.setVisibility(View.GONE);
             imgReact.setVisibility(View.VISIBLE);
             imgPlay.setVisibility(View.VISIBLE);
             imgMute.setVisibility(View.GONE);
