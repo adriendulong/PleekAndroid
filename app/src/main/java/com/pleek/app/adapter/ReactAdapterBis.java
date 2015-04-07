@@ -31,7 +31,7 @@ public class ReactAdapterBis extends RecyclerView.Adapter<ReactViewHolder> {
 
     public static int NB_COLUMN = 3;
 
-    private List<Reaction> mItems;
+    private List<Serializable> mItems;
     private Listener mListener;
     private Context mContext;
     private Screen mScreen;
@@ -39,11 +39,11 @@ public class ReactAdapterBis extends RecyclerView.Adapter<ReactViewHolder> {
     int oneDp, heightPiki, widthPiki;
 
 
-    public ReactAdapterBis(List<Reaction> listReact, Listener listener) {
+    public ReactAdapterBis(List<Serializable> listReact, Listener listener) {
         this(listReact, listener, listener instanceof Context ? (Context) listener : null);
     }
 
-    public ReactAdapterBis(List<Reaction> items, Listener listener, Context context) {
+    public ReactAdapterBis(List<Serializable> items, Listener listener, Context context) {
         this.mItems = items;
         this.mListener = listener;
         this.mContext = context;
@@ -61,8 +61,6 @@ public class ReactAdapterBis extends RecyclerView.Adapter<ReactViewHolder> {
         mContext = viewGroup.getContext();
         ReactViewHolder vh = new ReactViewHolder(row);
 
-        //row.getLayoutParams().height = heightPiki;
-
         return vh;
     }
 
@@ -77,14 +75,14 @@ public class ReactAdapterBis extends RecyclerView.Adapter<ReactViewHolder> {
             reactViewHolder.imgMute.setVisibility(View.GONE);
             reactViewHolder.txtUserName.setVisibility(View.GONE);
 
-            if (i >= 1 && i <= mItems.size()) {
+            if (i >= 2 && i <= mItems.size()) {
                 Reaction react = (Reaction) getItem(i);
                 reactViewHolder.txtUserName.setText("@" + react.getNameUser());
 
                 if (react.getUrlPhoto() != null) { //is Parse React
                     Drawable drawablePlaceHolder = new BitmapDrawable(mContext.getResources(), react.getTmpPhoto());
                     Picasso.with(mContext)
-                            .load(react.getUrlPhoto()).fit()
+                            .load(react.getUrlPhoto()).resize((int) (heightPiki), (int) (heightPiki))
                             .placeholder(drawablePlaceHolder).into(reactViewHolder.imgReact);
 
                     reactViewHolder.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
@@ -136,46 +134,13 @@ public class ReactAdapterBis extends RecyclerView.Adapter<ReactViewHolder> {
         return mItems.size();
     }
 
-    public Reaction getItem(int position) {
+    public Serializable getItem(int position) {
         return mItems.get(position);
     }
 
     public void appendReactions(List<Reaction> reactions) {
         mItems.addAll(reactions);
         notifyDataSetChanged();
-    }
-
-    public List<Reaction> addReact(Reaction react)
-    {
-        return addReact(react, null);
-    }
-    public List<Reaction> addReact(Reaction react, Reaction oldReact) {
-        mItems.remove(oldReact);
-        mItems.add(0, react);
-        notifyDataSetChanged();
-        return mItems;
-    }
-
-    public void setListReact(List<Reaction> listReact) {
-        this.mItems = listReact;
-        notifyDataSetChanged();
-    }
-
-    public boolean markLoadError(Reaction errorReact, boolean error) {
-        int i = mItems.indexOf(errorReact);
-
-        if(i >= 0) {
-            mItems.get(i).setLoadError(error);
-            notifyDataSetChanged();
-        }
-
-        return i >= 0;
-    }
-
-    public Reaction removeReaction(int position) {
-        Reaction removed = mItems.remove(position);
-        notifyDataSetChanged();
-        return removed;
     }
 
     // INTERFACE

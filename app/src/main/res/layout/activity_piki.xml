@@ -92,17 +92,14 @@
                     android:id="@+id/refreshSwipe"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                    <org.lucasr.twowayview.widget.TwoWayView
+                    <com.goandup.lib.widget.ListViewScrollingOff
                         android:id="@+id/listViewPiki"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:orientation="vertical"
-                        android:scrollbars="vertical"
-                        app:twowayview_layoutManager="SpannableGridLayoutManager"
-                        app:twowayview_numColumns="3"
-                        app:twowayview_numRows="1"
                         android:fadingEdge="none"
-                        android:fadingEdgeLength="0px" />
+                        android:divider="@color/grisSeparate"
+                        android:dividerHeight="1dp"
+                        android:fadingEdgeLength="0px"/>
                 </com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff>
 
                 <LinearLayout
