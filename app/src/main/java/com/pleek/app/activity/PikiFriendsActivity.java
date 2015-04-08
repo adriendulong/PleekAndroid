@@ -44,8 +44,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     private FriendsAdapter adapter;
     private List<Friend> listFriend;
 
-    public static void initActivity(Piki piki)
-    {
+    public static void initActivity(Piki piki) {
         _piki = piki;
     }
 
@@ -224,10 +223,6 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
                 @Override
                 public void done(Object o, ParseException e)
                 {
-                    Map<String, Object> param = new HashMap<String, Object>();
-                    param.put("friendId", friend.parseId);
-                    ParseCloud.callFunctionInBackground("addToLastPublicPiki", param, null);
-
                     callback.done(o, e);
                 }
             });

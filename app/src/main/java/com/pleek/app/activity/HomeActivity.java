@@ -33,8 +33,11 @@ import com.pleek.app.R;
 import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.common.Constants;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -54,7 +57,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
     private PikiAdapter adapter;
     private List<Piki> listPiki;
-    private List<ParseObject> friends;
+    private List<ParseUser> friends;
 
     private int initialX;
 
@@ -73,8 +76,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         //initiale set user to installation
         ParseInstallation installation = ParseInstallation.getCurrentInstallation();
         ParseUser user = ParseUser.getCurrentUser();
-        if(user != null)
-        {
+
+        if (user != null) {
             installation.put("notificationsEnabled", true);
             installation.put("user", user);
         }
@@ -92,8 +95,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
         refreshSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
-            public void onRefresh()
-            {
+            public void onRefresh() {
                 init();
             }
         });
@@ -139,8 +141,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private void init() {
         init(true);
     }
-    private void init(boolean withCache)
-    {
+    private void init(boolean withCache) {
         ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return;
 
@@ -162,6 +163,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private List<Piki> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
+    private boolean shouldRefreshFriends = true;
     private boolean loadNext(final boolean withCache)
     {
         //si déjà en train de loader, on fait rien
@@ -176,7 +178,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
         //copie de la liste actuel des piki
         if (listPiki == null) listPiki = new ArrayList<Piki>();
-        if (friends == null) friends = new ArrayList<ParseObject>();
+        if (friends == null) friends = new ArrayList<ParseUser>();
         listBeforreRequest = new ArrayList<Piki>(listPiki);
 
         //flag pour reconnaitre réponse Parse du cache et réponse Parse network
@@ -185,25 +187,37 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         //mark loading and add footer
         listViewPiki.addFooterView(footer);
         isLoading = true;
+        Date date = currentUser.getDate("lastFriendsModification");
 
-        if (friends == null || friends.size() == 0) {
-            //Parse Query Friends
-            ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-            innerQuery.whereEqualTo("user", currentUser);
-            innerQuery.findInBackground(new FindCallback<ParseObject>() {
-
-                @Override
-                public void done(List<ParseObject> list, ParseException e) {
-                    if (e == null && list != null) {
-                        friends.addAll(list);
-                    }
-
-                    loadPikis(withCache);
-                }
-            });
+        if (pref.contains(Constants.PREF_LAST_FRIENDS_UPDATE)) {
+            if (date.getTime() > pref.getLong(Constants.PREF_LAST_FRIENDS_UPDATE, 0)) {
+                shouldRefreshFriends = true;
+                pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date.getTime()).commit();
+            } else shouldRefreshFriends = false;
         } else {
-            loadPikis(withCache);
+            shouldRefreshFriends = true;
+            pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date.getTime()).commit();
         }
+
+        shouldRefreshFriends = true;
+        // Parse Query Friends
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(shouldRefreshFriends ? ParseQuery.CachePolicy.NETWORK_ONLY : ParseQuery.CachePolicy.CACHE_ONLY);
+        innerQuery.whereEqualTo("user", currentUser);
+        innerQuery.include("friend");
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null && list != null) {
+                    for (ParseObject obj : list) {
+                        friends.add((ParseUser) obj.get("friend"));
+                    }
+                }
+
+                loadPikis(withCache);
+            }
+        });
 
         return true;
     }

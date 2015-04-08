@@ -172,6 +172,9 @@
                 android:resource="@xml/filepaths" />
         </provider>
 
+        <!-- MIXPANEL -->
+        <activity android:name="com.mixpanel.android.surveys.SurveyActivity" />
+
     </application>
 
 </manifest>

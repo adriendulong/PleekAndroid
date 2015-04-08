@@ -26,6 +26,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.activity.FriendsActivity;
+import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.adapter.FriendsAdapter;
 import com.pleek.app.bean.Friend;
 
@@ -114,43 +115,45 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         if(listFriend.size() > 0)
         {
             List<String> listNumber = new ArrayList<String>();
-            for(Friend friend : listFriend)
-            {
+            for(Friend friend : listFriend) {
                 listNumber.add(friend.phoneNumber);
             }
 
             //get ParseUser by all listFormatedNumber
             Map<String, Object> param = new HashMap<String, Object>();
             param.put("phoneNumbers", listNumber);
-            ParseCloud.callFunctionInBackground("checkContactOnPiki", param, new FunctionCallback<ArrayList<HashMap<String, String>>>()
-            {
+            ParseCloud.callFunctionInBackground("checkContactOnPiki", param, new FunctionCallback<ArrayList<HashMap<String, String>>>() {
                 @Override
-                public void done(ArrayList<HashMap<String, String>> rep, ParseException e)
-                {
-                    if(e == null)
-                    {
+                public void done(final ArrayList<HashMap<String, String>> rep, ParseException e) {
+                    if (e == null) {
                         //get user if no already friend
                         ParseUser currentUser = ParseUser.getCurrentUser();
-                        List<String> usersFriend = currentUser.getList("usersFriend");
-                        for (HashMap<String, String> user : rep)
-                        {
-                            if(usersFriend == null || !usersFriend.contains(user.get("userObjectId")))
-                            {
-                                Friend friend = new Friend(getNameByNum(user.get("phoneNumber")), R.string.friends_section_on, R.drawable.picto_adduser);
-                                friend.username = user.get("username");
-                                friend.phoneNumber = user.get("phoneNumber");
-                                friend.parseId = user.get("userObjectId");
-                                listFriend.add(friend);
-                            }
-                        }
+                        ((ParentActivity) getActivity()).getFriends(true, new FunctionCallback<ArrayList<Friend>>() {
+                            @Override
+                            public void done(ArrayList<Friend> friends, ParseException e) {
+                                List<String> friendsIds = new ArrayList<String>();
 
-                        //add all contact not already friend to list
-                        Collections.sort(listFriend);
-                        adapter.setListFriend(listFriend);
-                        adapter.notifyDataSetChanged();
-                    }
-                    else
-                    {
+                                for (Friend fr : friends) {
+                                    friendsIds.add(fr.parseId);
+                                }
+
+                                for (HashMap<String, String> user : rep) {
+                                    if (friendsIds == null || !friendsIds.contains(user.get("userObjectId"))) {
+                                        Friend friend = new Friend(getNameByNum(user.get("phoneNumber")), R.string.friends_section_on, R.drawable.picto_adduser);
+                                        friend.username = user.get("username");
+                                        friend.phoneNumber = user.get("phoneNumber");
+                                        friend.parseId = user.get("userObjectId");
+                                        listFriend.add(friend);
+                                    }
+                                }
+
+                                // add all contact not already friend to list
+                                Collections.sort(listFriend);
+                                adapter.setListFriend(listFriend);
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
+                    } else {
                         L.e("ERROR checkContactOnPiki - e="+e.getMessage());
                         e.printStackTrace();
                     }
@@ -358,10 +361,6 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                 {
                     if(e == null)
                     {
-                        Map<String, Object> param = new HashMap<String, Object>();
-                        param.put("friendId", friend.parseId);
-                        ParseCloud.callFunctionInBackground("addToLastPublicPiki", param, null);
-
                         ParseUser.getCurrentUser().fetchInBackground(new GetCallback<ParseObject>()
                         {
                             @Override
@@ -438,25 +437,16 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                 }
             };
 
-            if(alreadyFriend)
-            {
+            if (alreadyFriend) {
                 Map<String, Object> param = new HashMap<String, Object>();
                 param.put("friendId", friend.parseId);
                 ParseCloud.callFunctionInBackground(alreadyMuted ? "unMuteFriend" : "muteFriend", param, callback);
-            }
-            else
-            {
+            } else {
                 Map<String, Object> param = new HashMap<String, Object>();
                 param.put("friendId", friend.parseId);
-                ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>()
-                {
+                ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
                     @Override
-                    public void done(Object o, ParseException e)
-                    {
-                        Map<String, Object> param = new HashMap<String, Object>();
-                        param.put("friendId", friend.parseId);
-                        ParseCloud.callFunctionInBackground("addToLastPublicPiki", param, null);
-
+                    public void done(Object o, ParseException e) {
                         callback.done(o, e);
                     }
                 });

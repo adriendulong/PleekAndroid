@@ -111,56 +111,43 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
 
     private int nbFriendAdd;
     @Override
-    public void onClick(View view)
-    {
-        if(view == btnNext)
-        {
+    public void onClick(View view) {
+        if (view == btnNext) {
             final List<AddUserOnLoginAdapter.User> listUser = adapter.getListUserSelected();
-            if(listUser.size() >= NB_MUST_SELECT_USER || error)
-            {
-                if(listUser.size() > 0)
-                {
+            if (listUser.size() >= NB_MUST_SELECT_USER || error) {
+                if (listUser.size() > 0) {
                     final Dialog loader = showLoader();
 
-                    final FunctionCallback functionCallback = new FunctionCallback<ParseUser>()
-                    {
+                    final FunctionCallback functionCallback = new FunctionCallback<ParseUser>() {
                         @Override
-                        public void done(ParseUser user, ParseException e)
-                        {
-                            if (e == null)
-                            {
+                        public void done(ParseUser user, ParseException e) {
+                            if (e == null) {
                                 Map<String, Object> param = new HashMap<String, Object>();
                                 param.put("friendId", user.getObjectId());
-                                ParseCloud.callFunctionInBackground("addToLastPublicPiki", param, new FunctionCallback<Object>()
-                                {
+                                ParseCloud.callFunctionInBackground("addToLastPublicPiki", param, new FunctionCallback<Object>() {
                                     @Override
-                                    public void done(Object o, ParseException e)
-                                    {
+                                    public void done(Object o, ParseException e) {
                                         nbFriendAdd++;
-                                        if(nbFriendAdd == listUser.size())//LAST > end
-                                        {
+                                        if (nbFriendAdd == listUser.size()) { //LAST > end
                                             goHome();
                                         }
                                     }
                                 });
                             }
-                            else
-                            {
+                            else {
                                 Utile.showToast(R.string.pikifriends_action_nok, AddUserActivity.this);
                                 hideDialog(loader);//fix : crash #33
                             }
                         }
                     };
 
-                    for(AddUserOnLoginAdapter.User u : listUser)
-                    {
+                    for(AddUserOnLoginAdapter.User u : listUser) {
                         Map<String, Object> param = new HashMap<String, Object>();
                         param.put("friendId", u.id);
                         ParseCloud.callFunctionInBackground("addFriendV2", param, functionCallback);
                     }
                 }
-                else
-                {
+                else {
                     goHome();
                 }
             }

@@ -22,9 +22,22 @@ import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.SessionManager;
 import com.goandup.lib.widget.DownTouchListener;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.parse.FindCallback;
+import com.parse.FunctionCallback;
+import com.parse.Parse;
+import com.parse.ParseCloud;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.PleekApplication;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ReadDateProvider;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by nicolas on 18/12/14.
@@ -325,5 +338,27 @@ public class ParentActivity extends FragmentActivity
             }
         }
         return ok;
+    }
+
+    public void getFriends(boolean fromCache, final FunctionCallback<ArrayList<Friend>> callback) {
+        final ArrayList<Friend> friends = new ArrayList<Friend>();
+
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(fromCache ? ParseQuery.CachePolicy.CACHE_ONLY : ParseQuery.CachePolicy.NETWORK_ONLY);
+        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+        innerQuery.include("friend");
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null && list != null) {
+                    for (ParseObject obj : list) {
+                        friends.add(new Friend((ParseUser) obj.get("friend")));
+                    }
+
+                    callback.done(friends, e);
+                }
+            }
+        });
     }
 }

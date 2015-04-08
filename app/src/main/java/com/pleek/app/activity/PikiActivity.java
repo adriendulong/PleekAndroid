@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -92,9 +93,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private TextView txtNamePiki;
     private CustomGridView gridViewPiki;
     private TextView txtNbFriend;
+    private ImageView imgEmojiEarth;
     private TextView txtNbReply;
     private View pikiHeader;
     private ImageView imgPiki;
+    private ImageView imgEmojiEarthTopBar;
     private TextView txtNbFriendTopbar;
     private TextView txtTroisPoints;
     private View layoutTopInfo;
@@ -167,6 +170,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             _piki = null;
         }
 
+
+
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(this);
         btnBack.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.firstColorDark)));
@@ -187,10 +192,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         pikiHeader.setLayoutParams(new AbsListView.LayoutParams(screen.getWidth(), screen.getWidth()));
         imgPiki = (ImageView) pikiHeader.findViewById(R.id.imgPiki);
         imgPiki.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imgEmojiEarth = (ImageView) pikiHeader.findViewById(R.id.imgEmojiEarth);
         txtNbFriend = (TextView) pikiHeader.findViewById(R.id.txtNbFriend);
         txtNbFriend.setVisibility(View.GONE);
-        txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
-        txtNbFriend.setOnClickListener(this);
+
+        if (!piki.isPublic()) {
+            txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
+            txtNbFriend.setOnClickListener(this);
+        }
+
         txtTroisPoints = (TextView) pikiHeader.findViewById(R.id.txtTroisPoints);
         txtTroisPoints.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
         txtTroisPoints.setOnClickListener(this);
@@ -206,6 +216,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutTopInfo.setLayoutParams(mlp);
         imgPikiMini = (ImageView) findViewById(R.id.imgPikiMini);
         txtNbFriendTopbar = (TextView) findViewById(R.id.txtNbFriendTopbar);
+        imgEmojiEarthTopBar = (ImageView) findViewById(R.id.imgEmojiEarthTopBar);
         txtNbReply = (TextView) findViewById(R.id.txtNbReply);
 
         //share
@@ -437,8 +448,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             readDataProvider.setReadDateNow(piki.getId());
 
             //header
-            txtNbFriend.setText(piki.getNbRecipient() + " " + getString(R.string.piki_friend) + (piki.getNbRecipient() > 1 ? "s" : ""));
             txtNbFriend.setVisibility(View.VISIBLE);
+            if (!piki.isPublic()) {
+                txtNbFriend.setText(piki.getNbRecipient() + " " + getString(R.string.piki_friend) + (piki.getNbRecipient() > 1 ? "s" : ""));
+            } else {
+                txtNbFriend.setText(getString(R.string.piki_public));
+                imgEmojiEarth.setVisibility(View.VISIBLE);
+            }
+
             txtNamePiki.setText("@" + piki.getName());
             Picasso.with(this)
                     .load(piki.getUrlPiki())
@@ -447,7 +464,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     .into(imgPiki);
 
             //topbar
-            txtNbFriendTopbar.setText(piki.getNbRecipient() + "");
+            if (!piki.isPublic()) {
+                txtNbFriendTopbar.setText(piki.getNbRecipient() + " " + getString(R.string.piki_friend) + (piki.getNbRecipient() > 1 ? "s" : ""));
+            } else {
+                txtNbFriendTopbar.setVisibility(View.GONE);
+                imgEmojiEarthTopBar.setVisibility(View.VISIBLE);
+            }
+
             txtNbReply.setText(piki.getNbReact()+"");
             Picasso.with(this)
                     .load(piki.getUrlPiki())

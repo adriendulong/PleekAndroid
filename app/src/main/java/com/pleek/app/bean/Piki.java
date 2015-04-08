@@ -25,6 +25,7 @@ public class Piki implements Serializable
     private Date updatedAt;
     private List<String> frinedsId;
     private ParseObject parseObject;
+    private boolean isPublic;
 
     public Piki(ParseObject parseObject)
     {
@@ -42,6 +43,7 @@ public class Piki implements Serializable
         urlReact3 = parseObject.getParseFile("react3") != null ? parseObject.getParseFile("react3").getUrl() : null;
         updatedAt = parseObject.getUpdatedAt();
         createdAt = parseObject.getCreatedAt();
+        isPublic = parseObject.getBoolean("isPublic");
         this.parseObject = parseObject;
     }
 
@@ -146,5 +148,13 @@ public class Piki implements Serializable
     public Date getCreatedAt()
     {
         return createdAt;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 }

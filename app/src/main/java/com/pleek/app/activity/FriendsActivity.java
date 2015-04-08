@@ -18,11 +18,15 @@ import android.widget.TextView;
 
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.DownTouchListener;
+import com.parse.FunctionCallback;
+import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.pleek.app.R;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.fragment.FriendsAllFragment;
 import com.pleek.app.fragment.FriendsFindFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -72,7 +76,14 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         btnTab2 = findViewById(R.id.btnTab2);
         btnTab2.setOnClickListener(this);
         txtTab2Add = (TextView) findViewById(R.id.txtTab2Add);
-        updateNbFriends();
+
+        getFriends(true, new FunctionCallback<ArrayList<Friend>>() {
+            @Override
+            public void done(ArrayList<Friend> friends, ParseException e) {
+                updateNbFriends(friends);
+            }
+        });
+
         editSearch = (EditText)findViewById(R.id.editSearch);
         editSearch.addTextChangedListener(new TextWatcher()
         {
@@ -137,12 +148,10 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         viewPager.setAdapter(pagerAdapter);
     }
 
-    private void updateNbFriends()
-    {
+    private void updateNbFriends(List<Friend> friends) {
         TextView txtLabelTab2Disable = (TextView) ((ViewGroup)btnTab2).getChildAt(0);
         TextView txtLabelTab2Enable = (TextView) ((ViewGroup)btnTab2).getChildAt(1);
-        List listFriends = ParseUser.getCurrentUser().getList("usersFriend");
-        String textLabelTab2 = (listFriends != null ? listFriends.size() : 0) + " " +  getString(R.string.friends_tab2);
+        String textLabelTab2 = (friends != null ? friends.size() : 0) + " " +  getString(R.string.friends_tab2);
         txtLabelTab2Disable.setText(textLabelTab2);
         txtLabelTab2Enable.setText(textLabelTab2);
         txtTab2Add.setText(textLabelTab2);
@@ -193,63 +202,64 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     private final int DURATION_ANIM = 200;//ms
     public void startAddFriendAnimation()
     {
-        updateNbFriends();
-        initPage2();
-
-        final TextView txtLabelTab2Disable = (TextView) ((ViewGroup)btnTab2).getChildAt(0);
-        final TextView txtLabelTab2Enable = (TextView) ((ViewGroup)btnTab2).getChildAt(1);
-
-        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend);
-        animation.setInterpolator(new AccelerateInterpolator());
-        animation.setDuration(DURATION_ANIM);
-        animation.setAnimationListener(new Animation.AnimationListener()
-        {
+        getFriends(false, new FunctionCallback<ArrayList<Friend>>() {
             @Override
-            public void onAnimationStart(Animation animation)
-            {
-                txtTab2Add.setAlpha(1);
-            }
+            public void done(ArrayList<Friend> friends, ParseException e) {
+                updateNbFriends(friends);
+                initPage2();
 
-            @Override
-            public void onAnimationEnd(Animation animation)
-            {
-                Animation animationReverse = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend_reverse);
-                animationReverse.setInterpolator(new DecelerateInterpolator());
-                animationReverse.setFillAfter(true);
-                animationReverse.setDuration(DURATION_ANIM);
-                txtTab2Add.startAnimation(animationReverse);
-                (new Timer()).schedule(new TimerTask()
-                {
+                final TextView txtLabelTab2Disable = (TextView) ((ViewGroup)btnTab2).getChildAt(0);
+                final TextView txtLabelTab2Enable = (TextView) ((ViewGroup)btnTab2).getChildAt(1);
+
+                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend);
+                animation.setInterpolator(new AccelerateInterpolator());
+                animation.setDuration(DURATION_ANIM);
+                animation.setAnimationListener(new Animation.AnimationListener() {
                     @Override
-                    public void run()
+                    public void onAnimationStart(Animation animation)
                     {
-                        runOnUiThread(new Runnable()
+                        txtTab2Add.setAlpha(1);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        Animation animationReverse = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend_reverse);
+                        animationReverse.setInterpolator(new DecelerateInterpolator());
+                        animationReverse.setFillAfter(true);
+                        animationReverse.setDuration(DURATION_ANIM);
+                        txtTab2Add.startAnimation(animationReverse);
+                        (new Timer()).schedule(new TimerTask()
                         {
                             @Override
                             public void run()
                             {
-                                Utile.fadeIn(txtLabelTab2Disable, DURATION_ANIM >> 1);
-                                Utile.fadeIn(txtLabelTab2Enable, DURATION_ANIM >> 1);
+                                runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        Utile.fadeIn(txtLabelTab2Disable, DURATION_ANIM >> 1);
+                                        Utile.fadeIn(txtLabelTab2Enable, DURATION_ANIM >> 1);
+                                    }
+                                });
                             }
-                        });
+                        }, DURATION_ANIM >> 1);
                     }
-                }, DURATION_ANIM >> 1);
-            }
 
-            @Override
-            public void onAnimationRepeat(Animation animation)
-            {
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
 
+                    }
+                });
+                txtTab2Add.startAnimation(animation);
+                Utile.fadeOut(txtLabelTab2Disable, DURATION_ANIM >> 1);
+                Utile.fadeOut(txtLabelTab2Enable, DURATION_ANIM >> 1);
             }
         });
-        txtTab2Add.startAnimation(animation);
-        Utile.fadeOut(txtLabelTab2Disable, DURATION_ANIM >> 1);
-        Utile.fadeOut(txtLabelTab2Enable, DURATION_ANIM >> 1);
     }
 
-    public void initPage2()
-    {
-        page2.init();
+    public void initPage2() {
+        page2.init(true);
     }
 
     public interface Listener

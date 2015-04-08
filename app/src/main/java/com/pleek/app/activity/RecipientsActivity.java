@@ -180,19 +180,23 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
             //crash #25 BOB : retour depuis FriendsActivity
             imgPiki.setImageBitmap(BitmapFactory.decodeByteArray(pikiData, 0, pikiData.length));
 
-            List<String> listFriends = ParseUser.getCurrentUser().getList("usersFriend");
+            getFriends(true, new FunctionCallback<ArrayList<Friend>>() {
+                @Override
+                public void done(ArrayList<Friend> friends, ParseException e) {
+                    if (friends != null && friends.size() > 0) {
+                        listFriend = friends;
+                        if(loadNext()) listView.addFooterView(footer);
+                        txtNoFriends.setVisibility(View.GONE);
+                    }
+                    else
+                    {
+                        txtNoFriends.setVisibility(View.VISIBLE);
+                    }
 
-            if (listFriends != null && listFriends.size() > 0)
-            {
-                if(loadNext()) listView.addFooterView(footer);
-                txtNoFriends.setVisibility(View.GONE);
-            }
-            else
-            {
-                txtNoFriends.setVisibility(View.VISIBLE);
-            }
-            adapter = new FriendsAdapter(this);//fix : CRASH #8 > http://stackoverflow.com/questions/24700588/i-am-using-the-listview-add-remove-footer-for-listview-cross-app-in-android-vers
-            listView.setAdapter(adapter);
+                    adapter = new FriendsAdapter(RecipientsActivity.this); //fix : CRASH #8 > http://stackoverflow.com/questions/24700588/i-am-using-the-listview-add-remove-footer-for-listview-cross-app-in-android-vers
+                    listView.setAdapter(adapter);
+                }
+            });
         }
         else
         {
@@ -214,34 +218,33 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         //il n'y a plus rien a charger
         if(endOfLoading) return false;
 
-        final List<String> listFriends = ParseUser.getCurrentUser().getList("usersFriend");
-        if(listFriends == null || listFriends.isEmpty()) return false;
+        if (listFriend == null || listFriend.isEmpty()) return false;
 
         //copie de la liste actuel des piki
-        if(listFriend == null) listFriend = new ArrayList<Friend>();
         listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         isLoading = true;
         fromCache = true;
-        ParseQuery<ParseUser> query = ParseUser.getQuery();
-        query.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
-        query.whereContainedIn("objectId", listFriends);
-        query.orderByAscending("username");
-        query.setSkip(currentPage * NB_BY_PAGE);
-        query.setLimit(NB_BY_PAGE);
-        query.findInBackground(new FindCallback<ParseUser>()
-        {
+
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
+        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+        innerQuery.include("friend");
+        innerQuery.orderByAscending("username");
+        innerQuery.setSkip(currentPage * NB_BY_PAGE);
+        innerQuery.setLimit(NB_BY_PAGE);
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
             @Override
-            public void done(List<ParseUser> parseObjects, ParseException e)
-            {
-                if (e == null)
-                {
-                    if(!fromCache) currentPage++;
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null) {
+                    if (!fromCache) currentPage++;
 
-                    listFriend = new ArrayList<Friend>(listBeforreRequest);
+                    //copie de la liste d'avant la request
+                    listFriend = new ArrayList<Friend>();
 
-                    for (ParseUser user : parseObjects)
-                    {
+                    for (ParseObject obj : list) {
+                        ParseUser user = (ParseUser) obj.get("friend");
                         Friend friend = new Friend(null, R.string.friends_section, R.drawable.picto_recipient_off);
                         friend.username = user.getString("username");
                         friend.parseId = user.getObjectId();
@@ -249,7 +252,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
                     }
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
-                    endOfLoading = parseObjects.size() < NB_BY_PAGE;
+                    endOfLoading = list.size() < NB_BY_PAGE;
 
                     updateFiltre();
                 }

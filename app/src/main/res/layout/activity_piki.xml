@@ -207,6 +207,15 @@
                         android:layout_height="wrap_content"
                         android:src="@drawable/picto_reply_little"/>
 
+                    <ImageView
+                        android:id="@+id/imgEmojiEarthTopBar"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginLeft="15dp"
+                        android:src="@drawable/emoji_earth"
+                        android:visibility="gone" />
+
                     <com.goandup.lib.widget.TextViewFont
                         android:id="@+id/txtNbFriendTopbar"
                         android:layout_width="wrap_content"
