@@ -19,6 +19,7 @@ import com.pleek.app.adapter.FriendsAdapter;
 import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.utils.PicassoUtils;
 import com.squareup.picasso.Picasso;
 
 import java.text.NumberFormat;
@@ -78,7 +79,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
 
     private void init()
     {
-        Picasso.with(this).load(piki.getUrlPiki()).into(imgPiki);
+        PicassoUtils.with(this).load(piki.getUrlPiki()).into(imgPiki);
 
         loadNext();
         listView.addFooterView(footer);

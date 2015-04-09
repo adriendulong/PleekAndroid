@@ -25,6 +25,7 @@ import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.bean.Reaction;
+import com.pleek.app.utils.PicassoUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -129,7 +130,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
 
                     if (react.getUrlPhoto() != null) { //is Parse React
                         Drawable drawablePlaceHolder = new BitmapDrawable(context.getResources(), react.getTmpPhoto());
-                        Picasso.with(context)
+                        PicassoUtils.with(context)
                                 .load(react.getUrlPhoto())
                                 .resize((int) (widthPiki), (int) (heightPiki))
                                 .placeholder(drawablePlaceHolder).into(vh.imgReact);

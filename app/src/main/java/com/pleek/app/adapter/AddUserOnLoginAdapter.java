@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.pleek.app.R;
+import com.pleek.app.utils.PicassoUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -71,7 +72,7 @@ public class AddUserOnLoginAdapter extends BaseAdapter implements View.OnTouchLi
         }
 
         ImageView imgUser = (ImageView) view.findViewById(R.id.imgUser);
-        Picasso.with(context).load(user.imageUrl).placeholder(R.drawable.placeholder).error(R.drawable.placeholder).into(imgUser);
+        PicassoUtils.with(context).load(user.imageUrl).placeholder(R.drawable.placeholder).error(R.drawable.placeholder).into(imgUser);
         TextView txtUserName = (TextView) view.findViewById(R.id.txtUserName);
         txtUserName.setText(user.name);
         TextView txtUserBaseline = (TextView) view.findViewById(R.id.txtUserBaseline);

@@ -85,8 +85,8 @@
 
                 <ImageView
                     android:id="@+id/imgPiki"
-                    android:layout_width="110dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="@dimen/img_piki_width"
+                    android:layout_height="@dimen/img_piki_width"
                     android:background="@color/grisSeparate"/>
 
                 <LinearLayout
@@ -139,24 +139,24 @@
 
                         <com.makeramen.RoundedImageView
                             android:id="@+id/imgPiki1"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="@dimen/img_piki_small_width"
+                            android:layout_height="@dimen/img_piki_small_height"
                             android:layout_marginLeft="10dp"
                             android:background="@color/grisSeparate"
                             app:riv_corner_radius="3dip"/>
 
                         <com.makeramen.RoundedImageView
                             android:id="@+id/imgPiki2"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="@dimen/img_piki_small_width"
+                            android:layout_height="@dimen/img_piki_small_height"
                             android:layout_marginLeft="10dp"
                             android:background="@color/grisSeparate"
                             app:riv_corner_radius="3dip"/>
 
                         <com.makeramen.RoundedImageView
                             android:id="@+id/imgPiki3"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="@dimen/img_piki_small_width"
+                            android:layout_height="@dimen/img_piki_small_height"
                             android:layout_marginLeft="10dp"
                             android:background="@color/grisSeparate"
                             app:riv_corner_radius="3dip"/>

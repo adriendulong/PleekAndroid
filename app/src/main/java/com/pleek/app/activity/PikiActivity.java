@@ -64,6 +64,7 @@ import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.CustomGridView;
 import com.squareup.picasso.Picasso;
 
@@ -455,7 +456,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             txtNamePiki.setText("@" + piki.getName());
-            Picasso.with(this)
+            PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
                     .placeholder(R.drawable.piki_placeholder)
                     .error(R.drawable.piki_placeholder)
@@ -470,7 +471,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             txtNbReply.setText(piki.getNbReact()+"");
-            Picasso.with(this)
+            PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
                     .placeholder(R.drawable.gris_label_back)
                     .error(R.drawable.gris_label_back)
@@ -1393,7 +1394,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         if(txtReplies != null) txtReplies.setText(piki.getNbReact()+"+ "+getString(R.string.share_replies));
 
         ImageView imgPiki = (ImageView)viewShare.findViewById(R.id.imgPiki);
-        Picasso.with(this)
+        PicassoUtils.with(this)
                 .load(piki.getUrlPiki())
                 .placeholder(R.drawable.piki_placeholder)
                 .error(R.drawable.piki_placeholder)
@@ -1409,7 +1410,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 ImageView imgReact = (ImageView) viewShare.findViewById(id);
                 if(!react.isTmpReaction())
                 {
-                    Picasso.with(this)
+                    PicassoUtils.with(this)
                             .load(react.getUrlPhoto())
                             .placeholder(R.drawable.piki_placeholder)
                             .error(R.drawable.piki_placeholder)

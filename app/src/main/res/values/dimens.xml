@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="img_piki_width">110dp</dimen>
+    <dimen name="img_piki_height">110dp</dimen>
+    <dimen name="img_piki_small_width">24dp</dimen>
+    <dimen name="img_piki_small_height">24dp</dimen>
+</resources>

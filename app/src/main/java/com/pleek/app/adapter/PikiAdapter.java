@@ -1,6 +1,8 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.TextViewFont;
@@ -22,7 +25,9 @@ import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ReadDateProvider;
+import com.pleek.app.utils.PicassoUtils;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.Date;
 import java.util.List;
@@ -49,6 +54,11 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     private Screen screen;
     private ReadDateProvider readDataProvider;
 
+    private int imgPikiWidth;
+    private int imgPikiHeight;
+    private int imgPikiSmallWidth;
+    private int imgPikiSmallHeight;
+
     public PikiAdapter(List<Piki> listPiki, Listener listener) {
         this(listPiki, listener, listener instanceof Context ? (Context) listener : null);
     }
@@ -60,6 +70,11 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
         screen = Screen.getInstance(context);
         readDataProvider = ReadDateProvider.getInstance(context);
+
+        imgPikiWidth = context.getResources().getDimensionPixelSize(R.dimen.img_piki_width);
+        imgPikiHeight = context.getResources().getDimensionPixelSize(R.dimen.img_piki_height);
+        imgPikiSmallWidth = context.getResources().getDimensionPixelSize(R.dimen.img_piki_small_width);
+        imgPikiSmallHeight = context.getResources().getDimensionPixelSize(R.dimen.img_piki_small_height);
     }
 
     @Override
@@ -116,12 +131,12 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.txtDeleteOff.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
 
                     // Image Piki
-                    Picasso.with(context).load(piki.getUrlPiki()).into(vh.imgPiki);
-                    Picasso.with(context).load(piki.getUrlReact1()).into(vh.imgPiki1);
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(imgPikiWidth, imgPikiHeight).into(vh.imgPiki);
+                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(imgPikiSmallWidth, imgPikiSmallHeight).into(vh.imgPiki1);
                     vh.imgPiki1.setVisibility(piki.thereIsReact1() ? View.VISIBLE : View.GONE);
-                    Picasso.with(context).load(piki.getUrlReact2()).into(vh.imgPiki2);
+                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(imgPikiSmallWidth, imgPikiSmallHeight).into(vh.imgPiki2);
                     vh.imgPiki2.setVisibility(piki.thereIsReact2() ? View.VISIBLE : View.GONE);
-                    Picasso.with(context).load(piki.getUrlReact3()).into(vh.imgPiki3);
+                    PicassoUtils.with(context).load(piki.getUrlReact3()).resize(imgPikiSmallWidth, imgPikiSmallHeight).into(vh.imgPiki3);
                     vh.imgPiki3.setVisibility(piki.thereIsReact3() ? View.VISIBLE : View.GONE);
 
 
