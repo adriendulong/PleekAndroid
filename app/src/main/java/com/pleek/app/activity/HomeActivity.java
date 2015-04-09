@@ -99,7 +99,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                 init();
             }
         });
-        Utile.changeSwipeDownDistance(refreshSwipe);
+
         btnPlus = (ButtonRoundedMaterialDesign)findViewById(R.id.btnPlus);
         btnPlus.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
         {
@@ -141,7 +141,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private void init() {
         init(true);
     }
-    private void init(boolean withCache) {
+    private void init(final boolean withCache) {
         ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return;
 
@@ -153,7 +153,11 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         mixpanel.flush();
 
         endOfLoading = false;
-        refreshSwipe.setRefreshing(loadNext(withCache));
+        refreshSwipe.post(new Runnable() {
+            @Override public void run() {
+                refreshSwipe.setRefreshing(loadNext(withCache));
+            }
+        });
     }
 
 
@@ -293,6 +297,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     @Override
     public void clickOnPiki(Piki piki)
     {
+        System.out.println("ID : " + piki.getParseObject().getObjectId());
         PikiActivity.initActivity(piki);
         startActivity(new Intent(this, PikiActivity.class));
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);

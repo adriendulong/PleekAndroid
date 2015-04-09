@@ -137,7 +137,8 @@ public class Piki implements Serializable
     public boolean iamOwner()
     {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        return currentUser != null && currentUser.getObjectId().equals(parseObject.getParseUser("user").getObjectId());
+        if (currentUser == null || parseObject == null || parseObject.getParseUser("user") == null) return false; //fix : crash #155
+        return currentUser.getObjectId().equals(parseObject.getParseUser("user").getObjectId());
     }
 
     public List<String> getFrinedsId()

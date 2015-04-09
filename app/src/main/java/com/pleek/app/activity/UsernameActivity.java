@@ -176,6 +176,7 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
 
                 final ParseObject userInfos = new ParseObject("UserInfos");
                 userInfos.put("phoneNumber", phoneNumber);
+                // TODO ADD ACL user
                 userInfos.saveInBackground(new SaveCallback()
                 {
                     @Override
@@ -202,25 +203,11 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                     mixpanel.track("Sign Up", null);
                                     fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_REGISTRATION);
 
-                                    ParseCloud.callFunctionInBackground("addToFirstUsePiki", new HashMap<String, Object>(), new FunctionCallback()
-                                    {
-                                        @Override
-                                        public void done(Object o, ParseException e)
-                                        {
-                                            if(e == null)
-                                            {
-                                                startActivity(new Intent(UsernameActivity.this, AddUserActivity.class));
-                                                overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-                                            }
-                                            else
-                                            {
-                                                Utile.showToast(R.string.username_no_network, UsernameActivity.this);
-                                                e.printStackTrace();
-                                            }
-                                            hideDialog(loader);
-                                            isSending = false;
-                                        }
-                                    });
+                                    startActivity(new Intent(UsernameActivity.this, AddUserActivity.class));
+                                    overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+
+                                    hideDialog(loader);
+                                    isSending = false;
                                 }
                                 else
                                 {

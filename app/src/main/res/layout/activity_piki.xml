@@ -116,9 +116,7 @@
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:background="@color/noir"
-                    android:visibility="gone"
-                    android:layout_marginBottom="200dp"
-                    android:layout_alignParentBottom="true">
+                    android:visibility="gone">
 
                     <com.goandup.lib.widget.CameraView
                         android:id="@+id/cameraView"

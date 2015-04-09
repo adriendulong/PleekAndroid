@@ -170,8 +170,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             _piki = null;
         }
 
-
-
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(this);
         btnBack.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.firstColorDark)));
@@ -481,7 +479,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             currentPage = 0;
             listReact = new ArrayList<Reaction>();
 
-            refreshSwipe.setRefreshing(loadNext(withCache));
+            final boolean loading = loadNext(withCache);
+
+            refreshSwipe.post(new Runnable() {
+                @Override
+                public void run() {
+                    refreshSwipe.setRefreshing(loading);
+                }
+            });
 
             //count nombre react
             ParseQuery<ParseObject> query = ParseQuery.getQuery("React");
@@ -1128,7 +1133,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if((view != null && view.getChildAt(1) != null))
             {
                 final boolean isVisible = firstVisibleItem <= 1;
-                final int yPos = isVisible ? view.getChildAt(1 - firstVisibleItem).getTop() : 0;
+                final int yPos = isVisible ? view.getChildAt(4).getTop() : 0;
 
                 Runnable updateRunnable = new Runnable()
                 {
@@ -1138,7 +1143,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         if(isVisible)
                         {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                            mlpCamera.bottomMargin = initMarginBottom - yPos;
+                            mlpCamera.topMargin = yPos;
                             layoutCamera.setLayoutParams(mlpCamera);
                             if(isVisible && !isPreviewVisible)
                             {
@@ -1509,7 +1514,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             Utile.fadeIn(btnCapture, TIME_ANIM);
             Utile.fadeOut(btnReply, TIME_ANIM);
 
-            gridViewPiki.smoothScrollToPositionFromTop(2, gridViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
+            gridViewPiki.smoothScrollToPositionFromTop(7, gridViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
         }
         else
         {
@@ -1634,7 +1639,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             @Override
             public void run()
             {
-                gridViewPiki.smoothScrollToPositionFromTop(2, gridViewPiki.getHeight() - screen.getWidth()/3, 0);
+                gridViewPiki.smoothScrollToPositionFromTop(7, gridViewPiki.getHeight() - screen.getWidth()/3, 0);
             }
         });
     }

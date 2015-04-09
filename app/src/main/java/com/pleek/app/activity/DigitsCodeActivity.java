@@ -126,8 +126,6 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
                             mixpanel.identify(parseUser.getObjectId());
                             mixpanel.track("Log In", null);
 
-                            //TODO : CHECK GOOD PHONE NUMBER !!!!!!!!!!!!!!!!!
-
                             //go home
                             Intent i = new Intent(DigitsCodeActivity.this, HomeActivity.class);
                             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
