@@ -23,6 +23,7 @@ import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.EditTextFont;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.ParseACL;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -176,7 +177,6 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
 
                 final ParseObject userInfos = new ParseObject("UserInfos");
                 userInfos.put("phoneNumber", phoneNumber);
-                // TODO ADD ACL user
                 userInfos.saveInBackground(new SaveCallback()
                 {
                     @Override
@@ -199,6 +199,12 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                     {
                                         mixpanel.alias(currentUser.getObjectId(), mixpanel.getDistinctId());
                                     }
+
+                                    ParseACL acl = new ParseACL();
+                                    acl.setWriteAccess(currentUser, true);
+                                    acl.setReadAccess(currentUser, true);
+                                    userInfos.setACL(acl);
+                                    userInfos.saveEventually();
 
                                     mixpanel.track("Sign Up", null);
                                     fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_REGISTRATION);

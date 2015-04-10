@@ -37,7 +37,12 @@ public class Piki implements Serializable
         frinedsId = parseObject.getList("recipients");
         if(frinedsId == null) frinedsId = new ArrayList<String>();
         nbRecipient = frinedsId.size();
-        urlPiki = parseObject.getParseFile("smallPiki") != null ? parseObject.getParseFile("smallPiki").getUrl() : null;//TODO : CRASH #12
+
+        if (parseObject.getParseFile("video") == null) {
+            urlPiki = parseObject.getParseFile("smallPiki") != null ? parseObject.getParseFile("smallPiki").getUrl() : null;//TODO : CRASH #12
+        } else {
+            urlPiki = parseObject.getParseFile("previewImage") != null ? parseObject.getParseFile("previewImage").getUrl() : null;
+        }
         urlReact1 = parseObject.getParseFile("react1") != null ? parseObject.getParseFile("react1").getUrl() : null;
         urlReact2 = parseObject.getParseFile("react2") != null ? parseObject.getParseFile("react2").getUrl() : null;
         urlReact3 = parseObject.getParseFile("react3") != null ? parseObject.getParseFile("react3").getUrl() : null;

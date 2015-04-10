@@ -111,6 +111,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
             }
         });
 
+        footer = new ViewLoadingFooter(this);
+        listViewPiki.addFooterView(footer);
         adapter = new PikiAdapter(new ArrayList<Piki>(), HomeActivity.this);
         //wait listViewPiki is created for get height
         listViewPiki.post(new Runnable()
@@ -134,8 +136,6 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                 return true;
             }
         });
-
-        footer = new ViewLoadingFooter(this);
     }
 
     private void init() {
@@ -189,7 +189,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         fromCache = withCache;
 
         //mark loading and add footer
-        listViewPiki.addFooterView(footer);
+        footer.setVisibility(View.VISIBLE);
         isLoading = true;
         Date date = currentUser.getDate("lastFriendsModification");
 
@@ -200,7 +200,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
             } else shouldRefreshFriends = false;
         } else {
             shouldRefreshFriends = true;
-            pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date.getTime()).commit();
+            pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date == null ? System.currentTimeMillis() : date.getTime()).commit();
         }
 
         shouldRefreshFriends = true;
@@ -266,7 +266,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                 //si réponse network (2eme reponse)
                 if (!fromCache) {
                     refreshSwipe.setRefreshing(false);
-                    listViewPiki.removeFooterView(footer);
+                    footer.setVisibility(View.GONE);
                     isLoading = false;
                 }
 

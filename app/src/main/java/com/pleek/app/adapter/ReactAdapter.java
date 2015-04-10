@@ -1,6 +1,7 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -27,6 +28,7 @@ import com.pleek.app.R;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.utils.PicassoUtils;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,7 @@ import butterknife.InjectView;
  */
 public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
     private final int NB_COLUMN = 3;
+    private final int maxSizeReactPx = 225;
 
     private List<Reaction> listReact;
     private Listener listener;
@@ -130,10 +133,17 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
 
                     if (react.getUrlPhoto() != null) { //is Parse React
                         Drawable drawablePlaceHolder = new BitmapDrawable(context.getResources(), react.getTmpPhoto());
-                        PicassoUtils.with(context)
-                                .load(react.getUrlPhoto())
-                                .resize((int) (widthPiki), (int) (heightPiki))
-                                .placeholder(drawablePlaceHolder).into(vh.imgReact);
+
+                        if (heightPiki < maxSizeReactPx) {
+                            PicassoUtils.with(context)
+                                    .load(react.getUrlPhoto())
+                                    .resize((int) (widthPiki), (int) (heightPiki))
+                                    .placeholder(drawablePlaceHolder).into(vh.imgReact);
+                        } else {
+                            PicassoUtils.with(context)
+                                    .load(react.getUrlPhoto())
+                                    .placeholder(drawablePlaceHolder).into(vh.imgReact);
+                        }
 
                         vh.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
                         react.loadVideoToTempFile(context);

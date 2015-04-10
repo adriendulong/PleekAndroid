@@ -40,7 +40,7 @@ public class PicassoUtils {
             builder.memoryCache(mCache);
             builder.downloader(new OkHttpDownloader(client));
             singleton = builder.build();
-            singleton.setDebugging(true);
+            singleton.setDebugging(false);
         }
         return singleton;
     }
