@@ -1,24 +1,18 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
@@ -27,8 +21,6 @@ import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.utils.PicassoUtils;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,23 +124,23 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.txtUserName.setText("@" + react.getNameUser());
 
                     if (react.getUrlPhoto() != null) { //is Parse React
-                        Drawable drawablePlaceHolder = new BitmapDrawable(context.getResources(), react.getTmpPhoto());
+                        //Drawable drawablePlaceHolder = new BitmapDrawable(context.getResources(), react.getTmpPhoto());
 
                         if (heightPiki < maxSizeReactPx) {
                             PicassoUtils.with(context)
                                     .load(react.getUrlPhoto())
-                                    .resize((int) (widthPiki), (int) (heightPiki))
-                                    .placeholder(drawablePlaceHolder).into(vh.imgReact);
+                                    .resize((int) (widthPiki * 0.80), (int) (heightPiki * 0.80))
+                                    .into(vh.imgReact);
                         } else {
                             PicassoUtils.with(context)
                                     .load(react.getUrlPhoto())
-                                    .placeholder(drawablePlaceHolder).into(vh.imgReact);
+                                    .resize((int) (widthPiki * 0.80), (int) (heightPiki * 0.80))
+                                    .into(vh.imgReact);
                         }
 
                         vh.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
                         react.loadVideoToTempFile(context);
-                    }
-                    else { //is tmp React, between creating and uploaded
+                    } else {
                         vh.imgReact.setImageBitmap(react.getTmpPhoto());
                         vh.imgPlay.setVisibility(View.GONE);
                         vh.progressBar.setVisibility(react.isLoadError() ? View.GONE : View.VISIBLE);
@@ -157,7 +149,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
                             vh.imgError.setImageResource(R.drawable.picto_reload);
                         }
                     }
-                } else { // is placeholder item
+                } else {
                     isPlaceHolder = true;
                     vh.imgReact.setImageDrawable(null);
                     vh.imgReact.setBackgroundColor(context.getResources().getColor(i % 2 != 0 ? R.color.grisFondPikiPlaceholder1 : R.color.grisFondPikiPlaceholder2));

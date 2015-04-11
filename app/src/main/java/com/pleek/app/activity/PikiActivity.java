@@ -10,7 +10,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -66,7 +65,6 @@ import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.CustomGridView;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -458,6 +456,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             txtNamePiki.setText("@" + piki.getName());
             PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
+                    .resize((int) (pikiHeader.getLayoutParams().width), (int) (pikiHeader.getLayoutParams().width * 0.80))
                     .placeholder(R.drawable.piki_placeholder)
                     .error(R.drawable.piki_placeholder)
                     .into(imgPiki);

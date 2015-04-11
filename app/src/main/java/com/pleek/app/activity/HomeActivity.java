@@ -35,7 +35,6 @@ import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.common.Constants;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,6 +57,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private PikiAdapter adapter;
     private List<Piki> listPiki;
     private List<ParseUser> friends;
+
+    private boolean shouldReinit = false;
 
     private int initialX;
 
@@ -96,7 +97,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         refreshSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                init();
+                shouldReinit = true;
+                init(false);
             }
         });
 
@@ -142,6 +144,9 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         init(true);
     }
     private void init(final boolean withCache) {
+        currentPage = 0;
+        lastItemShow = 0;
+
         ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return;
 
@@ -214,6 +219,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
             @Override
             public void done(List<ParseObject> list, ParseException e) {
                 if (e == null && list != null) {
+                    if (friends != null) friends.clear();
+
                     for (ParseObject obj : list) {
                         friends.add((ParseUser) obj.get("friend"));
                     }
@@ -246,7 +253,12 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                     if (!fromCache) currentPage++;
 
                     //copie de la liste d'avant la request
-                    listPiki = new ArrayList<Piki>(listBeforreRequest);
+                    if (shouldReinit) {
+                        listPiki.clear();
+                        shouldReinit = false;
+                    } else {
+                        listPiki = new ArrayList<Piki>(listBeforreRequest);
+                    }
 
                     for (ParseObject parsePiki : parseObjects) {
                         listPiki.add(new Piki(parsePiki));
@@ -316,7 +328,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         if(AUTO_RELOAD)
         {
             AUTO_RELOAD = false;
-            init();
+            shouldReinit = true;
+            init(false);
         }
         super.onResume();
     }

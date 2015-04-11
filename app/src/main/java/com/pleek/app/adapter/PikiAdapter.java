@@ -1,9 +1,6 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,11 +10,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.TextViewFont;
@@ -26,8 +21,6 @@ import com.pleek.app.R;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ReadDateProvider;
 import com.pleek.app.utils.PicassoUtils;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.util.Date;
 import java.util.List;
@@ -131,7 +124,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.txtDeleteOff.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
 
                     // Image Piki
-                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(imgPikiWidth, imgPikiHeight).into(vh.imgPiki);
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize((int) (imgPikiWidth * 0.80), (int) (imgPikiHeight * 0.80)).into(vh.imgPiki);
                     PicassoUtils.with(context).load(piki.getUrlReact1()).resize(imgPikiSmallWidth, imgPikiSmallHeight).into(vh.imgPiki1);
                     vh.imgPiki1.setVisibility(piki.thereIsReact1() ? View.VISIBLE : View.GONE);
                     PicassoUtils.with(context).load(piki.getUrlReact2()).resize(imgPikiSmallWidth, imgPikiSmallHeight).into(vh.imgPiki2);
