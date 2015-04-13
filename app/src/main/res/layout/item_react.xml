@@ -45,7 +45,11 @@
             android:id="@+id/layoutVideo"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true">
 
         </LinearLayout>
 
@@ -61,7 +65,6 @@
             style="?android:attr/progressBarStyleLarge"
             android:layout_width="25dp"
             android:layout_height="25dp"
-            android:indeterminateDrawable="@drawable/progress"
             android:layout_centerInParent="true"
             android:visibility="gone"
             android:alpha="0.85" />

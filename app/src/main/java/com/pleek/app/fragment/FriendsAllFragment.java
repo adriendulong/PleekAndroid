@@ -278,9 +278,16 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
                             adapter.removeFriend(friend);
                             ((FriendsActivity) getActivity()).startAddFriendAnimation();
-                            ((FriendsActivity) getActivity()).initPage2();
+
+                            if (type == TYPE_ADDED_YOU) {
+                                ((FriendsActivity) getActivity()).initPage2();
+                            }
+
                             ((FriendsActivity) getActivity()).reloadPage3();
-                            adapter.addPikiUser(friend);
+
+                            if (friend.image == R.drawable.picto_added) {
+                                adapter.addPikiUser(friend);
+                            }
                         }
                     });
                 } else {
@@ -312,25 +319,20 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     }
 
     private int lastItemShow;
-    private class MyOnScrollListener implements AbsListView.OnScrollListener
-    {
+    private class MyOnScrollListener implements AbsListView.OnScrollListener {
 
         @Override
         public void onScrollStateChanged(AbsListView absListView, int i) {}
 
         @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
-        {
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
             //pagination
             final int lastItem = firstVisibleItem + visibleItemCount;
-            if(lastItem == totalItemCount)
-            {
+            if (lastItem == totalItemCount) {
                 boolean isFiltred = currentFiltreSearch != null && !currentFiltreSearch.trim().isEmpty();
 
-                if(lastItemShow < lastItem || isFiltred)
-                {
-                    if (loadNext())
-                    {
+                if (lastItemShow < lastItem || isFiltred) {
+                    if (loadNext()) {
                         listView.addFooterView(footer);
                         lastItemShow = lastItem;
                     }
@@ -340,6 +342,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     }
 
     public void reload() {
+        adapter.refactorImages(((ParentActivity) getActivity()).getFriendsPrefs());
         adapter.notifyDataSetChanged();
     }
 }

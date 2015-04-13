@@ -26,7 +26,6 @@
             android:orientation="vertical"
             android:gravity="center_vertical">
 
-
             <com.goandup.lib.widget.TextViewFont
                 android:id="@+id/txtName"
                 android:layout_width="match_parent"
@@ -59,7 +58,6 @@
             style="?android:attr/progressBarStyleLarge"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:indeterminateDrawable="@drawable/progress_sweep"
             android:visibility="invisible"/>
 
         <ImageView

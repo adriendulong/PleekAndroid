@@ -247,6 +247,9 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
         query.whereContainedIn("user", friends);
+        if (ParseUser.getCurrentUser().get("pleeksHide") != null) {
+            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHide"));
+        }
         query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
         query.include("user");
         query.orderByDescending("lastUpdate");
@@ -510,21 +513,28 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
                                                     Piki removedPiki = adapter.removePiki(position);
 
-                                                    //Parse remove Piki
-                                                    HashMap<String, String> params = new HashMap<String, String>();
-                                                    params.put("pikiId", removedPiki.getId());
-                                                    ParseCloud.callFunctionInBackground("hideOrRemovePiki", params, new FunctionCallback<Object>()
-                                                    {
-                                                        @Override
-                                                        public void done(Object o, ParseException e)
-                                                        {
-                                                            if(e != null) Utile.showToast(R.string.home_piki_remove_nok, HomeActivity.this);
-                                                            else {
-                                                                shouldReinit = true;
-                                                                init(false);
+                                                    if (!removedPiki.isPublic()) {
+                                                        //Parse remove Piki
+                                                        HashMap<String, String> params = new HashMap<String, String>();
+                                                        params.put("pikiId", removedPiki.getId());
+                                                        ParseCloud.callFunctionInBackground("hideOrRemovePikiV2", params, new FunctionCallback<Object>() {
+                                                            @Override
+                                                            public void done(Object o, ParseException e) {
+                                                                if (e != null)
+                                                                    Utile.showToast(R.string.home_piki_remove_nok, HomeActivity.this);
+                                                                else {
+                                                                    shouldReinit = true;
+                                                                    init(false);
+                                                                }
                                                             }
-                                                        }
-                                                    });
+                                                        });
+                                                    } else {
+                                                        ParseUser user = ParseUser.getCurrentUser();
+                                                        user.add("pleeksHide", removedPiki.getId());
+                                                        user.saveEventually();
+                                                        shouldReinit = true;
+                                                        init(false);
+                                                    }
                                                 }
                                                 @Override public void onAnimationRepeat(Animation animation) {}
                                                 @Override public void onAnimationStart(Animation animation) {}

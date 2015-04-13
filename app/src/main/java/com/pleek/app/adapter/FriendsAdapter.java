@@ -15,6 +15,7 @@ import com.pleek.app.bean.Friend;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 
@@ -242,5 +243,15 @@ public class FriendsAdapter extends BaseAdapter implements StickyListHeadersAdap
     //INTERFACE
     public interface Listener {
         public void clickOnName(Friend friend);
+    }
+
+    public void refactorImages(Set<String> friendsIds) {
+        for (Friend friend : listFriend) {
+            if (friendsIds.contains(friend.parseId)) {
+                friend.image = R.drawable.picto_added;
+            } else {
+                friend.image = R.drawable.picto_add_user;
+            }
+        }
     }
 }

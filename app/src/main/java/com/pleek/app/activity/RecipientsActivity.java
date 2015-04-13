@@ -177,19 +177,35 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     {
         if(pikiData != null && pikiData.length != 0)
         {
+            currentPage = 0;
+            lastItemShow = 0;
+            isLoading = false;
+            endOfLoading = false;
+            listFriend = new ArrayList<Friend>();
             //crash #25 BOB : retour depuis FriendsActivity
             imgPiki.setImageBitmap(BitmapFactory.decodeByteArray(pikiData, 0, pikiData.length));
 
-            getFriends(true, new FunctionCallback<ArrayList<Friend>>() {
+            ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+            innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
+
+            innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+            innerQuery.include("friend");
+
+            innerQuery.orderByAscending("username");
+            innerQuery.setSkip(currentPage * NB_BY_PAGE);
+            innerQuery.setLimit(NB_BY_PAGE);
+            innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
                 @Override
-                public void done(ArrayList<Friend> friends, ParseException e) {
-                    if (friends != null && friends.size() > 0) {
-                        listFriend = friends;
+                public void done(List<ParseObject> list, ParseException e) {
+                    if (list != null && list.size() > 0) {
+                        for (ParseObject obj : list) {
+                            listFriend.add(new Friend((ParseUser) obj.get("friend")));
+                        }
+
                         if(loadNext()) listView.addFooterView(footer);
                         txtNoFriends.setVisibility(View.GONE);
-                    }
-                    else
-                    {
+                    } else {
                         txtNoFriends.setVisibility(View.VISIBLE);
                     }
 

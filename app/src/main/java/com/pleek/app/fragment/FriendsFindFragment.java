@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
+import com.goandup.lib.widget.DownTouchListener;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
@@ -23,10 +24,12 @@ import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
+import com.pleek.app.activity.AddUserActivity;
 import com.pleek.app.activity.FriendsActivity;
 import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.adapter.FriendsAdapter;
 import com.pleek.app.bean.Friend;
+import com.pleek.app.common.Constants;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,8 +83,16 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         phoneUtil = PhoneNumberUtil.getInstance();
 
         header = getActivity().getLayoutInflater().inflate(R.layout.header_find_friend, null);
+        header.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), AddUserActivity.class);
+                intent.putExtra(Constants.EXTRA_FROM_FRIENDS, true);
+                startActivityForResult(intent, Constants.REQUEST_ADD_USER);
+            }
+        });
 
-        listView = (StickyListHeadersListView)getView().findViewById(R.id.listView);
+        listView = (StickyListHeadersListView) getView().findViewById(R.id.listView);
         listView.addHeaderView(header);
         txtNoContact = (TextView) getView().findViewById(R.id.txtNoContact);
 

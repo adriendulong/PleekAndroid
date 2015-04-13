@@ -19,6 +19,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.adapter.AddUserOnLoginAdapter;
+import com.pleek.app.common.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,15 +34,22 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     private ListView listviewUser;
     private View btnNext;
     private TextView txtBtnNext;
+    private View btnDismiss;
     private View loadeur;
 
     private AddUserOnLoginAdapter adapter;
+
+    private boolean isFromFriends = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_adduser);
+
+        if (getIntent().hasExtra(Constants.EXTRA_FROM_FRIENDS)) {
+            isFromFriends = true;
+        }
 
         setup();
         init();
@@ -52,10 +60,19 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
         listviewUser = (ListView)findViewById(R.id.listviewUser);
         btnNext = findViewById(R.id.btnNext);
         btnNext.setOnClickListener(this);
-        txtBtnNext = (TextView)findViewById(R.id.txtBtnNext);
-        String txt = getResources().getString(R.string.adduser_btn_next);
-        txt = txt.replace("_nbstay_", ""+NB_MUST_SELECT_USER);
-        txtBtnNext.setText(txt);
+        btnDismiss = findViewById(R.id.btnDismiss);
+        btnDismiss.setOnClickListener(this);
+
+        if (!isFromFriends) {
+            txtBtnNext = (TextView) findViewById(R.id.txtBtnNext);
+            String txt = getResources().getString(R.string.adduser_btn_next);
+            txt = txt.replace("_nbstay_", "" + NB_MUST_SELECT_USER);
+            txtBtnNext.setText(txt);
+        } else {
+            btnNext.setVisibility(View.GONE);
+            btnDismiss.setVisibility(View.VISIBLE);
+        }
+
         loadeur = findViewById(R.id.loadeur);
     }
 
@@ -67,6 +84,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
         ParseQuery<ParseUser> query = ParseUser.getQuery();
         query.whereEqualTo("isRecommend", Boolean.TRUE);
         query.whereEqualTo("recommendLocalisation", Locale.getDefault().getCountry().toLowerCase());
+        if (isFromFriends) query.whereNotContainedIn("objectId", getFriendsPrefs());
         query.orderByDescending("recommendOrder");
 
         query.findInBackground(new FindCallback<ParseUser>()
@@ -102,17 +120,18 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
         });
     }
 
-    private void forceBtnToHome()
-    {
-        error = true;
-        changeColorBtn(true);
-        txtBtnNext.setText(getResources().getString(R.string.adduser_btn_next_done));
+    private void forceBtnToHome() {
+        if (!isFromFriends) {
+            error = true;
+            changeColorBtn(true);
+            txtBtnNext.setText(getResources().getString(R.string.adduser_btn_next_done));
+        }
     }
 
     private int nbFriendAdd;
     @Override
     public void onClick(View view) {
-        if (view == btnNext) {
+        if (view == btnNext || view == btnDismiss) {
             final List<AddUserOnLoginAdapter.User> listUser = adapter.getListUserSelected();
             if (listUser.size() >= NB_MUST_SELECT_USER || error) {
                 if (listUser.size() > 0) {
@@ -122,9 +141,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
                         @Override
                         public void done(ParseUser user, ParseException e) {
                             if (e == null) {
-                                Map<String, Object> param = new HashMap<String, Object>();
-                                param.put("friendId", user.getObjectId());
-                                ParseCloud.callFunctionInBackground("addToLastPublicPiki", param, new FunctionCallback<Object>() {
+                                getFriendsBg(new FunctionCallback() {
                                     @Override
                                     public void done(Object o, ParseException e) {
                                         nbFriendAdd++;
@@ -150,16 +167,22 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
                 else {
                     goHome();
                 }
+            } else if (isFromFriends) {
+                goHome();
             }
         }
     }
 
     private void goHome()
     {
-        Intent i = new Intent(AddUserActivity.this, HomeActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(i);
-        overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        if (!isFromFriends) {
+            Intent i = new Intent(AddUserActivity.this, HomeActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+            overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        } else {
+            finish();
+        }
     }
 
     @Override
@@ -172,22 +195,20 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     private boolean wasValid;
     private int TIME_TRANSITION_COLOR = 100;//ms
     @Override
-    public void clickOnUser(AddUserOnLoginAdapter.User user)
-    {
-        int nbUserSelected = NB_MUST_SELECT_USER - adapter.getListUserSelected().size();
-        boolean isValid = nbUserSelected <= 0;
-        if(isValid)
-        {
-            txtBtnNext.setText(getResources().getString(R.string.adduser_btn_next_done));
-        }
-        else
-        {
-            String txt = getResources().getString(R.string.adduser_btn_next);
-            txt = txt.replace("_nbstay_", ""+nbUserSelected);
-            txtBtnNext.setText(txt);
-        }
+    public void clickOnUser(AddUserOnLoginAdapter.User user) {
+        if (!isFromFriends) {
+            int nbUserSelected = NB_MUST_SELECT_USER - adapter.getListUserSelected().size();
+            boolean isValid = nbUserSelected <= 0;
+            if (isValid) {
+                txtBtnNext.setText(getResources().getString(R.string.adduser_btn_next_done));
+            } else {
+                String txt = getResources().getString(R.string.adduser_btn_next);
+                txt = txt.replace("_nbstay_", "" + nbUserSelected);
+                txtBtnNext.setText(txt);
+            }
 
-        changeColorBtn(isValid);
+            changeColorBtn(isValid);
+        }
     }
 
     private void changeColorBtn(boolean isValid)
@@ -209,7 +230,9 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
-        if(keyCode == KeyEvent.KEYCODE_BACK) return false;
+        if (!isFromFriends) {
+            if (keyCode == KeyEvent.KEYCODE_BACK) return false;
+        }
 
         return true;
     }

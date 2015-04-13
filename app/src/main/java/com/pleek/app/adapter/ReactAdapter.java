@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -22,6 +24,7 @@ import com.pleek.app.R;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.utils.PicassoUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +34,7 @@ import butterknife.InjectView;
 /**
  * Created by nicolas on 19/12/14.
  */
-public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
+public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, SurfaceHolder.Callback {
     private final int NB_COLUMN = 3;
     private final int maxSizeReactPx = 225;
 
@@ -42,7 +45,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
 
     private int heightListView;
     private MediaPlayer mediaPlayer;
-    private ViewGroup currentItemPlay;
+    private ReactViewHolder currentItemPlay;
     private Reaction currentReactPlay;
     private boolean isUsernameShow;
 
@@ -50,6 +53,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
     private DoubletapRunnable doubletapRunnable;
 
     int oneDp, heightPiki, widthPiki;
+
+    private SurfaceView surfaceView;
 
     public ReactAdapter(List<Reaction> listReact, Listener listener) {
         this(listReact, listener, listener instanceof Context ? (Context) listener : null);
@@ -67,6 +72,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
         oneDp = screen.dpToPx(1);
         heightPiki = (screen.getWidth() - screen.dpToPx(NB_COLUMN - 1)) / NB_COLUMN; //(screen widt - NB_COLUMN-1 divider) / NB_COLUMN
         widthPiki = heightPiki + oneDp;
+
+        surfaceView = new SurfaceView(context);
     }
 
     private int nbRow = -1;
@@ -93,8 +100,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
 
     @Override
     public View getView(int i, View view, ViewGroup parent) {
-        clearView(view);
-
         if (view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.item_react, parent, false);
             view.getLayoutParams().height = heightPiki;
@@ -105,6 +110,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
         }
 
         ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
+        clearView(vh);
 
         if (vh != null) {
             // All other itm is item_react or placeholder
@@ -238,6 +244,72 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
         return listReact.get(position);
     }
 
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        if (currentReactPlay.isLoadError()) {
+            // show error
+            currentItemPlay.imgError.setVisibility(View.VISIBLE);
+            currentItemPlay.imgError.setImageResource(R.drawable.picto_loaderror);
+            isPreparePlaying = false;
+        } else if (currentReactPlay.isLoaded()) {
+            // play video
+            currentItemPlay.layoutVideo.setVisibility(View.VISIBLE);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    currentItemPlay.imgReact.setVisibility(View.GONE);
+                    mediaPlayer.start();
+                    currentItemPlay = currentItemPlay;
+                    currentReactPlay = currentReactPlay;
+                    isPreparePlaying = false;
+                }
+            });
+
+            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                    L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
+                    currentItemPlay.imgError.setVisibility(View.VISIBLE);
+                    isPreparePlaying = false;
+                    return false;
+                }
+            });
+
+            currentItemPlay.imgMute.setVisibility(View.GONE);
+            mediaPlayer.setVolume(1,1);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.setDisplay(surfaceView.getHolder());
+            try {
+                mediaPlayer.setDataSource(currentReactPlay.getTempFilePath(context));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mediaPlayer.prepareAsync();
+        } else { //loading
+            // wait loading
+            currentItemPlay.progressBar.setVisibility(View.VISIBLE);
+            currentReactPlay.setLoadVideoEndListener(new Reaction.LoadVideoEndListener() {
+                @Override
+                public void done(boolean ok, Reaction react) {
+                    currentItemPlay.progressBar.setVisibility(View.GONE);
+                    isPreparePlaying = false;
+                    playVideo(react, currentItemPlay.itemView);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
     class DownRunnable implements Runnable {
         private View view;
 
@@ -305,16 +377,9 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
         }
     };
 
-    private void clearView(View item) {
-        if (item instanceof ViewGroup) {
-            ViewGroup v = (ViewGroup) item;
-            for (int i = 0; i < v.getChildCount(); i++) {
-                View child = v.getChildAt(i);
-
-                if (child == currentItemPlay) {
-                    stopCurrentVideo();
-                }
-            }
+    private void clearView(ReactViewHolder vh) {
+        if (vh == currentItemPlay) {
+            stopCurrentVideo();
         }
     }
 
@@ -348,54 +413,13 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
                 vh.imgPlay.setVisibility(View.GONE);
                 vh.imgError.setVisibility(View.GONE);
 
-                if (react.isLoadError()) {
-                    // show error
-                    vh.imgError.setVisibility(View.VISIBLE);
-                    vh.imgError.setImageResource(R.drawable.picto_loaderror);
-                    isPreparePlaying = false;
-                } else if (react.isLoaded()) {
-                    // play video
-                    vh.layoutVideo.setVisibility(View.VISIBLE);
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                        @Override
-                        public void onPrepared(MediaPlayer mediaPlayer) {
-                            vh.imgReact.setVisibility(View.GONE);
-                            mediaPlayer.start();
-                            currentItemPlay = (ViewGroup) vh.itemView;
-                            currentReactPlay = react;
-                            isPreparePlaying = false;
-                        }
-                    });
+                surfaceView = new SurfaceView(context);
+                surfaceView.getHolder().addCallback(this);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                vh.layoutVideo.addView(surfaceView, params);
 
-                    mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-                        @Override
-                        public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-                            L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
-                            vh.imgError.setVisibility(View.VISIBLE);
-                            isPreparePlaying = false;
-                            return false;
-                        }
-                    });
-
-                    vh.imgMute.setVisibility(View.GONE);
-                    mediaPlayer.setVolume(1,1);
-                    mediaPlayer.setLooping(true);
-                    //mediaPlayer.setDisplay(videoReact.getHolder());
-                    mediaPlayer.setDataSource(react.getTempFilePath(context));
-                    mediaPlayer.prepareAsync();
-                } else { //loading
-                    // wait loading
-                    vh.progressBar.setVisibility(View.VISIBLE);
-                    react.setLoadVideoEndListener(new Reaction.LoadVideoEndListener() {
-                        @Override
-                        public void done(boolean ok, Reaction react) {
-                            vh.progressBar.setVisibility(View.GONE);
-                            isPreparePlaying = false;
-                            playVideo(react, view);
-                        }
-                    });
-                }
+                currentReactPlay = react;
+                currentItemPlay = vh;
             }
         } catch (Exception e) {
             if (view instanceof ViewGroup) {
@@ -413,15 +437,14 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener {
 
     public void stopCurrentVideo() {
         if (currentItemPlay != null && currentReactPlay != null) {
-            ReactViewHolder vh = (ReactViewHolder) currentItemPlay.getTag(R.id.vh);
-
-            vh.layoutVideo.setVisibility(View.GONE);
-            vh.imgReact.setVisibility(View.VISIBLE);
-            vh.imgPlay.setVisibility(View.VISIBLE);
-            vh.imgMute.setVisibility(View.GONE);
-            vh.imgError.setVisibility(View.GONE);
-            vh.progressBar.setVisibility(View.GONE);
-            currentItemPlay.invalidate();
+            currentItemPlay.layoutVideo.setVisibility(View.GONE);
+            currentItemPlay.layoutVideo.removeAllViews();
+            currentItemPlay.imgReact.setVisibility(View.VISIBLE);
+            currentItemPlay.imgPlay.setVisibility(View.VISIBLE);
+            currentItemPlay.imgMute.setVisibility(View.GONE);
+            currentItemPlay.imgError.setVisibility(View.GONE);
+            currentItemPlay.progressBar.setVisibility(View.GONE);
+            currentItemPlay.itemView.invalidate();
 
             mediaPlayer.stop();
             mediaPlayer.release();

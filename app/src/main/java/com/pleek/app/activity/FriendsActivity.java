@@ -1,22 +1,35 @@
 package com.pleek.app.activity;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.content.Context;
+import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.TranslateAnimation;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.DownTouchListener;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -25,18 +38,21 @@ import com.pleek.app.R;
 import com.pleek.app.bean.Friend;
 import com.pleek.app.fragment.FriendsAllFragment;
 import com.pleek.app.fragment.FriendsFindFragment;
+import com.pleek.app.utils.StringUtils;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
  * Created by nicolas on 18/12/14.
  */
-public class FriendsActivity extends ParentActivity implements View.OnClickListener
-{
+public class FriendsActivity extends ParentActivity implements View.OnClickListener {
     private View btnTopBar;
     private View btnBack;
     private View btnTab1;
@@ -45,9 +61,19 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     private UnderlinePageIndicator tabIndicator;
     private ViewPager viewPager;
     private EditText editSearch;
+    private TextView txtArobas;
     private TextView txtTab2Add;
     private ImageView btnSearch;
+    private ImageView btnClose;
     private TextView txtTitle;
+    private RelativeLayout searchOverlay;
+    private TextView txtName;
+    private TextView txtUsername;
+    private ImageView imgAction;
+    private ProgressBar progressBar;
+    private RelativeLayout searchLayout;
+    private Friend friend;
+    private int nbFriends;
 
     private TextView txtFindEnabled;
     private TextView txtNbFriend2Disabled;
@@ -60,6 +86,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     private FriendsFindFragment page1;
     private FriendsAllFragment page2;
     private FriendsAllFragment page3;
+    private FriendsFindFragment searchFragment;
 
     private FragmentPagerAdapter pagerAdapter;
 
@@ -91,6 +118,17 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         btnSearch = (ImageView) findViewById(R.id.btnSearch);
         btnSearch.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.firstColorDark)));
         btnSearch.setOnClickListener(this);
+        btnClose = (ImageView) findViewById(R.id.btnClose);
+        btnClose.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.firstColorDark)));
+        btnClose.setOnClickListener(this);
+        searchOverlay = (RelativeLayout) findViewById(R.id.searchOverlay);
+        searchLayout = (RelativeLayout) findViewById(R.id.searchLayout);
+        searchLayout.setOnClickListener(this);
+        txtUsername = (TextView) findViewById(R.id.txtUserName);
+        txtName = (TextView) findViewById(R.id.txtName);
+        imgAction = (ImageView) findViewById(R.id.imgAction);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        txtArobas = (TextView) findViewById(R.id.arobas);
 
         txtFindEnabled = (TextView) findViewById(R.id.txtFindEnabled);
         txtNbFriend2Disabled = (TextView) findViewById(R.id.txtNbFriend2Disabled);
@@ -128,22 +166,37 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         });
 
         editSearch = (EditText)findViewById(R.id.editSearch);
-//        editSearch.addTextChangedListener(new TextWatcher()
-//        {
-//            @Override
-//            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
-//
-//            @Override
-//            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {}
-//
-//            @Override
-//            public void afterTextChanged(Editable editable)
-//            {
-//                String filtreSearch = editable.toString();
-//                if(filtreSearch.trim().length() == 0) filtreSearch = null;
-//                page1.filtreSearchChange(filtreSearch);
-//            }
-//        });
+        editSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String filtreSearch = editable.toString();
+
+                if (filtreSearch != null && filtreSearch.length() > 3) {
+                    if (lastQueryRunnable != null) handler.removeCallbacks(lastQueryRunnable);
+                    lastQueryRunnable = new QueryRunnable(filtreSearch);
+                    handler.postDelayed(lastQueryRunnable, TIMER_QUERY);
+                    searchLayout.setVisibility(View.VISIBLE);
+                    searchOverlay.setBackgroundResource(R.color.blanc);
+                    txtName.setText("@" + filtreSearch);
+                    progressBar.setVisibility(View.VISIBLE);
+                    imgAction.setVisibility(View.GONE);
+                } else {
+                    txtUsername.setText("");
+                    txtName.setText("");
+                    imgAction.setImageDrawable(null);
+                    searchLayout.setVisibility(View.GONE);
+                    searchOverlay.setBackgroundResource(R.color.whiteOverlay);
+                    progressBar.setVisibility(View.INVISIBLE);
+                    imgAction.setVisibility(View.GONE);
+                }
+            }
+        });
         tabIndicator = (UnderlinePageIndicator) findViewById(R.id.tabIndicator);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -198,6 +251,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     }
 
     private void updateNbYouAdded(int i) {
+        nbFriends = i;
         String textLabelTab2 = "" + i;
         txtNbFriend2Disabled.setText(textLabelTab2);
         txtNbFriend2Enabled.setText(textLabelTab2);
@@ -222,6 +276,58 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
             viewPager.setCurrentItem(2, true);
         } else if (view == btnSearch) {
             showEditTextSearch(true);
+        } else if (view == btnClose) {
+            showEditTextSearch(false);
+        } else if (view == searchLayout) {
+            progressBar.setVisibility(View.VISIBLE);
+            Set<String> friendsIds = getFriendsPrefs();
+
+            final FunctionCallback callback = new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    if (e == null) {
+                        getFriendsBg(new FunctionCallback() {
+                            @Override
+                            public void done(Object o, ParseException e) {
+                                if (getFriendsPrefs().contains(friend.parseId)) {
+                                    updateNbYouAdded(nbFriends + 1);
+                                    imgAction.setImageResource(R.drawable.picto_added);
+                                } else {
+                                    updateNbYouAdded(nbFriends - 1);
+                                    imgAction.setImageResource(R.drawable.picto_add_user);
+                                }
+
+                                progressBar.setVisibility(View.INVISIBLE);
+                                initPage2();
+                                reloadPage3();
+                            }
+                        });
+                    } else {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        Utile.showToast(R.string.pikifriends_action_nok, FriendsActivity.this);
+                    }
+                }
+            };
+
+            if (!friendsIds.contains(friend.parseId)) {
+                Map<String, Object> param = new HashMap<String, Object>();
+                param.put("friendId", friend.parseId);
+                ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
+                    @Override
+                    public void done(Object o, ParseException e) {
+                        callback.done(o, e);
+                    }
+                });
+            } else {
+                Map<String, Object> param = new HashMap<String, Object>();
+                param.put("friendId", friend.parseId);
+                ParseCloud.callFunctionInBackground("removeFriendV2", param, new FunctionCallback<Object>() {
+                    @Override
+                    public void done(Object o, ParseException e) {
+                        callback.done(o, e);
+                    }
+                });
+            }
         }
     }
 
@@ -295,6 +401,10 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         page2.init(true);
     }
 
+    public void reloadPage2() {
+        page2.reload();
+    }
+
     public void reloadPage3() {
         page3.reload();
     }
@@ -306,56 +416,138 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     private final int TIME_ANIM = 250;//ms
     private boolean isAnimating;
     private boolean isEditTextShow;
-    private void showEditTextSearch(final boolean show)
-    {
-        if(isAnimating || isEditTextShow == show) return;
+    private void showEditTextSearch(final boolean show) {
+        if (isAnimating || isEditTextShow == show) return;
 
         isAnimating = true;
         isEditTextShow = show;
-        if(show)
-        {
+        if (show) {
             Utile.fadeOut(btnBack, TIME_ANIM);
             Utile.fadeOut(txtTitle, TIME_ANIM);
-        }
-        else
-        {
+        } else {
             Utile.fadeIn(btnBack, TIME_ANIM);
             Utile.fadeIn(txtTitle, TIME_ANIM);
+            Utile.fadeOut(btnClose, TIME_ANIM);
+            Utile.fadeOut(searchOverlay, TIME_ANIM);
         }
-//        ResizeWidthAnimation anim = new ResizeWidthAnimation(marginLeftBtnSearch, show ? 0 : initialWidthMarginLeftBtnSearch);
-//        anim.setDuration(TIME_ANIM);
-//        marginLeftBtnSearch.startAnimation(anim);
-//        RotateAnimation rotateAnim = new RotateAnimation(show ? 0 : 45, show ? 45 : 0, btnTopBar.getWidth() >> 1, btnTopBar.getHeight() >> 1);
-//        rotateAnim.setDuration(TIME_ANIM);
-//        rotateAnim.setFillAfter(true);
-//        imgBnTopBar.startAnimation(rotateAnim);
-//        rotateAnim.setAnimationListener(new Animation.AnimationListener()
-//        {
-//            @Override
-//            public void onAnimationStart(Animation animation)
-//            {
-//                if(!show)
-//                {
-//                    editSearch.setVisibility(View.GONE);
-//                }
-//            }
-//            @Override
-//            public void onAnimationRepeat(Animation animation) {}
-//            @Override
-//            public void onAnimationEnd(Animation animation)
-//            {
-//                if(show)
-//                {
-//                    Utile.fadeIn(editSearch, TIME_ANIM >> 2);
-//                    editSearch.requestFocus();
-//                    ((InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(editSearch, 0);
-//                }
-//                else
-//                {
-//                    ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
-//                }
-//                isAnimating = false;
-//            }
-//        });
+
+        ObjectAnimator objectAnimator;
+
+        if (show) {
+            objectAnimator = ObjectAnimator.ofFloat(btnSearch, "translationX", 0, -screen.getWidth() + btnSearch.getWidth());
+        } else {
+            objectAnimator = ObjectAnimator.ofFloat(btnSearch, "translationX", -screen.getWidth() + btnSearch.getWidth(), 0);
+        }
+        objectAnimator.setDuration(TIME_ANIM);
+        objectAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                if (!show) {
+                    editSearch.setVisibility(View.GONE);
+                    txtArobas.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (show) {
+                    Utile.fadeIn(txtArobas, TIME_ANIM >> 2);
+                    Utile.fadeIn(editSearch, TIME_ANIM >> 2);
+                    Utile.fadeIn(btnClose, TIME_ANIM >> 2);
+                    Utile.fadeIn(searchOverlay, TIME_ANIM >> 2);
+                    editSearch.requestFocus();
+                    ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(editSearch, 0);
+                } else {
+                    ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+                }
+
+                isAnimating = false;
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+
+        objectAnimator.start();
+    }
+
+    private void eraseSearchResults() {
+        txtUsername.setText("");
+        txtName.setText("");
+        imgAction.setImageDrawable(null);
+    }
+
+    private static int TIMER_QUERY = 500;
+    final Handler handler = new Handler();
+    private QueryRunnable lastQueryRunnable;
+    class QueryRunnable implements Runnable {
+
+        private String username;
+
+        public QueryRunnable(String username) {
+            this.username = username;
+        }
+
+        @Override
+        public void run() {
+            ParseQuery<ParseUser> query = ParseUser.getQuery();
+            query.whereEqualTo("username", username);
+            query.findInBackground(new FindCallback<ParseUser>() {
+                public void done(List<ParseUser> list, ParseException e) {
+                    progressBar.setVisibility(View.INVISIBLE);
+
+                    if (e == null && username.equals(editSearch.getText().toString())) {
+                        if (list.size() > 0) {
+                            friend = new Friend(list.get(0));
+
+                            if (!StringUtils.isStringEmpty(friend.name)) {
+                                txtUsername.setVisibility(View.VISIBLE);
+                                txtName.setText(friend.name);
+                                txtUsername.setText("@" + friend.username);
+                            } else {
+                                txtName.setText(friend.username);
+                                txtUsername.setVisibility(View.GONE);
+                            }
+
+                            if (getFriendsPrefs().contains(friend.parseId)) {
+                                imgAction.setImageResource(R.drawable.picto_added);
+                            } else {
+                                imgAction.setImageResource(R.drawable.picto_add_user);
+                            }
+
+                            imgAction.setVisibility(View.VISIBLE);
+                        }
+//                        else {
+//                            eraseSearchResults();
+//                        }
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isEditTextShow) {
+            showEditTextSearch(false);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        updateNbYouAdded(getFriendsPrefs().size());
+        initPage2();
+        reloadPage3();
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

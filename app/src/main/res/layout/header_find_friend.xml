@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="60dp"
-    android:background="@color/blanc">
+    android:background="@color/blanc"
+    android:clickable="true">
 
     <ImageView
         android:layout_width="wrap_content"
