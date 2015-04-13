@@ -38,6 +38,7 @@ import com.pleek.app.common.Constants;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -150,9 +151,6 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return;
 
-        //mixpanel update nbFriend
-        List<Object> usersFriend = currentUser.getList("usersFriend");
-        mixpanel.getPeople().set("Nb Friends", usersFriend != null ? usersFriend.size() : 0);
         ParseObject userInfos = currentUser.getParseObject("UserInfos");
         if(userInfos != null) mixpanel.getPeople().set("$phone", userInfos.getString("phoneNumber"));
         mixpanel.flush();
@@ -220,10 +218,18 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
             public void done(List<ParseObject> list, ParseException e) {
                 if (e == null && list != null) {
                     if (friends != null) friends.clear();
+                    HashSet<String> friendsIds = new HashSet<String>();
 
                     for (ParseObject obj : list) {
-                        friends.add((ParseUser) obj.get("friend"));
+                        ParseUser user = (ParseUser) obj.get("friend");
+                        friends.add(user);
+                        friendsIds.add(user.getObjectId());
                     }
+
+                    // mixpanel update nbFriend;
+                    mixpanel.getPeople().set("Nb Friends", friendsIds.size());
+
+                    setFriendsPrefs(friendsIds);
                 }
 
                 loadPikis(withCache);
@@ -513,7 +519,10 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                                                         public void done(Object o, ParseException e)
                                                         {
                                                             if(e != null) Utile.showToast(R.string.home_piki_remove_nok, HomeActivity.this);
-                                                            else init(false);
+                                                            else {
+                                                                shouldReinit = true;
+                                                                init(false);
+                                                            }
                                                         }
                                                     });
                                                 }

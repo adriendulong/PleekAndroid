@@ -85,14 +85,19 @@
     <string name="friends_tab1">FIND</string>
     <string name="friends_tab2">YOU ADDED</string>
     <string name="friends_tab3">ADDED YOU</string>
+    <string name="friends_title">Friends</string>
     <string name="friends_section_on">FRIENDS ON PLEEK</string>
     <string name="friends_section_out">FRIENDS NOT YET ON PLEEK</string>
     <string name="friends_section">FRIENDS</string>
     <string name="friends_section_pikiuser">PLEEK USER</string>
     <string name="friends_nofriend">You have no friends yet!</string>
+    <string name="friends_nofriend_added_you">Nobody added you yet!</string>
     <string name="friends_nocontact">You have no contacts in your phone ?! </string>
     <string name="friends_noresult">No result</string>
     <string name="sms_invit">Download Pleek here ! http://pleekapp.com/getpleek/</string>
+    <string name="friends_certified">VIEW CERTIFIED ACCOUNTS</string>
+    <string name="friends_you_added">You\'ll receive their pleeks.</string>
+    <string name="friends_added_you">They\'ll see your public pleeks.</string>
 
     <!-- RECIPIENTS -->
     <string name="recipients_title">Send to...</string>

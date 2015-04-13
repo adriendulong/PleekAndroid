@@ -15,5 +15,8 @@
         <item name="android:windowEnterAnimation">@anim/dialog_loader_enter</item>
         <item name="android:windowExitAnimation">@anim/dialog_loader_exit</item>
     </style>
+    <style name="CustomUnderlinePageIndicator">
+        <item name="selectedColor">@color/secondColor</item>
+    </style>
 
 </resources>

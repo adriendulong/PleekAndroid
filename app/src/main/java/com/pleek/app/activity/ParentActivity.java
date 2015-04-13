@@ -26,20 +26,20 @@ import com.goandup.lib.widget.DownTouchListener;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
-import com.parse.Parse;
-import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.pleek.app.R;
 import com.pleek.app.PleekApplication;
+import com.pleek.app.R;
 import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ReadDateProvider;
+import com.pleek.app.common.Constants;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by nicolas on 18/12/14.
@@ -359,7 +359,7 @@ public class ParentActivity extends FragmentActivity
         final ArrayList<Friend> friends = new ArrayList<Friend>();
 
         ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.setCachePolicy(fromCache ? ParseQuery.CachePolicy.CACHE_ONLY : ParseQuery.CachePolicy.NETWORK_ONLY);
+        innerQuery.setCachePolicy(fromCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
         innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
         innerQuery.include("friend");
         innerQuery.findInBackground(new FindCallback<ParseObject>() {
@@ -375,5 +375,44 @@ public class ParentActivity extends FragmentActivity
                 }
             }
         });
+    }
+
+    public void getFriendsBg(final FunctionCallback callback) {
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
+        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+        innerQuery.include("friend");
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null && list != null) {
+                    HashSet<String> friendsIds = new HashSet<String>();
+
+                    for (ParseObject obj : list) {
+                        ParseUser user = (ParseUser) obj.get("friend");
+                        friendsIds.add(user.getObjectId());
+                    }
+
+                    setFriendsPrefs(friendsIds);
+
+                    if (callback != null) {
+                        callback.done(list, e);
+                    }
+                }
+            }
+        });
+    }
+
+    public Set<String> getFriendsPrefs() {
+        if (pref.contains(Constants.PREF_FRIENDS)) {
+            return pref.getStringSet(Constants.PREF_FRIENDS, new HashSet<String>());
+        } else {
+            return new HashSet<String>();
+        }
+    }
+
+    public void setFriendsPrefs(HashSet<String> friends) {
+        pref.edit().putStringSet(Constants.PREF_FRIENDS, new HashSet<String>(friends)).commit();
     }
 }

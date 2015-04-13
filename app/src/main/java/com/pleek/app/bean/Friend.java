@@ -5,7 +5,6 @@ import com.parse.ParseUser;
 import com.pleek.app.R;
 
 import java.io.Serializable;
-import java.util.List;
 
 //CLASS
 public class Friend implements Comparable<Friend>, Serializable {
@@ -19,15 +18,9 @@ public class Friend implements Comparable<Friend>, Serializable {
     public Friend(ParseUser user, int sectionLabel)
     {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        List<String> usersFriend = currentUser.getList("usersFriend");
-        List<String> usersIMuted = currentUser.getList("usersIMuted");//crash #4 usersIMuted=null
-
-        int image = R.drawable.picto_adduser;
-        if(usersFriend != null && usersFriend.contains(user.getObjectId())) image = R.drawable.picto_mute_user;
-        if(usersIMuted != null && usersIMuted.contains(user.getObjectId())) image = R.drawable.picto_mute_user_on;
 
         this.sectionLabel = sectionLabel;
-        this.image = image;
+        this.image = R.drawable.picto_added;
         this.username = user.getUsername();
         this.parseId = user.getObjectId();
     }

@@ -103,6 +103,10 @@ public class FriendsAdapter extends BaseAdapter implements StickyListHeadersAdap
     @Override
     public View getHeaderView(int position, View view, ViewGroup parent)
     {
+        int section = listFriend.get(position).sectionLabel;
+
+        if (section == 0) return new View(context);
+
         if (view == null)
         {
             view = LayoutInflater.from(context).inflate(R.layout.item_header, parent, false);

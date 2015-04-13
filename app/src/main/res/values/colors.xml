@@ -29,6 +29,11 @@
     <color name="grisTextDisable">#D8D8D8</color>
     <color name="grisGoandUp">#4c4c4c</color>
 
+    <color name="certifiedBlue">#2196F3</color>
+    <color name="friendsHeaderYellow">#FFFCE0</color>
+    <color name="friendsHeaderYellowTxt">#F9A825</color>
+    <color name="whiteOverlay">#B3FFFFFF</color>
+
     <!--LOADER-->
     <color name="loaderBackColor">#DDCCCCCC</color>
     <color name="loaderColor1">#FC68A1</color>

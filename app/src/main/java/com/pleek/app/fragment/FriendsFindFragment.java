@@ -18,10 +18,8 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
-import com.parse.GetCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
-import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
@@ -36,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
@@ -52,6 +51,8 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     private String currentFiltreSearch;
 
     private PhoneNumberUtil phoneUtil;
+
+    private View header;
 
     public static FriendsFindFragment newInstance()
     {
@@ -78,7 +79,10 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     {
         phoneUtil = PhoneNumberUtil.getInstance();
 
+        header = getActivity().getLayoutInflater().inflate(R.layout.header_find_friend, null);
+
         listView = (StickyListHeadersListView)getView().findViewById(R.id.listView);
+        listView.addHeaderView(header);
         txtNoContact = (TextView) getView().findViewById(R.id.txtNoContact);
 
         adapter = new FriendsAdapter(this, getActivity());
@@ -128,31 +132,24 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                     if (e == null) {
                         //get user if no already friend
                         ParseUser currentUser = ParseUser.getCurrentUser();
-                        ((ParentActivity) getActivity()).getFriends(true, new FunctionCallback<ArrayList<Friend>>() {
-                            @Override
-                            public void done(ArrayList<Friend> friends, ParseException e) {
-                                List<String> friendsIds = new ArrayList<String>();
 
-                                for (Friend fr : friends) {
-                                    friendsIds.add(fr.parseId);
-                                }
+                        Set<String> friendsIds = ((ParentActivity) getActivity()).getFriendsPrefs();
 
-                                for (HashMap<String, String> user : rep) {
-                                    if (friendsIds == null || !friendsIds.contains(user.get("userObjectId"))) {
-                                        Friend friend = new Friend(getNameByNum(user.get("phoneNumber")), R.string.friends_section_on, R.drawable.picto_adduser);
-                                        friend.username = user.get("username");
-                                        friend.phoneNumber = user.get("phoneNumber");
-                                        friend.parseId = user.get("userObjectId");
-                                        listFriend.add(friend);
-                                    }
-                                }
-
-                                // add all contact not already friend to list
-                                Collections.sort(listFriend);
-                                adapter.setListFriend(listFriend);
-                                adapter.notifyDataSetChanged();
+                        for (HashMap<String, String> user : rep) {
+                            if (friendsIds == null || !friendsIds.contains(user.get("userObjectId"))) {
+                                Friend friend = new Friend(getNameByNum(user.get("phoneNumber")), R.string.friends_section_on, R.drawable.picto_add_user);
+                                friend.username = user.get("username");
+                                friend.phoneNumber = user.get("phoneNumber");
+                                friend.parseId = user.get("userObjectId");
+                                listFriend.add(friend);
                             }
-                        });
+                        }
+
+                        // add all contact not already friend to list
+                        Collections.sort(listFriend);
+                        adapter.setListFriend(listFriend);
+                        adapter.notifyDataSetChanged();
+
                     } else {
                         L.e("ERROR checkContactOnPiki - e="+e.getMessage());
                         e.printStackTrace();
@@ -359,23 +356,20 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                 @Override
                 public void done(Object o, ParseException e)
                 {
-                    if(e == null)
-                    {
-                        ParseUser.getCurrentUser().fetchInBackground(new GetCallback<ParseObject>()
-                        {
+                    if (e == null) {
+                        ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
                             @Override
-                            public void done(ParseObject parseObject, ParseException e)
-                            {
+                            public void done(Object o, ParseException e) {
                                 adapter.removeFriend(friend);
-                                if (getActivity() instanceof FriendsActivity)
-                                {
+
+                                if (getActivity() instanceof FriendsActivity) {
                                     ((FriendsActivity) getActivity()).startAddFriendAnimation();
+                                    ((FriendsActivity) getActivity()).initPage2();
+                                    ((FriendsActivity) getActivity()).reloadPage3();
                                 }
                             }
                         });
-                    }
-                    else
-                    {
+                    } else {
                         adapter.removeFriend(friend);
                         Utile.showToast(R.string.pikifriends_action_nok, getActivity());
                     }
@@ -388,63 +382,50 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
             i.putExtra("sms_body", getString(R.string.sms_invit));
             startActivity(i);
         }
-        else if(friend.sectionLabel == R.string.friends_section_pikiuser)//mute
+        else if(friend.sectionLabel == R.string.friends_section_pikiuser)
         {
             adapter.addFriendLoading(friend);
 
-            ParseUser currentUser = ParseUser.getCurrentUser();
-            List<String> usersFriend = currentUser.getList("usersFriend");
-            final boolean alreadyFriend = usersFriend != null && usersFriend.contains(friend.parseId);
-            List<String> usersIMuted = currentUser.getList("usersIMuted");
-            final boolean alreadyMuted = usersIMuted != null && usersIMuted.contains(friend.parseId);
-
-            final FunctionCallback callback = new FunctionCallback<Object>()
-            {
+            final FunctionCallback callback = new FunctionCallback<Object>() {
                 @Override
-                public void done(Object o, ParseException e)
-                {
-                    if(e == null)
-                    {
-                        ParseUser.getCurrentUser().fetchInBackground(new GetCallback<ParseObject>()
-                        {
+                public void done(Object o, ParseException e) {
+                    if (e == null) {
+                        ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
                             @Override
-                            public void done(ParseObject parseObject, ParseException e)
-                            {
-                                List<String> usersIMuted = parseObject.getList("usersIMuted");
-                                boolean isMuted = usersIMuted != null && usersIMuted.contains(friend.parseId);
+                            public void done(Object o, ParseException e) {
+                                if (friend.image == R.drawable.picto_add_user) {
+                                    friend.image = R.drawable.picto_added;
+                                } else {
+                                    friend.image = R.drawable.picto_add_user;
+                                }
 
                                 adapter.removeFriend(friend);
-                                if(!alreadyFriend && getActivity() instanceof FriendsActivity)
-                                {
-                                    ((FriendsActivity) getActivity()).startAddFriendAnimation();
-                                }
-
-                                friend.image = isMuted ? R.drawable.picto_mute_user_on : R.drawable.picto_mute_user;
-                                if(alreadyMuted != isMuted && getActivity() instanceof FriendsActivity)
-                                {
-                                    ((FriendsActivity) getActivity()).initPage2();
-                                }
-
+                                ((FriendsActivity) getActivity()).startAddFriendAnimation();
+                                ((FriendsActivity) getActivity()).initPage2();
+                                ((FriendsActivity) getActivity()).reloadPage3();
                                 adapter.addPikiUser(friend);
                             }
                         });
-                    }
-                    else
-                    {
+                    } else {
                         adapter.removeFriend(friend);
                         Utile.showToast(R.string.pikifriends_action_nok, getActivity());
                     }
                 }
             };
 
-            if (alreadyFriend) {
-                Map<String, Object> param = new HashMap<String, Object>();
-                param.put("friendId", friend.parseId);
-                ParseCloud.callFunctionInBackground(alreadyMuted ? "unMuteFriend" : "muteFriend", param, callback);
-            } else {
+            if (friend.image == R.drawable.picto_add_user) {
                 Map<String, Object> param = new HashMap<String, Object>();
                 param.put("friendId", friend.parseId);
                 ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
+                    @Override
+                    public void done(Object o, ParseException e) {
+                        callback.done(o, e);
+                    }
+                });
+            } else {
+                Map<String, Object> param = new HashMap<String, Object>();
+                param.put("friendId", friend.parseId);
+                ParseCloud.callFunctionInBackground("removeFriendV2", param, new FunctionCallback<Object>() {
                     @Override
                     public void done(Object o, ParseException e) {
                         callback.done(o, e);

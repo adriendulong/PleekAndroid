@@ -456,7 +456,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             txtNamePiki.setText("@" + piki.getName());
             PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
-                    .resize((int) (pikiHeader.getLayoutParams().width), (int) (pikiHeader.getLayoutParams().width * 0.80))
+                    .resize((int) (pikiHeader.getLayoutParams().width * 0.80), (int) (pikiHeader.getLayoutParams().width * 0.80))
                     .placeholder(R.drawable.piki_placeholder)
                     .error(R.drawable.piki_placeholder)
                     .into(imgPiki);
@@ -621,59 +621,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     @Override
     public void doubleTapReaction(Reaction react)
     {
-        if(react == null || react.getParseObject() == null) return;//fix : CRASH #11
 
-        final ParseUser userReact = react.getParseObject().getParseUser("user");
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        List<String> usersFriend = currentUser.getList("usersFriend");
-        List<String> usersIMuted = currentUser.getList("usersIMuted");
-        final boolean alreadyFriend = usersFriend != null && usersFriend.contains(userReact.getObjectId());
-        final boolean alreadyMuted = usersIMuted != null && usersIMuted.contains(userReact.getObjectId());
-        int icon = R.drawable.picto_adduser_noir;
-        if(alreadyFriend) icon = R.drawable.picto_mute_user;
-        if(alreadyMuted) icon = R.drawable.picto_mute_user_on;
-        String popupTitle = getString(R.string.piki_popup_adduser_title);
-        if(alreadyFriend) popupTitle = getString(R.string.piki_popup_mute_title);
-        if(alreadyMuted) popupTitle = getString(R.string.piki_popup_unmute_title);
-
-        showDialog(popupTitle, "@"+userReact.getUsername(), icon, R.drawable.picto_nok, new MyDialogListener()
-        {
-            @Override
-            public void closed(boolean accept)
-            {
-                if(accept)
-                {
-                    FunctionCallback callback = new FunctionCallback<Object>()
-                    {
-                        @Override
-                        public void done(Object o, ParseException e)
-                        {
-                            if(e == null)
-                            {
-                                ParseUser.getCurrentUser().fetchInBackground();
-                            }
-                            else
-                            {
-                                Utile.showToast(R.string.pikifriends_action_nok, PikiActivity.this);
-                            }
-                        }
-                    };
-
-                    if(alreadyFriend)
-                    {
-                        Map<String, Object> param = new HashMap<String, Object>();
-                        param.put("friendId", userReact.getObjectId());
-                        ParseCloud.callFunctionInBackground(alreadyMuted ? "unMuteFriend" : "muteFriend", param, callback);
-                    }
-                    else
-                    {
-                        Map<String, Object> param = new HashMap<String, Object>();
-                        param.put("friendId", userReact.getObjectId());
-                        ParseCloud.callFunctionInBackground("addFriendV2", param, callback);
-                    }
-                }
-            }
-        });
     }
 
     @Override

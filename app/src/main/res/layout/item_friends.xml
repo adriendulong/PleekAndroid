@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:src="@drawable/picto_sms"
             android:layout_marginRight="15dp"
-            android:layout_marginLeft="5dp"/>
+            android:layout_marginLeft="5dp" />
 
     </LinearLayout>
 

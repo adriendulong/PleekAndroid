@@ -342,15 +342,6 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
                 if(f.image == R.drawable.picto_recipient_on) tmpListRecipients.add(f.parseId);
             }
             tmpListRecipients.add(currentUser.getObjectId());
-
-            List<String> usersWhoMutedMe = currentUser.getList("usersWhoMutedMe");
-            if(usersWhoMutedMe != null)
-            {
-                for(String idWhoMutedMe : usersWhoMutedMe)//crash #1 usersWhoMutedMe = null
-                {
-                    tmpListRecipients.remove(idWhoMutedMe);
-                }
-            }
         }
         final List<String> listRecipients = tmpListRecipients;
 

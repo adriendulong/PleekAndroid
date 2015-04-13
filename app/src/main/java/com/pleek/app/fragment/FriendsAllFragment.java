@@ -35,6 +35,11 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
  */
 public class FriendsAllFragment extends ParentFragment implements FriendsActivity.Listener, FriendsAdapter.Listener
 {
+    public static final int TYPE_YOU_ADDED = 0;
+    public static final int TYPE_ADDED_YOU = 1;
+
+    private int type = 0;
+
     private StickyListHeadersListView listView;
     private TextView txtNoFriends;
     private ViewLoadingFooter footer;
@@ -44,9 +49,13 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
     private String currentFiltreSearch;
 
-    public static FriendsAllFragment newInstance()
+    private View header;
+    private TextView txtHeader;
+
+    public static FriendsAllFragment newInstance(int type)
     {
         FriendsAllFragment fragment = new FriendsAllFragment();
+        fragment.type = type;
         return fragment;
     }
 
@@ -67,25 +76,50 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
     private void setup()
     {
-        listView = (StickyListHeadersListView)getView().findViewById(R.id.listView);
+        listView = (StickyListHeadersListView) getView().findViewById(R.id.listView);
         listView.setOnScrollListener(new MyOnScrollListener());
         txtNoFriends = (TextView) getView().findViewById(R.id.txtNoFriends);
 
         footer = new ViewLoadingFooter(getActivity());
+        header = getActivity().getLayoutInflater().inflate(R.layout.header_friend, null);
+        txtHeader = (TextView) header.findViewById(R.id.txtHeader);
+        txtHeader.setText(type == TYPE_YOU_ADDED ? R.string.friends_you_added : R.string.friends_added_you);
+        listView.addHeaderView(header);
     }
 
     public void init(boolean withCache) {
+        isLoading = false;
         endOfLoading = false;
         currentPage = 0;
+        lastItemShow = 0;
+        listFriend = new ArrayList<Friend>();
 
-        ((ParentActivity) getActivity()).getFriends(withCache, new FunctionCallback<ArrayList<Friend>>() {
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
+
+        if (type == TYPE_YOU_ADDED) {
+            innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+            innerQuery.include("friend");
+        } else {
+            innerQuery.whereEqualTo("friend", ParseUser.getCurrentUser());
+            innerQuery.include("user");
+        }
+        innerQuery.orderByAscending("username");
+        innerQuery.setSkip(currentPage * NB_BY_PAGE);
+        innerQuery.setLimit(NB_BY_PAGE);
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
             @Override
-            public void done(ArrayList<Friend> friends, ParseException e) {
-                if (friends != null && friends.size() > 0) {
-                    listFriend = friends;
+            public void done(List<ParseObject> list, ParseException e) {
+                if (list != null && list.size() > 0) {
+                    for (ParseObject obj : list) {
+                        listFriend.add(new Friend((ParseUser) obj.get(type == TYPE_YOU_ADDED ? "friend":"user")));
+                    }
                     if (loadNext()) listView.addFooterView(footer);
                     txtNoFriends.setVisibility(View.GONE);
                 } else {
+                    if (type == TYPE_YOU_ADDED) txtNoFriends.setText(R.string.friends_nofriend);
+                    else txtNoFriends.setText(R.string.friends_nofriend_added_you);
                     txtNoFriends.setVisibility(View.VISIBLE);
                 }
 
@@ -114,15 +148,20 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         ParseUser parseUser = ParseUser.getCurrentUser();
-        final List<String> usersIMuted = parseUser.getList("usersIMuted");
 
         isLoading = true;
         fromCache = true;
 
         ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
         innerQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
-        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
-        innerQuery.include("friend");
+
+        if (type == TYPE_YOU_ADDED) {
+            innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+            innerQuery.include("friend");
+        } else {
+            innerQuery.whereEqualTo("friend", ParseUser.getCurrentUser());
+            innerQuery.include("user");
+        }
         innerQuery.orderByAscending("username");
         innerQuery.setSkip(currentPage * NB_BY_PAGE);
         innerQuery.setLimit(NB_BY_PAGE);
@@ -137,9 +176,20 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
                     listFriend = new ArrayList<Friend>();
 
                     for (ParseObject obj : list) {
-                        ParseUser user = (ParseUser) obj.get("friend");
-                        int image = usersIMuted != null && usersIMuted.contains(user.getObjectId()) ? R.drawable.picto_mute_user_on : R.drawable.picto_mute_user;
-                        Friend friend = new Friend(null, R.string.friends_section, image);
+                        ParseUser user;
+                        if (type == TYPE_YOU_ADDED) {
+                            user = (ParseUser) obj.get("friend");
+                        } else {
+                            user = (ParseUser) obj.get("user");
+                        }
+
+                        int image;
+                        if (((ParentActivity) getActivity()).getFriendsPrefs().contains(user.getObjectId())) {
+                            image = R.drawable.picto_added;
+                        } else {
+                            image = R.drawable.picto_add_user;
+                        }
+                        Friend friend = new Friend(null, 0, image);
                         friend.username = user.getString("username");
                         friend.parseId = user.getObjectId();
                         listFriend.add(friend);
@@ -210,42 +260,54 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     }
 
     @Override
-    public void clickOnName(final Friend friend)
-    {
-        if(friend.sectionLabel == R.string.friends_section)//mute
-        {
-            adapter.addFriendLoading(friend);
+    public void clickOnName(final Friend friend) {
+        adapter.addFriendLoading(friend);
 
-            FunctionCallback callback = new FunctionCallback<Object>()
-            {
-                @Override
-                public void done(Object o, ParseException e)
-                {
-                    if(e == null)
-                    {
-                        if(friend.image == R.drawable.picto_adduser) friend.image = R.drawable.picto_mute_user;
-                        else if(friend.image == R.drawable.picto_mute_user) friend.image = R.drawable.picto_mute_user_on;
-                        else if(friend.image == R.drawable.picto_mute_user_on) friend.image = R.drawable.picto_mute_user;
+        final FunctionCallback callback = new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                if (e == null) {
+                    ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
+                        @Override
+                        public void done(Object o, ParseException e) {
+                            if (friend.image == R.drawable.picto_add_user) {
+                                friend.image = R.drawable.picto_added;
+                            } else {
+                                friend.image = R.drawable.picto_add_user;
+                            }
 
-                        adapter.removeFriendLoading(friend);
-
-                        ParseUser.getCurrentUser().fetchInBackground();
-                    }
-                    else
-                    {
-                        adapter.removeFriendLoading(friend);
-                        Utile.showToast(R.string.pikifriends_action_nok, getActivity());
-                    }
+                            adapter.removeFriend(friend);
+                            ((FriendsActivity) getActivity()).startAddFriendAnimation();
+                            ((FriendsActivity) getActivity()).initPage2();
+                            ((FriendsActivity) getActivity()).reloadPage3();
+                            adapter.addPikiUser(friend);
+                        }
+                    });
+                } else {
+                    adapter.removeFriend(friend);
+                    Utile.showToast(R.string.pikifriends_action_nok, getActivity());
                 }
-            };
+            }
+        };
 
-            ParseUser currentUser = ParseUser.getCurrentUser();
-            List<String> usersIMuted = currentUser.getList("usersIMuted");
-            boolean alreadyMuted = usersIMuted != null && usersIMuted.contains(friend.parseId);
-
+        if (friend.image == R.drawable.picto_add_user) {
             Map<String, Object> param = new HashMap<String, Object>();
             param.put("friendId", friend.parseId);
-            ParseCloud.callFunctionInBackground(alreadyMuted ? "unMuteFriend" : "muteFriend", param, callback);
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
+        } else {
+            Map<String, Object> param = new HashMap<String, Object>();
+            param.put("friendId", friend.parseId);
+            ParseCloud.callFunctionInBackground("removeFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
         }
     }
 
@@ -267,7 +329,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
                 if(lastItemShow < lastItem || isFiltred)
                 {
-                    if(loadNext())
+                    if (loadNext())
                     {
                         listView.addFooterView(footer);
                         lastItemShow = lastItem;
@@ -275,5 +337,9 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
                 }
             }
         }
+    }
+
+    public void reload() {
+        adapter.notifyDataSetChanged();
     }
 }

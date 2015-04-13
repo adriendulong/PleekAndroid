@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/noir">
 
-    <ImageView
+    <com.pleek.app.views.BlockingImageView
         android:id="@+id/imgPiki"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

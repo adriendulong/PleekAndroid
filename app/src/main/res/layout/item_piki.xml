@@ -83,7 +83,7 @@
                 android:background="@color/blanc"
                 android:layout_weight="1">
 
-                <ImageView
+                <com.pleek.app.views.BlockingImageView
                     android:id="@+id/imgPiki"
                     android:layout_width="@dimen/img_piki_width"
                     android:layout_height="@dimen/img_piki_width"

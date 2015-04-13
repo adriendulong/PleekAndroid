@@ -20,7 +20,6 @@ import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.utils.PicassoUtils;
-import com.squareup.picasso.Picasso;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -28,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by nicolas on 18/12/14.
@@ -112,9 +112,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         if(listFriend == null) listFriend = new ArrayList<Friend>();
         listBeforreRequest = new ArrayList<Friend>(listFriend);
 
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        final List<String> usersFriend = currentUser.containsKey("usersFriend") ? currentUser.<String>getList("usersFriend") : new ArrayList<String>();
-        final List<String> usersIMuted = currentUser.containsKey("usersIMuted") ? currentUser.<String>getList("usersIMuted") : new ArrayList<String>();
+        final Set<String> usersFriend = getFriendsPrefs();
         List<String> friendsId = piki.getFrinedsId();
 
         isLoading = true;
@@ -125,23 +123,20 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         query.orderByAscending("username");
         query.setSkip(currentPage * NB_BY_PAGE);
         query.setLimit(NB_BY_PAGE);
-        query.findInBackground(new FindCallback<ParseUser>()
-        {
+        query.findInBackground(new FindCallback<ParseUser>() {
             @Override
-            public void done(List<ParseUser> list, ParseException e)
-            {
-                if(e == null)
-                {
+            public void done(List<ParseUser> list, ParseException e) {
+                if(e == null) {
                     if(!fromCache) currentPage++;
 
                     //copie de la liste d'avant la request
                     listFriend = new ArrayList<Friend>(listBeforreRequest);
-                    for(ParseUser user : list)
-                    {
+                    for(ParseUser user : list) {
                         int image = -1;
-                        if(usersFriend != null && usersFriend.contains(user.getObjectId()))
-                        {
-                            image = usersIMuted.contains(user.getObjectId()) ? R.drawable.picto_mute_user_on : R.drawable.picto_mute_user;
+                        if(usersFriend != null && usersFriend.contains(user.getObjectId())) {
+                            image = R.drawable.picto_added;
+                        } else {
+                            image = R.drawable.picto_add_user;
                         }
                         Friend friend = new Friend((String)null, image);
                         friend.username = user.getUsername();
@@ -157,8 +152,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
                 }
 
                 //si réponse network (2eme reponse)
-                if(!fromCache)
-                {
+                if(!fromCache) {
                     listView.removeFooterView(footer);
                     isLoading = false;
                 }
@@ -189,6 +183,8 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     @Override
     public void clickOnName(final Friend friend)
     {
+        adapter.addFriendLoading(friend);
+
         final FunctionCallback callback = new FunctionCallback<Object>()
         {
             @Override
@@ -196,17 +192,23 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
             {
                 if (e == null)
                 {
-                    if(friend.image == R.drawable.picto_adduser) friend.image = R.drawable.picto_mute_user;
-                    else if(friend.image == R.drawable.picto_mute_user) friend.image = R.drawable.picto_mute_user_on;
-                    else if(friend.image == R.drawable.picto_mute_user_on) friend.image = R.drawable.picto_mute_user;
+                    getFriendsBg(new FunctionCallback() {
+                        @Override
+                        public void done(Object o, ParseException e) {
+                            adapter.removeFriendLoading(friend);
 
-                    adapter.removeFriendLoading(friend);
+                            if (friend.image == R.drawable.picto_add_user) {
+                                friend.image = R.drawable.picto_added;
+                            } else {
+                                friend.image = R.drawable.picto_add_user;
+                            }
 
-                    ParseUser.getCurrentUser().fetchInBackground();
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
                 }
                 else
                 {
-                    adapter.removeFriendLoading(friend);
                     Utile.showToast(R.string.pikifriends_action_nok, PikiFriendsActivity.this);
                 }
             }
@@ -215,30 +217,20 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         Map<String, Object> param = new HashMap<String, Object>();
         param.put("friendId", friend.parseId);
 
-        if(friend.image == R.drawable.picto_adduser)//add user
-        {
-            adapter.addFriendLoading(friend);
-
-            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>()
-            {
+        if (friend.image == R.drawable.picto_add_user) {
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
                 @Override
-                public void done(Object o, ParseException e)
-                {
+                public void done(Object o, ParseException e) {
                     callback.done(o, e);
                 }
             });
-        }
-        else if(friend.image == R.drawable.picto_mute_user_on)//unMute
-        {
-            adapter.addFriendLoading(friend);
-
-            ParseCloud.callFunctionInBackground("unMuteFriend", param, callback);
-        }
-        else if(friend.image == R.drawable.picto_mute_user)//mute
-        {
-            adapter.addFriendLoading(friend);
-
-            ParseCloud.callFunctionInBackground("muteFriend", param, callback);
+        } else {
+            ParseCloud.callFunctionInBackground("removeFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
         }
     }
 

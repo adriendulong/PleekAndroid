@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import com.pleek.app.R;
 import com.pleek.app.utils.PicassoUtils;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +77,7 @@ public class AddUserOnLoginAdapter extends BaseAdapter implements View.OnTouchLi
         TextView txtUserBaseline = (TextView) view.findViewById(R.id.txtUserBaseline);
         txtUserBaseline.setText(user.baseline);
         ImageView pictoAddUser = (ImageView) view.findViewById(R.id.pictoAddUser);
-        pictoAddUser.setImageResource(listUserSelected.contains(user) ? R.drawable.picto_adduser_seleced : R.drawable.picto_adduser);
+        pictoAddUser.setImageResource(listUserSelected.contains(user) ? R.drawable.picto_added : R.drawable.picto_add_user);
 
         view.setTag(new Integer(i));
         view.setTag(R.string.tag_downpresse, new DownRunnable(view));

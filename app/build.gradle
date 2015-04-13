@@ -12,6 +12,7 @@ apply plugin: 'crashlytics'
 
 repositories {
     maven { url 'http://download.crashlytics.com/maven' }
+    mavenCentral()
 }
 
 
@@ -44,4 +45,5 @@ dependencies {
     compile "com.android.support:recyclerview-v7:21.0.0"
     compile "com.jakewharton:butterknife:6.1.0"
     compile 'com.squareup.okhttp:okhttp:2.3.0'
+    compile 'fr.avianey.com.viewpagerindicator:library:2.4.1@aar'
 }
