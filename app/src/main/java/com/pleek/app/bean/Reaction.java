@@ -127,7 +127,9 @@ public class Reaction implements Serializable
                         {
                             try {
                                 fos.close();
-                            } catch (Exception e) {}
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                     else

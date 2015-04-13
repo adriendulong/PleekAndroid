@@ -234,6 +234,6 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
             if (keyCode == KeyEvent.KEYCODE_BACK) return false;
         }
 
-        return true;
+        return super.onKeyDown(keyCode, event);
     }
 }

@@ -24,6 +24,8 @@ import com.pleek.app.R;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.utils.PicassoUtils;
 
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +76,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         widthPiki = heightPiki + oneDp;
 
         surfaceView = new SurfaceView(context);
+        surfaceView.getHolder().addCallback(this);
     }
 
     private int nbRow = -1;
@@ -246,6 +249,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        System.out.println("CREATED");
         if (currentReactPlay.isLoadError()) {
             // show error
             currentItemPlay.imgError.setVisibility(View.VISIBLE);
@@ -260,8 +264,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 public void onPrepared(MediaPlayer mediaPlayer) {
                     currentItemPlay.imgReact.setVisibility(View.GONE);
                     mediaPlayer.start();
-                    currentItemPlay = currentItemPlay;
-                    currentReactPlay = currentReactPlay;
                     isPreparePlaying = false;
                 }
             });
@@ -277,15 +279,25 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             });
 
             currentItemPlay.imgMute.setVisibility(View.GONE);
-            mediaPlayer.setVolume(1,1);
+            mediaPlayer.setVolume(1, 1);
             mediaPlayer.setLooping(true);
             mediaPlayer.setDisplay(surfaceView.getHolder());
             try {
-                mediaPlayer.setDataSource(currentReactPlay.getTempFilePath(context));
+                FileInputStream fis = new FileInputStream(currentReactPlay.getTempFilePath(context));
+                FileDescriptor fd = fis.getFD();
+                long size = fis.getChannel().size();
+
+                if (fd != null) {
+                    mediaPlayer.setDataSource(fd, 0, size);
+                    mediaPlayer.prepareAsync();
+                } else {
+                    L.e("ERROR WITH FILE DESCRIPTOR");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
+                currentItemPlay.imgError.setVisibility(View.VISIBLE);
+                currentItemPlay.imgError.setImageResource(R.drawable.picto_loaderror);
             }
-            mediaPlayer.prepareAsync();
         } else { //loading
             // wait loading
             currentItemPlay.progressBar.setVisibility(View.VISIBLE);
@@ -302,12 +314,10 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
     }
 
     class DownRunnable implements Runnable {
@@ -402,36 +412,21 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         if (isPreparePlaying) return;
         isPreparePlaying = true;
 
-        try {
-            final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
+        final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
 
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                stopCurrentVideo();
-            }
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            stopCurrentVideo();
+        }
 
-            if (vh.layoutVideo != null) {
-                vh.imgPlay.setVisibility(View.GONE);
-                vh.imgError.setVisibility(View.GONE);
+        if (vh.layoutVideo != null) {
+            vh.imgPlay.setVisibility(View.GONE);
+            vh.imgError.setVisibility(View.GONE);
 
-                surfaceView = new SurfaceView(context);
-                surfaceView.getHolder().addCallback(this);
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-                vh.layoutVideo.addView(surfaceView, params);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+            vh.layoutVideo.addView(surfaceView, params);
 
-                currentReactPlay = react;
-                currentItemPlay = vh;
-            }
-        } catch (Exception e) {
-            if (view instanceof ViewGroup) {
-                final ViewGroup item = (ViewGroup)view;
-                View imgError = item.findViewById(R.id.imgError);
-                if(imgError != null) imgError.setVisibility(View.VISIBLE);
-            }
-
-            L.e("Error : playVideo - e:" + e.getMessage());
-            e.printStackTrace();
-
-            isPreparePlaying = false;
+            currentReactPlay = react;
+            currentItemPlay = vh;
         }
     }
 
