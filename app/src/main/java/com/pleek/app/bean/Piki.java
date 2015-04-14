@@ -11,9 +11,8 @@ import java.util.List;
 /**
  * Created by nicolas on 31/12/14.
  */
-public class Piki implements Serializable
+public class Piki extends VideoBean
 {
-    private String id;
     private String name;
     private int nbReact;
     private int nbRecipient;
@@ -24,7 +23,6 @@ public class Piki implements Serializable
     private Date createdAt;
     private Date updatedAt;
     private List<String> frinedsId;
-    private ParseObject parseObject;
     private boolean isPublic;
 
     public Piki(ParseObject parseObject)
@@ -50,6 +48,8 @@ public class Piki implements Serializable
         createdAt = parseObject.getCreatedAt();
         isPublic = parseObject.getBoolean("isPublic");
         this.parseObject = parseObject;
+
+        urlVideo = parseObject.getParseFile("video") != null ? parseObject.getParseFile("video").getUrl() : null;
     }
 
     public String getName() {

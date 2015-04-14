@@ -19,7 +19,7 @@ import java.util.UUID;
 /**
  * Created by nicolas on 31/12/14.
  */
-public class Reaction implements Serializable
+public class Reaction extends VideoBean
 {
     public enum Type {
         PHOTO,
@@ -29,20 +29,10 @@ public class Reaction implements Serializable
         UNKNOW
     }
 
-    private String id;
     private String urlPhoto;
-    private String urlVideo;
     private String nameUser;
-    private ParseObject parseObject;
     private Bitmap tmpPhoto;//use between create and save to Parse
     public Type type = Type.UNKNOW;
-
-    private LoadVideoEndListener loadVideoEndListener;
-    private LoadVideoProgressListener loadVideoProgressListener;
-    private boolean isLoading;
-    private boolean isLoaded;
-    private boolean isLoadError;
-
 
     public Reaction(String nameUser, Bitmap tmpPhoto)
     {
@@ -73,118 +63,7 @@ public class Reaction implements Serializable
         this.parseObject = parseObject;
     }
 
-    public void loadVideoToTempFile(final Context context)
-    {
-        if(!isVideo()) return;
 
-        isLoading = true;
-        if(loadVideoProgressListener != null) loadVideoProgressListener.progress(0, Reaction.this);
-
-        File tmpDir = new File(context.getFilesDir() + "/tmp/");
-        File tmpFile = new File(tmpDir, getTmpVideoFilename());
-        if(tmpFile.exists() && tmpFile.length() > 0)
-        {
-            if(loadVideoProgressListener != null) loadVideoProgressListener.progress(1, Reaction.this);
-
-            isLoading = false;
-            isLoaded = true;
-            isLoadError = false;
-
-            if(loadVideoEndListener != null) loadVideoEndListener.done(true, Reaction.this);
-        }
-        else
-        {
-            parseObject.getParseFile("video").getDataInBackground(new GetDataCallback()
-            {
-                @Override
-                public void done(byte[] bytes, ParseException pe)
-                {
-                    boolean ok = false;
-                    if(pe == null)
-                    {
-                        FileOutputStream fos = null;
-                        try
-                        {
-                            File tmpDir = new File(context.getFilesDir() + "/tmp/");
-                            if(!tmpDir.exists()) tmpDir.mkdir();
-
-                            File tmpFile = new File(tmpDir, getTmpVideoFilename());
-                            if(!tmpFile.exists())
-                            {
-                                tmpFile.deleteOnExit();
-                                fos = new FileOutputStream(tmpFile);
-                                fos.write(bytes);
-                            }
-
-                            ok = true;
-                        }
-                        catch (Exception e)
-                        {
-                            L.e(">> ERROR : loadVideoToTempFile e="+e.getMessage());
-                            e.printStackTrace();
-                        }
-                        finally
-                        {
-                            try {
-                                fos.close();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        L.e(">> ERROR PARSE : loadVideoToTempFile");
-                    }
-
-                    isLoading = false;
-                    isLoaded = ok;
-                    isLoadError = !ok;
-
-                    if(loadVideoEndListener != null) loadVideoEndListener.done(ok, Reaction.this);
-                }
-            }, new ProgressCallback()
-            {
-                @Override
-                public void done(Integer integer)
-                {
-                    if(loadVideoProgressListener != null) loadVideoProgressListener.progress(integer, Reaction.this);
-                }
-            });
-        }
-    }
-
-    public String getTempFilePath(Context context)
-    {
-        return new File(context.getFilesDir() + "/tmp/", getTmpVideoFilename()).getAbsolutePath();
-    }
-
-    public static boolean deleteAllTempFileVideo(Context context)
-    {
-        boolean ok = false;
-        File tmpDir = new File(context.getFilesDir() + "/tmp/");
-        if (tmpDir.isDirectory())
-        {
-            String[] tabTmpFile = tmpDir.list();
-            ok = tabTmpFile.length > 0;
-            for (int i = 0; i < tabTmpFile.length; i++)
-            {
-                ok &= new File(tmpDir, tabTmpFile[i]).delete();
-            }
-        }
-
-        return ok;
-    }
-
-    public interface LoadVideoEndListener
-    {
-        public void done(boolean ok, Reaction react);
-    }
-
-    public interface LoadVideoProgressListener
-    {
-        public void progress(int progress, Reaction react);
-    }
 
     public String getId() {
         return id;
@@ -196,10 +75,6 @@ public class Reaction implements Serializable
 
     public String getUrlPhoto() {
         return urlPhoto;
-    }
-
-    public String getTmpVideoFilename() {
-        return id + ".mp4";
     }
 
     public void setUrlPhoto(String urlPhoto) {
@@ -220,58 +95,6 @@ public class Reaction implements Serializable
 
     public void setParseObject(ParseObject parseObject) {
         this.parseObject = parseObject;
-    }
-
-    public boolean isVideo() {
-        return urlVideo != null && urlVideo.length() > 0;
-    }
-
-    public String getUrlVideo() {
-        return urlVideo;
-    }
-
-    public void setUrlVideo(String urlVideo) {
-        this.urlVideo = urlVideo;
-    }
-
-    public LoadVideoEndListener getLoadVideoEndListener()
-    {
-        return loadVideoEndListener;
-    }
-
-    public void setLoadVideoEndListener(LoadVideoEndListener loadVideoEndListener)
-    {
-        this.loadVideoEndListener = loadVideoEndListener;
-    }
-
-    public LoadVideoProgressListener getLoadVideoProgressListener()
-    {
-        return loadVideoProgressListener;
-    }
-
-    public void setLoadVideoProgressListener(LoadVideoProgressListener loadVideoProgressListener)
-    {
-        this.loadVideoProgressListener = loadVideoProgressListener;
-    }
-
-    public boolean isLoading()
-    {
-        return isLoading;
-    }
-
-    public boolean isLoaded()
-    {
-        return isLoaded;
-    }
-
-    public boolean isLoadError()
-    {
-        return isLoadError;
-    }
-
-    public void setLoadError(boolean isLoadError)
-    {
-        this.isLoadError = isLoadError;
     }
 
     public Type getType()

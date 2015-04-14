@@ -177,7 +177,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
             public void afterTextChanged(Editable editable) {
                 String filtreSearch = editable.toString();
 
-                if (filtreSearch != null && filtreSearch.length() > 3) {
+                if (filtreSearch != null && filtreSearch.length() >= 3) {
                     if (lastQueryRunnable != null) handler.removeCallbacks(lastQueryRunnable);
                     lastQueryRunnable = new QueryRunnable(filtreSearch);
                     handler.postDelayed(lastQueryRunnable, TIMER_QUERY);
@@ -425,6 +425,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
             Utile.fadeOut(btnBack, TIME_ANIM);
             Utile.fadeOut(txtTitle, TIME_ANIM);
         } else {
+            editSearch.setText("");
             Utile.fadeIn(btnBack, TIME_ANIM);
             Utile.fadeIn(txtTitle, TIME_ANIM);
             Utile.fadeOut(btnClose, TIME_ANIM);

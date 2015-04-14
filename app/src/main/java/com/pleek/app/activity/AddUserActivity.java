@@ -15,11 +15,13 @@ import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.adapter.AddUserOnLoginAdapter;
 import com.pleek.app.common.Constants;
+import com.pleek.app.utils.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,36 +83,37 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     {
         adapter = new AddUserOnLoginAdapter(this);
 
-        ParseQuery<ParseUser> query = ParseUser.getQuery();
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Certified");
         query.whereEqualTo("isRecommend", Boolean.TRUE);
-        query.whereEqualTo("recommendLocalisation", Locale.getDefault().getCountry().toLowerCase());
-        if (isFromFriends) query.whereNotContainedIn("objectId", getFriendsPrefs());
+
+        String locale = "";
+        if (StringUtils.isStringEmpty(Locale.getDefault().getCountry().toLowerCase())) {
+            locale = Locale.US.getCountry().toLowerCase();
+        } else {
+            locale = Locale.getDefault().getCountry().toLowerCase();
+        }
+        System.out.println("LOCALE : " + locale);
+        query.whereEqualTo("recommendLocalisation", locale);
+        query.include("user");
         query.orderByDescending("recommendOrder");
 
-        query.findInBackground(new FindCallback<ParseUser>()
-        {
+        query.findInBackground(new FindCallback<ParseObject>() {
             @Override
-            public void done(List<ParseUser> parseUsers, ParseException e)
-            {
-                if(e == null)
-                {
+            public void done(List<ParseObject> parseUsers, ParseException e) {
+                if (e == null) {
                     List<AddUserOnLoginAdapter.User> listUser = new ArrayList<AddUserOnLoginAdapter.User>();
 
-                    if(parseUsers != null)
-                    {
-                        for(ParseUser u : parseUsers)
-                        {
-                            listUser.add(adapter.new User(u.getObjectId(), "@"+u.getUsername(), u.getString("recommendDescription"), (u.getParseFile("recommendPicture") != null ? u.getParseFile("recommendPicture").getUrl() : null)));
+                    if (parseUsers != null) {
+                        for(ParseObject u : parseUsers) {
+                            listUser.add(adapter.new User(u.getParseObject("user").getObjectId(), "@" + u.getParseObject("user").get("username"), u.getString("recommendDescription"), (u.getParseFile("recommendPicture") != null ? u.getParseFile("recommendPicture").getUrl() : null)));
                         }
                     }
 
                     adapter.setListUser(listUser);
                     listviewUser.setAdapter(adapter);
 
-                    if(listUser.size() < NB_MUST_SELECT_USER) forceBtnToHome();
-                }
-                else
-                {
+                    if (listUser.size() < NB_MUST_SELECT_USER) forceBtnToHome();
+                } else {
                     forceBtnToHome();
                     L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
                 }
@@ -133,7 +136,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     public void onClick(View view) {
         if (view == btnNext || view == btnDismiss) {
             final List<AddUserOnLoginAdapter.User> listUser = adapter.getListUserSelected();
-            if (listUser.size() >= NB_MUST_SELECT_USER || error) {
+            if (view == btnDismiss || (listUser.size() >= NB_MUST_SELECT_USER || error)) {
                 if (listUser.size() > 0) {
                     final Dialog loader = showLoader();
 

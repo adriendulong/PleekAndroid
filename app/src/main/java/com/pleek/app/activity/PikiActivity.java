@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +19,9 @@ import android.support.v4.content.FileProvider;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -32,6 +36,7 @@ import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -62,6 +67,7 @@ import com.pleek.app.adapter.ReactAdapter;
 import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
+import com.pleek.app.bean.VideoBean;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.CustomGridView;
@@ -71,6 +77,8 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -82,7 +90,7 @@ import java.util.Map;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -91,11 +99,23 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View btnShare;
     private TextView txtNamePiki;
     private CustomGridView gridViewPiki;
+
+    // HEADER
     private TextView txtNbFriend;
     private ImageView imgEmojiEarth;
     private TextView txtNbReply;
     private View pikiHeader;
     private ImageView imgPiki;
+    private SurfaceView surfaceView;
+    private ImageView imgPlay;
+    private ImageView imgMute;
+    private ImageView imgError;
+    private ProgressBar progressBar;
+    private MediaPlayer mediaPlayer;
+    private RelativeLayout layoutVideo;
+    private boolean isPreparePlaying;
+    private boolean isPlaying = false;
+
     private ImageView imgEmojiEarthTopBar;
     private TextView txtNbFriendTopbar;
     private TextView txtTroisPoints;
@@ -143,8 +163,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private int initMarginBottom = 0;
 
-    public static void initActivity(Piki piki)
-    {
+    public static void initActivity(Piki piki) {
         _piki = piki;
     }
 
@@ -192,11 +211,25 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgEmojiEarth = (ImageView) pikiHeader.findViewById(R.id.imgEmojiEarth);
         txtNbFriend = (TextView) pikiHeader.findViewById(R.id.txtNbFriend);
         txtNbFriend.setVisibility(View.GONE);
-
         if (!piki.isPublic()) {
             txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
             txtNbFriend.setOnClickListener(this);
         }
+
+        imgMute = new ImageView(this);
+        imgMute.setImageResource(R.drawable.picto_mute);
+
+        imgPlay = (ImageView) pikiHeader.findViewById(R.id.imgPlay);
+        if (piki.isVideo()) {
+            imgPlay.setVisibility(View.VISIBLE);
+            piki.loadVideoToTempFile(this);
+        }
+        imgError = (ImageView) pikiHeader.findViewById(R.id.imgError);
+        progressBar = (ProgressBar) pikiHeader.findViewById(R.id.progressBar);
+        surfaceView = new SurfaceView(this);
+        surfaceView.getHolder().addCallback(this);
+        surfaceView.setZOrderOnTop(true);
+        layoutVideo = (RelativeLayout) pikiHeader.findViewById(R.id.layoutVideo);
 
         txtTroisPoints = (TextView) pikiHeader.findViewById(R.id.txtTroisPoints);
         txtTroisPoints.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
@@ -597,6 +630,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if(preferences.getBoolean("first_tuto_piki", true))
             {
                 Utile.fadeIn(layoutTuto, 300);
+                Utile.fadeIn(layoutTuto, 300);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putBoolean("first_tuto_piki", false);
                 editor.commit();
@@ -630,8 +664,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
+    public void onPlayVideo() {
+        if (isPlaying) stopCurrentVideo();
+    }
+
+    @Override
     public void onClick(View view)
     {
+        if (isPlaying) stopCurrentVideo();
+        adapter.stopCurrentVideo();
+
         if(view == btnBack)
         {
             finish();
@@ -655,21 +697,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
         else if(view == txtTroisPoints)
         {
-            showDialog(R.string.piki_report_title, R.string.piki_report_texte, new MyDialogListener()
-            {
+            showDialog(R.string.piki_report_title, R.string.piki_report_texte, new MyDialogListener() {
                 @Override
-                public void closed(boolean accept)
-                {
-                    if(accept)
-                    {
+                public void closed(boolean accept) {
+                    if (accept) {
                         Map<String, Object> param = new HashMap<String, Object>();
                         param.put("piki", piki.getId());
-                        ParseCloud.callFunctionInBackground("reportPiki", param, new FunctionCallback<Object>()
-                        {
+                        ParseCloud.callFunctionInBackground("reportPiki", param, new FunctionCallback<Object>() {
                             @Override
-                            public void done(Object o, ParseException e)
-                            {
-                                if(e == null) Utile.showToast(R.string.piki_report_ok, PikiActivity.this);
+                            public void done(Object o, ParseException e) {
+                                if (e == null)
+                                    Utile.showToast(R.string.piki_report_ok, PikiActivity.this);
                                 else Utile.showToast(R.string.piki_report_nok, PikiActivity.this);
                             }
                         });
@@ -738,6 +776,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         private int WIDTH_BORDER_BACKVIEW;// 3/5 d'1/3 de l'écran
         private int WIDTH_BORDER_BACKVIEW_START_ALPHA;// WIDTH_BORDER_BACKVIEW / 2
 
+        private float downX = 0, downY = 0;
+
         private View downItem;
 
         private MyListTouchListener()
@@ -752,6 +792,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             try//fix : crash #36
             {
                 int action = event.getAction();
+
+                if (action == MotionEvent.ACTION_DOWN) {
+                    downX = event.getX();
+                    downY = event.getY();
+                }
 
                 if(action == MotionEvent.ACTION_MOVE && gridViewPiki.isScrollingHorizontalLeft())
                 {
@@ -851,9 +896,19 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 }
 
-
                 if(action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
                 {
+
+                    if (action == MotionEvent.ACTION_UP && gridViewPiki.getChildAt(0) != null && gridViewPiki.getFirstVisiblePosition() == 0
+                            && event.getY() < pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop() && event.getY() > pikiHeader.getTop()
+                            && event.getX() > pikiHeader.getLeft() && event.getX() < pikiHeader.getRight()
+                            && Math.abs(downX - event.getX()) < 30 && Math.abs(downY - event.getY()) < 30) {
+                        if (piki.isVideo()) {
+                            if (isPlaying) stopCurrentVideo();
+                            else playVideo();
+                        }
+                    }
+
                     if(downItem != null)
                     {
                         //3) return item view to original state
@@ -1052,6 +1107,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if(scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
             {
                 //start scroll
+                if (isPlaying) stopCurrentVideo();
+                adapter.stopCurrentVideo();
             }
             else if(scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE)
             {
@@ -1435,6 +1492,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private boolean isReplyButtonsShow;
     private void showReplyButtons(final boolean show)
     {
+        // STOP ALL VIDEOS
+        if (isPlaying) stopCurrentVideo();
+        adapter.stopCurrentVideo();
+
         isReplyButtonsShow = show;
 
         final View[] btns = {btnReplyClose, btnReplyTexte, btnReplyStuck, btnReplyOk, btnReplyHearth};
@@ -1657,7 +1718,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         return (react != null && react.iamOwner()) || piki.iamOwner();
     }
 
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
@@ -1681,7 +1741,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     protected void onPause() {
         super.onPause();
         CameraView.release();
-        if(adapter != null) adapter.stopCurrentVideo();
+        if (adapter != null) adapter.stopCurrentVideo();
+        if (isPlaying) stopCurrentVideo();
     }
 
     @Override
@@ -1749,6 +1810,151 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             endEditText();
+        }
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        if (piki.isLoadError()) {
+            // show error
+            imgError.setVisibility(View.VISIBLE);
+            imgError.setImageResource(R.drawable.picto_loaderror);
+            isPreparePlaying = false;
+        } else if (piki.isLoaded()) {
+            // play video
+            layoutVideo.setVisibility(View.VISIBLE);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    imgPiki.setVisibility(View.GONE);
+                    mediaPlayer.start();
+                    isPreparePlaying = false;
+                }
+            });
+
+            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                    L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
+                    imgError.setVisibility(View.VISIBLE);
+                    isPreparePlaying = false;
+                    return false;
+                }
+            });
+
+            showMute(false);
+            mediaPlayer.setVolume(1, 1);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.setDisplay(surfaceView.getHolder());
+            try {
+                FileInputStream fis = new FileInputStream(piki.getTempFilePath(this));
+                FileDescriptor fd = fis.getFD();
+                long size = fis.getChannel().size();
+
+                if (fd != null) {
+                    mediaPlayer.setDataSource(fd, 0, size);
+                    mediaPlayer.prepareAsync();
+                    isPlaying = true;
+                } else {
+                    L.e("ERROR WITH FILE DESCRIPTOR");
+                    isPlaying = false;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                imgError.setVisibility(View.VISIBLE);
+                imgError.setImageResource(R.drawable.picto_loaderror);
+                isPlaying = false;
+            }
+        } else { //loading
+            // wait loading
+            progressBar.setVisibility(View.VISIBLE);
+            piki.setLoadVideoEndListener(new VideoBean.LoadVideoEndListener() {
+                @Override
+                public void done(boolean ok, VideoBean react) {
+                    progressBar.setVisibility(View.GONE);
+                    isPreparePlaying = false;
+                    playVideo();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    private void playVideo() {
+        adapter.stopCurrentVideo();
+
+        if (isPreparePlaying) return;
+        isPreparePlaying = true;
+
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            stopCurrentVideo();
+        }
+
+        imgPlay.setVisibility(View.GONE);
+        imgError.setVisibility(View.GONE);
+        txtNbFriend.setVisibility(View.GONE);
+        imgEmojiEarth.setVisibility(View.GONE);
+        txtTroisPoints.setVisibility(View.GONE);
+
+        if (surfaceView.getParent() != null) {
+            ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
+        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        layoutVideo.addView(surfaceView, params);
+    }
+
+    public void stopCurrentVideo() {
+        layoutVideo.setVisibility(View.GONE);
+        layoutVideo.removeAllViews();
+        imgPiki.setVisibility(View.VISIBLE);
+        imgPlay.setVisibility(View.VISIBLE);
+        showMute(false);
+        imgError.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
+        pikiHeader.invalidate();
+        txtNbFriend.setVisibility(View.VISIBLE);
+        imgEmojiEarth.setVisibility(View.VISIBLE);
+        txtTroisPoints.setVisibility(View.VISIBLE);
+
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        mediaPlayer = null;
+        isPlaying = false;
+    }
+
+    public void toggleMuteVideo() {
+        if (imgMute.getParent() != null) { //is mute
+            showMute(false);
+            mediaPlayer.setVolume(1, 1);
+        } else { //is not mute
+            showMute(true);
+            mediaPlayer.setVolume(0, 0);
+        }
+    }
+
+    private void showMute(boolean show) {
+        if (imgMute.getParent() != null) {
+            ((ViewGroup) imgMute.getParent()).removeView(imgMute);
+        }
+
+        if (show) {
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.setMargins((int) (15 * screen.getDensity()), (int) (15 * screen.getDensity()), (int) (15 * screen.getDensity()), (int) (15 * screen.getDensity()));
+            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+
+            ((ViewGroup) layoutVideo).addView(imgMute, params);
         }
     }
 }

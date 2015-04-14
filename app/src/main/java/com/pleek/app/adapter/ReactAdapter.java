@@ -22,6 +22,7 @@ import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.bean.Reaction;
+import com.pleek.app.bean.VideoBean;
 import com.pleek.app.utils.PicassoUtils;
 
 import java.io.FileDescriptor;
@@ -48,7 +49,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     private int heightListView;
     private MediaPlayer mediaPlayer;
     private ReactViewHolder currentItemPlay;
-    private Reaction currentReactPlay;
+    private VideoBean currentReactPlay;
     private boolean isUsernameShow;
 
     private Screen screen;
@@ -77,6 +78,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
         surfaceView = new SurfaceView(context);
         surfaceView.getHolder().addCallback(this);
+        surfaceView.setZOrderOnTop(true);
     }
 
     private int nbRow = -1;
@@ -221,7 +223,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                     Reaction react = listReact.get(position);
 
                     if (react.isVideo()) {
-                        if (react.equals(currentReactPlay)) tggleMuteVideo(view);
+                        if (react.equals(currentReactPlay)) stopCurrentVideo();
                         else playVideo(react, view);
                     }
 
@@ -249,7 +251,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        System.out.println("CREATED");
         if (currentReactPlay.isLoadError()) {
             // show error
             currentItemPlay.imgError.setVisibility(View.VISIBLE);
@@ -301,9 +302,9 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         } else { //loading
             // wait loading
             currentItemPlay.progressBar.setVisibility(View.VISIBLE);
-            currentReactPlay.setLoadVideoEndListener(new Reaction.LoadVideoEndListener() {
+            currentReactPlay.setLoadVideoEndListener(new VideoBean.LoadVideoEndListener() {
                 @Override
-                public void done(boolean ok, Reaction react) {
+                public void done(boolean ok, VideoBean react) {
                     currentItemPlay.progressBar.setVisibility(View.GONE);
                     isPreparePlaying = false;
                     playVideo(react, currentItemPlay.itemView);
@@ -408,7 +409,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
 
     private boolean isPreparePlaying;
-    private void playVideo(final Reaction react, final View view) {
+    private void playVideo(final VideoBean react, final View view) {
         if (isPreparePlaying) return;
         isPreparePlaying = true;
 
@@ -421,9 +422,16 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         if (vh.layoutVideo != null) {
             vh.imgPlay.setVisibility(View.GONE);
             vh.imgError.setVisibility(View.GONE);
+            vh.layoutBack.setVisibility(View.GONE);
+
+            if (surfaceView.getParent() != null) {
+                ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
+            }
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
             vh.layoutVideo.addView(surfaceView, params);
+
+            if (listener != null) listener.onPlayVideo();
 
             currentReactPlay = react;
             currentItemPlay = vh;
@@ -431,7 +439,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     }
 
     public void stopCurrentVideo() {
-        if (currentItemPlay != null && currentReactPlay != null) {
+        if (currentItemPlay != null && currentReactPlay != null && mediaPlayer != null) {
             currentItemPlay.layoutVideo.setVisibility(View.GONE);
             currentItemPlay.layoutVideo.removeAllViews();
             currentItemPlay.imgReact.setVisibility(View.VISIBLE);
@@ -439,7 +447,11 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             currentItemPlay.imgMute.setVisibility(View.GONE);
             currentItemPlay.imgError.setVisibility(View.GONE);
             currentItemPlay.progressBar.setVisibility(View.GONE);
-            currentItemPlay.itemView.invalidate();
+            currentItemPlay.layoutBack.setVisibility(View.VISIBLE);
+
+            if (currentItemPlay.itemView != null) {
+                currentItemPlay.itemView.invalidate();
+            }
 
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -501,6 +513,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         public void clickOnReaction(Reaction react);
         public void doubleTapReaction(Reaction react);
         public void showPlaceHolderItem(boolean show);
+        public void onPlayVideo();
     }
 
     class ReactViewHolder extends RecyclerView.ViewHolder {
