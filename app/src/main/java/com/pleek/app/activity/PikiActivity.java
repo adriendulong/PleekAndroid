@@ -19,7 +19,6 @@ import android.support.v4.content.FileProvider;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -38,7 +37,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.facebook.AppEventsConstants;
@@ -1612,16 +1610,22 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         ((View)btnReplyClose.getParent()).setVisibility(View.GONE);
 
         RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-        p.topMargin =  -(keyboardHeight - screen.getWidth() / 4); // screen.getWidth()/6 >> half height of row
-        rootView.setLayoutParams(p);
-//
-//        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-//        p2.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-//        layoutBtnReply.setLayoutParams(p2);
-//
-//        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-//        p3.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-//        layoutBtnRoundedReply.setLayoutParams(p3);
+
+        int coeffHeight = 0;
+
+        if (adapter.getCount() > 3) {
+            p.topMargin =  -(keyboardHeight - screen.getWidth() / 8);
+        } else {
+            p.topMargin =  -(keyboardHeight);
+        }
+
+        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
+        p2.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
+        layoutBtnReply.setLayoutParams(p2);
+
+        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
+        p3.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
+        layoutBtnRoundedReply.setLayoutParams(p3);
 
         //RelativeLayout.LayoutParams mlpCamera = (RelativeLayout.LayoutParams) layoutCamera.getLayoutParams();
         //mlpCamera.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
