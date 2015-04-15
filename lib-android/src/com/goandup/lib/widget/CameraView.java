@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -109,6 +110,7 @@ public class CameraView extends FrameLayout
             // deprecated setting, but required on Android versions prior to 3.0
             holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
             setZOrderOnTop(false);
+            setBackgroundColor(Color.TRANSPARENT);
 
             //release();
         }

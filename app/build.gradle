@@ -28,11 +28,16 @@ android {
     }
     productFlavors {
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile files('libs/Parse-1.8.2.jar')
+    compile files('libs/appsflyer.jar')
     compile project(':lib-android')
     compile project(':facebook')
     compile 'com.googlecode.libphonenumber:libphonenumber:7.0.2'
@@ -40,7 +45,7 @@ dependencies {
     compile 'com.makeramen:roundedimageview:1.5.0'
     compile 'se.emilsjolander:stickylistheaders:2.5.2'
     compile 'com.crashlytics.android:crashlytics:1.+'
-    compile "com.google.android.gms:play-services:3.1+"
+    compile 'com.google.android.gms:play-services:7.0.0'
     compile "com.mixpanel.android:mixpanel-android:4.5.3"
     compile "com.android.support:recyclerview-v7:21.0.0"
     compile "com.jakewharton:butterknife:6.1.0"

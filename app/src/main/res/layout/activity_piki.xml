@@ -156,7 +156,7 @@
                             android:background="@color/noirOverlayLight"
                             android:gravity="center"
                             android:visibility="gone"
-                            android:privateImeOptions="nm"/>
+                            android:privateImeOptions="nm" />
 
                         <ImageView
                             android:id="@+id/imgviewReact"

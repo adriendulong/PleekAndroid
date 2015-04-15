@@ -6,6 +6,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.BounceInterpolator;
 
+import com.appsflyer.AppsFlyerLib;
 import com.crashlytics.android.Crashlytics;
 import com.goandup.lib.widget.ButtonRoundedMaterialDesign;
 import com.parse.ParseUser;
@@ -22,6 +23,7 @@ public class LauncherActivity extends ParentActivity
         Crashlytics.start(this);
 
         fbAppEventsLogger.logEvent("ActivateApp");
+        AppsFlyerLib.sendTracking(getApplicationContext());
 
         if(ParseUser.getCurrentUser() != null)
         {

@@ -246,11 +246,13 @@ public class FriendsAdapter extends BaseAdapter implements StickyListHeadersAdap
     }
 
     public void refactorImages(Set<String> friendsIds) {
-        for (Friend friend : listFriend) {
-            if (friendsIds.contains(friend.parseId)) {
-                friend.image = R.drawable.picto_added;
-            } else {
-                friend.image = R.drawable.picto_add_user;
+        if (listFriend != null && listFriend.size() > 0) {
+            for (Friend friend : listFriend) {
+                if (friendsIds.contains(friend.parseId)) {
+                    friend.image = R.drawable.picto_added;
+                } else {
+                    friend.image = R.drawable.picto_add_user;
+                }
             }
         }
     }

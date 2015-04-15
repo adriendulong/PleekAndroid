@@ -38,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.facebook.AppEventsConstants;
@@ -401,6 +402,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 Rect r = new Rect();
                 getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
                 keyboardHeight = rootView.getRootView().getHeight() - r.bottom;
+                System.out.println("keyboardHeight" + keyboardHeight);
                 if (keyboardHeight > 100 && !isKeyboardShow)//keyboard SHOW
                 {
                     isKeyboardShow = true;
@@ -1141,16 +1143,24 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             //anim layout CameraView
-            if((view != null && view.getChildAt(1) != null)) {
+            if((view != null && view.getChildAt(4) != null)) {
                 final boolean isVisible = firstVisibleItem <= 1;
-                final int yPos = isVisible ? (view.getChildAt(4) != null ? view.getChildAt(4).getTop() : pikiHeader.getBottom()) : 0;
+                final int yPos = isVisible ? view.getChildAt(4).getTop() : 0;
 
                 Runnable updateRunnable = new Runnable() {
                     @Override
                     public void run() {
                         if (isVisible) {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                            mlpCamera.topMargin = yPos;
+                            //System.out.println("Bottom " + pikiHeader.getBottom());
+                            //System.out.println("Scroll " + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop()));
+
+                            //if (keyboardHeight < 100) {
+                                mlpCamera.topMargin = (int) (1 * screen.getDensity()) + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop());
+                            //} else {
+                            //    mlpCamera.topMargin = 10;
+                            //}
+
                             layoutCamera.setLayoutParams(mlpCamera);
                             if (isVisible && !isPreviewVisible) {
                                 startCamera();
@@ -1602,16 +1612,23 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         ((View)btnReplyClose.getParent()).setVisibility(View.GONE);
 
         RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-        p.topMargin =  -(keyboardHeight - screen.getWidth()/6);// screen.getWidth()/6 >> half height of row
+        p.topMargin =  -(keyboardHeight - screen.getWidth() / 4); // screen.getWidth()/6 >> half height of row
         rootView.setLayoutParams(p);
+//
+//        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
+//        p2.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
+//        layoutBtnReply.setLayoutParams(p2);
+//
+//        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
+//        p3.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
+//        layoutBtnRoundedReply.setLayoutParams(p3);
 
-        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-        p2.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-        layoutBtnReply.setLayoutParams(p2);
+        //RelativeLayout.LayoutParams mlpCamera = (RelativeLayout.LayoutParams) layoutCamera.getLayoutParams();
+        //mlpCamera.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        //mlpCamera.topMargin = (int) (btnShare.getHeight() + pikiHeader.getHeight() + gridViewPiki.getChildAt(0).getY());
+        //layoutCamera.setLayoutParams(mlpCamera);
 
-        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-        p3.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-        layoutBtnRoundedReply.setLayoutParams(p3);
+        //gridViewPiki.getChildAt(0).getY().getLayoutParams().width.getTop();
     }
 
     private void endEditText()

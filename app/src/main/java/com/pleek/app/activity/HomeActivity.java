@@ -199,7 +199,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         isLoading = true;
         Date date = currentUser.getDate("lastFriendsModification");
 
-        if (pref.contains(Constants.PREF_LAST_FRIENDS_UPDATE)) {
+        if (pref.contains(Constants.PREF_LAST_FRIENDS_UPDATE) && date != null) {
             if (date.getTime() > pref.getLong(Constants.PREF_LAST_FRIENDS_UPDATE, 0)) {
                 shouldRefreshFriends = true;
                 pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date.getTime()).commit();

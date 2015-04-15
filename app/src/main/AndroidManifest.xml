@@ -10,6 +10,7 @@
     <!--PARSE-->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--<uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <!--FOR NON-GCM <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />-->
@@ -77,7 +78,7 @@
             android:name=".activity.PikiActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustPan">
         </activity>
 
         <activity
@@ -119,9 +120,12 @@
         </activity>
 
 
-
-
-
+        <!-- APPSFLYER -->
+        <receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
+            </intent-filter>
+        </receiver>
 
 
         <!-- FACEBOOK -->

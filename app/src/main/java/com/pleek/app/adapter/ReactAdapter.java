@@ -1,6 +1,7 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
