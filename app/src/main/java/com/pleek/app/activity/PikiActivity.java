@@ -90,7 +90,7 @@ import java.util.Map;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -223,6 +223,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         if (piki.isVideo()) {
             imgPlay.setVisibility(View.VISIBLE);
             piki.loadVideoToTempFile(this);
+            piki.setLoadVideoEndListener(this);
         }
         imgError = (ImageView) pikiHeader.findViewById(R.id.imgError);
         progressBar = (ProgressBar) pikiHeader.findViewById(R.id.progressBar);
@@ -770,6 +771,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
     }
 
+    @Override
+    public void done(boolean ok, VideoBean react) {
+        playVideo();
+    }
+
     private class MyListTouchListener implements View.OnTouchListener
     {
         private final int DURATION_DELETE_ANIM = 300;//ms
@@ -1135,23 +1141,18 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             //anim layout CameraView
-            if((view != null && view.getChildAt(1) != null))
-            {
+            if((view != null && view.getChildAt(1) != null)) {
                 final boolean isVisible = firstVisibleItem <= 1;
-                final int yPos = isVisible ? view.getChildAt(4).getTop() : 0;
+                final int yPos = isVisible ? (view.getChildAt(4) != null ? view.getChildAt(4).getTop() : pikiHeader.getBottom()) : 0;
 
-                Runnable updateRunnable = new Runnable()
-                {
+                Runnable updateRunnable = new Runnable() {
                     @Override
-                    public void run()
-                    {
-                        if(isVisible)
-                        {
+                    public void run() {
+                        if (isVisible) {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
                             mlpCamera.topMargin = yPos;
                             layoutCamera.setLayoutParams(mlpCamera);
-                            if(isVisible && !isPreviewVisible)
-                            {
+                            if (isVisible && !isPreviewVisible) {
                                 startCamera();
                                 isPreviewVisible = true;
                             }
@@ -1843,7 +1844,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 }
             });
 
-            showMute(false);
             mediaPlayer.setVolume(1, 1);
             mediaPlayer.setLooping(true);
             mediaPlayer.setDisplay(surfaceView.getHolder());
@@ -1919,7 +1919,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutVideo.removeAllViews();
         imgPiki.setVisibility(View.VISIBLE);
         imgPlay.setVisibility(View.VISIBLE);
-        showMute(false);
         imgError.setVisibility(View.GONE);
         progressBar.setVisibility(View.GONE);
         pikiHeader.invalidate();
@@ -1931,30 +1930,5 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         mediaPlayer.release();
         mediaPlayer = null;
         isPlaying = false;
-    }
-
-    public void toggleMuteVideo() {
-        if (imgMute.getParent() != null) { //is mute
-            showMute(false);
-            mediaPlayer.setVolume(1, 1);
-        } else { //is not mute
-            showMute(true);
-            mediaPlayer.setVolume(0, 0);
-        }
-    }
-
-    private void showMute(boolean show) {
-        if (imgMute.getParent() != null) {
-            ((ViewGroup) imgMute.getParent()).removeView(imgMute);
-        }
-
-        if (show) {
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.setMargins((int) (15 * screen.getDensity()), (int) (15 * screen.getDensity()), (int) (15 * screen.getDensity()), (int) (15 * screen.getDensity()));
-            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-
-            ((ViewGroup) layoutVideo).addView(imgMute, params);
-        }
     }
 }

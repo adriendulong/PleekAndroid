@@ -108,6 +108,7 @@ public class CameraView extends FrameLayout
             holder.addCallback(this);
             // deprecated setting, but required on Android versions prior to 3.0
             holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+            setZOrderOnTop(false);
 
             //release();
         }
