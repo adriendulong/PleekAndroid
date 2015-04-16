@@ -2,9 +2,13 @@ package com.pleek.app.fragment;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -32,7 +36,13 @@ import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.adapter.FriendsAdapter;
 import com.pleek.app.bean.Friend;
 import com.pleek.app.common.Constants;
+import com.pleek.app.utils.AnimatedGifEncoder;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -389,18 +399,63 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                 }
             });
         }
-        else if(friend.sectionLabel == R.string.friends_section_out)//sms
-        {
-            Intent i = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", friend.phoneNumber, null));
-            i.putExtra("sms_body", getString(R.string.sms_invit));
-            try {
-                startActivity(i);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(getActivity().getBaseContext(), R.string.phonenumber_numberinvalid, Toast.LENGTH_SHORT).show();
-            }
-        }
-        else if(friend.sectionLabel == R.string.friends_section_pikiuser)
-        {
+        else if(friend.sectionLabel == R.string.friends_section_out) { //sms
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
+                    bitmaps.add(getBitmapFromAsset("mosaic_1.png"));
+                    bitmaps.add(getBitmapFromAsset("mosaic_2.png"));
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    AnimatedGifEncoder encoder = new AnimatedGifEncoder();
+                    encoder.start(bos);
+                    for (Bitmap bitmap : bitmaps) {
+                        encoder.addFrame(bitmap);
+                    }
+                    encoder.finish();
+
+                    FileOutputStream fos = null;
+                    try {
+                        File tmpDir = new File(Environment.getExternalStorageDirectory() + "/pleek/tmp/");
+                        if(!tmpDir.exists()) tmpDir.mkdirs();
+
+                        File tmpFile = new File(tmpDir, "invite.gif");
+
+                        if (!tmpFile.exists()) {
+                            tmpFile.delete();
+                        }
+
+                        //tmpFile.deleteOnExit();
+                        fos = new FileOutputStream(tmpFile);
+                        fos.write(bos.toByteArray());
+
+                        Intent intent = new Intent(Intent.ACTION_SEND);
+                        intent.setData(Uri.parse("smsto:" + friend.phoneNumber));
+                        intent.putExtra("address", friend.phoneNumber);
+                        intent.putExtra("sms_body", getString(R.string.sms_invit));
+                        intent.putExtra(Intent.EXTRA_STREAM, (Uri.fromFile(tmpFile)));
+                        intent.setType("image/gif");
+                        startActivity(Intent.createChooser(intent, "Send"));
+                        try {
+                            startActivity(intent);
+                        } catch (ActivityNotFoundException e) {
+                            Toast.makeText(getActivity().getBaseContext(), R.string.phonenumber_numberinvalid, Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        L.e(">> ERROR : Couldn't save gif e=" + e.getMessage());
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            fos.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+
+                }
+            });
+        } else if(friend.sectionLabel == R.string.friends_section_pikiuser) {
             adapter.addFriendLoading(friend);
 
             final FunctionCallback callback = new FunctionCallback<Object>() {
@@ -450,5 +505,20 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                 });
             }
         }
+    }
+
+    private Bitmap getBitmapFromAsset(String strName) {
+        AssetManager assetManager = getResources().getAssets();
+        InputStream istr = null;
+
+        try {
+            istr = assetManager.open(strName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Bitmap bitmap = BitmapFactory.decodeStream(istr);
+
+        return bitmap;
     }
 }

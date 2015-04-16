@@ -1604,8 +1604,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
 
-        int coeffHeight = 0;
-
         if (adapter.getCount() > 3) {
             p.topMargin =  -(keyboardHeight - screen.getWidth() / 8);
         } else {
