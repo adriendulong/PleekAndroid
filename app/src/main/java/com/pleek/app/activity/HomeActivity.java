@@ -321,7 +321,6 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     @Override
     public void clickOnPiki(Piki piki)
     {
-        System.out.println("ID : " + piki.getParseObject().getObjectId());
         PikiActivity.initActivity(piki);
         startActivity(new Intent(this, PikiActivity.class));
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);

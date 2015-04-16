@@ -95,15 +95,16 @@
     <string name="friends_nocontact">You have no contacts in your phone ?! </string>
     <string name="friends_noresult">No result</string>
     <string name="sms_invit">Download Pleek here ! http://pleekapp.com/getpleek/</string>
-    <string name="friends_certified">VIEW CERTIFIED ACCOUNTS</string>
-    <string name="friends_you_added">You\'ll receive their pleeks.</string>
-    <string name="friends_added_you">They\'ll see your public pleeks.</string>
+    <string name="friends_certified">TAP TO VIEW POPULAR ACCOUNTS</string>
+    <string name="friends_you_added">You\'ll receive their pics &amp; vids.</string>
+    <string name="friends_added_you">They\'ll see your public pics &amp; vids.</string>
+    <string name="friends_send_sms">We couldn\'t find an app to send an sms.</string>
 
     <!-- RECIPIENTS -->
     <string name="recipients_title">Send to...</string>
     <string name="recipients_everyone">EVERYONE</string>
     <string name="recipients_selected">SELECTED</string>
-    <string name="recipients_sendeveryone">SEND TO EVERYONE</string>
+    <string name="recipients_sendeveryone">PUBLIC</string>
     <string name="recipients_savepiki_nok">Can\'t save your Pleek for now.</string>
 
 

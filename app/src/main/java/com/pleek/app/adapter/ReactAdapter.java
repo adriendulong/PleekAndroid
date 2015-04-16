@@ -306,9 +306,11 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             currentReactPlay.setLoadVideoEndListener(new VideoBean.LoadVideoEndListener() {
                 @Override
                 public void done(boolean ok, VideoBean react) {
-                    currentItemPlay.progressBar.setVisibility(View.GONE);
-                    isPreparePlaying = false;
-                    playVideo(react, currentItemPlay.itemView);
+                    if (currentItemPlay != null) {
+                        currentItemPlay.progressBar.setVisibility(View.GONE);
+                        isPreparePlaying = false;
+                        playVideo(react, currentItemPlay.itemView);
+                    }
                 }
             });
         }

@@ -182,6 +182,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
             isLoading = false;
             endOfLoading = false;
             listFriend = new ArrayList<Friend>();
+            listBeforreRequest = new ArrayList<Friend>();
             //crash #25 BOB : retour depuis FriendsActivity
             imgPiki.setImageBitmap(BitmapFactory.decodeByteArray(pikiData, 0, pikiData.length));
 
@@ -240,10 +241,10 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         isLoading = true;
-        fromCache = true;
+        fromCache = false;
 
         ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
+        innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
         innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
         innerQuery.include("friend");
         innerQuery.orderByAscending("username");
@@ -254,10 +255,13 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
             @Override
             public void done(List<ParseObject> list, ParseException e) {
                 if (e == null) {
-                    if (!fromCache) currentPage++;
+                    if (currentPage > 0) {
+                        listFriend = new ArrayList<Friend>(listBeforreRequest);
+                    } else {
+                        listFriend = new ArrayList<Friend>();
+                    }
 
-                    //copie de la liste d'avant la request
-                    listFriend = new ArrayList<Friend>();
+                    if (!fromCache) currentPage++;
 
                     for (ParseObject obj : list) {
                         ParseUser user = (ParseUser) obj.get("friend");

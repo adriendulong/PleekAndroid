@@ -1,6 +1,7 @@
 package com.pleek.app.fragment;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
@@ -51,6 +53,8 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
     private View header;
     private TextView txtHeader;
+
+    private ParseQuery<ParseObject> innerQuery;
 
     public static FriendsAllFragment newInstance(int type)
     {
@@ -93,6 +97,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         currentPage = 0;
         lastItemShow = 0;
         listFriend = new ArrayList<Friend>();
+        listBeforreRequest = new ArrayList<Friend>();
 
         ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
         innerQuery.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
@@ -152,7 +157,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         isLoading = true;
         fromCache = true;
 
-        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery = ParseQuery.getQuery("Friend");
         innerQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
 
         if (type == TYPE_YOU_ADDED) {
@@ -169,11 +174,14 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
             @Override
             public void done(List<ParseObject> list, ParseException e) {
-                if (e == null) {
-                    if (!fromCache) currentPage++;
+                if (e == null && getActivity() != null) {
+                    if (currentPage > 0) {
+                        listFriend = new ArrayList<Friend>(listBeforreRequest);
+                    } else {
+                        listFriend = new ArrayList<Friend>();
+                    }
 
-                    //copie de la liste d'avant la request
-                    listFriend = new ArrayList<Friend>();
+                    if (!fromCache) currentPage++;
 
                     for (ParseObject obj : list) {
                         ParseUser user;
@@ -184,7 +192,8 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
                         }
 
                         int image;
-                        if (((ParentActivity) getActivity()).getFriendsPrefs().contains(user.getObjectId())) {
+                        Set<String> friendsIds = ((ParentActivity) getActivity()).getFriendsPrefs();
+                        if (friendsIds!= null && friendsIds.contains(user.getObjectId())) {
                             image = R.drawable.picto_added;
                         } else {
                             image = R.drawable.picto_add_user;
@@ -199,8 +208,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
                     endOfLoading = list.size() < NB_BY_PAGE;
 
                     filtreSearchChange(currentFiltreSearch);
-                }
-                else {
+                } else if (e != null){
                     L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
                     e.printStackTrace();
                 }

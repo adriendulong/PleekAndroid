@@ -327,8 +327,12 @@ public class CameraView extends FrameLayout
                 {
                     if (listener != null)
                     {
+                        BitmapFactory.Options opt = new BitmapFactory.Options();
+                        opt.inSampleSize = 2;
+                        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+
                         //convert
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);//TODO : crash #39 OutOfMemoryError
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);//TODO : crash #39 OutOfMemoryError
                         Matrix matrix = new Matrix();
 
                         //rotation

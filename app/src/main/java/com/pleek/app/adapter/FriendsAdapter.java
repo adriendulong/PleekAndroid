@@ -114,7 +114,6 @@ public class FriendsAdapter extends BaseAdapter implements StickyListHeadersAdap
         }
 
         TextView txtNameHeader = (TextView) view.findViewById(R.id.txtNameHeader);
-        System.out.println("Class : " + this.listener.getClass());
         txtNameHeader.setText(listFriend.get(position).sectionLabel);
 
         return view;

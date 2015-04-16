@@ -1,5 +1,6 @@
 package com.pleek.app.fragment;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -10,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
@@ -391,7 +393,11 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         {
             Intent i = new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", friend.phoneNumber, null));
             i.putExtra("sms_body", getString(R.string.sms_invit));
-            startActivity(i);
+            try {
+                startActivity(i);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(getActivity().getBaseContext(), R.string.phonenumber_numberinvalid, Toast.LENGTH_SHORT).show();
+            }
         }
         else if(friend.sectionLabel == R.string.friends_section_pikiuser)
         {

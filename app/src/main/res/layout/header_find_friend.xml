@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:text="@string/friends_certified"
         android:layout_centerInParent="true"
-        android:textSize="16dp"
+        android:textSize="15dp"
         app:customFont="proximanova_sbold.otf"
         android:textColor="@color/certifiedBlue"
         android:paddingTop="5dp" />

@@ -400,7 +400,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 Rect r = new Rect();
                 getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
                 keyboardHeight = rootView.getRootView().getHeight() - r.bottom;
-                System.out.println("keyboardHeight" + keyboardHeight);
                 if (keyboardHeight > 100 && !isKeyboardShow)//keyboard SHOW
                 {
                     isKeyboardShow = true;
@@ -1150,21 +1149,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     public void run() {
                         if (isVisible) {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                            //System.out.println("Bottom " + pikiHeader.getBottom());
-                            //System.out.println("Scroll " + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop()));
-
-                            //if (keyboardHeight < 100) {
-                                mlpCamera.topMargin = (int) (1 * screen.getDensity()) + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop());
-                            //} else {
-                            //    mlpCamera.topMargin = 10;
-                            //}
+                            mlpCamera.topMargin = (int) (1 * screen.getDensity()) + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop());
 
                             layoutCamera.setLayoutParams(mlpCamera);
                             if (isVisible && !isPreviewVisible) {
                                 startCamera();
                                 isPreviewVisible = true;
                             }
-
                         }
                         else
                         {
@@ -1410,6 +1401,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         PicassoUtils.with(this)
                 .load(piki.getUrlPiki())
                 .placeholder(R.drawable.piki_placeholder)
+                .fit()
                 .error(R.drawable.piki_placeholder)
                 .into(imgPiki);
 
@@ -1426,6 +1418,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     PicassoUtils.with(this)
                             .load(react.getUrlPhoto())
                             .placeholder(R.drawable.piki_placeholder)
+                            .fit()
                             .error(R.drawable.piki_placeholder)
                             .into(imgReact);
                 }

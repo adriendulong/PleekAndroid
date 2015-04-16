@@ -82,7 +82,7 @@
     <!-- FRIENDS -->
     <string name="friends_hint">Recherche un ami</string>
     <string name="friends_tab1">CONTACTS</string>
-    <string name="friends_tab2">AMIS</string>
+    <string name="friends_tab2">YOU ADDED</string>
     <string name="friends_section_on">AMIS SUR PLEEK</string>
     <string name="friends_section_out">AMIS PAS ENCORE SUR PLEEK</string>
     <string name="friends_section">AMIS</string>

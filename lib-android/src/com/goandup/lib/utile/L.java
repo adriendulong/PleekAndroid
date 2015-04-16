@@ -6,7 +6,7 @@ public class L
 {
 	private final static String TAG = "goandup";
 	
-	private final static boolean LOG = true;
+	private final static boolean LOG = false;
 
 	private final static boolean E = true && LOG;
 	private final static boolean D = true && LOG;

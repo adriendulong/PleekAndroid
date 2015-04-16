@@ -28,6 +28,7 @@ public class Friend implements Comparable<Friend>, Serializable {
     public Friend(ParseObject parseObject)
     {
         this.username = parseObject.getString("username");
+        this.name = parseObject.getString("name");
         this.parseId = parseObject.getObjectId();
     }
 
@@ -47,18 +48,15 @@ public class Friend implements Comparable<Friend>, Serializable {
     @Override
     public int compareTo(Friend friend)
     {
-        if(sectionLabel != friend.sectionLabel)
-        {
-            if(sectionLabel == R.string.friends_section_on) return -1;
-            return 1;
-        }
-        else if(name != null)
-        {
-            return name.compareTo(friend.name);
-        }
-        else if(username != null)
-        {
-            return username.compareTo(friend.username);
+        if (friend != null) {
+            if (sectionLabel != friend.sectionLabel) {
+                if (sectionLabel == R.string.friends_section_on) return -1;
+                return 1;
+            } else if (name != null) {
+                return name.compareTo(friend.name);
+            } else if (username != null) {
+                return username.compareTo(friend.username);
+            }
         }
 
         return 0;

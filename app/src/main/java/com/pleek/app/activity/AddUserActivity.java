@@ -92,7 +92,6 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
         } else {
             locale = Locale.getDefault().getCountry().toLowerCase();
         }
-        System.out.println("LOCALE : " + locale);
         query.whereEqualTo("recommendLocalisation", locale);
         query.include("user");
         query.orderByDescending("recommendOrder");

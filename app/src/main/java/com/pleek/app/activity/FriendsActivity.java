@@ -184,6 +184,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
                     searchLayout.setVisibility(View.VISIBLE);
                     searchOverlay.setBackgroundResource(R.color.blanc);
                     txtName.setText("@" + filtreSearch);
+                    txtUsername.setText("");
                     progressBar.setVisibility(View.VISIBLE);
                     imgAction.setVisibility(View.GONE);
                 } else {
@@ -513,7 +514,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
                                 txtName.setText(friend.name);
                                 txtUsername.setText("@" + friend.username);
                             } else {
-                                txtName.setText(friend.username);
+                                txtName.setText("@" + friend.username);
                                 txtUsername.setVisibility(View.GONE);
                             }
 
