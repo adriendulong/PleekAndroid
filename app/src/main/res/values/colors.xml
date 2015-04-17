@@ -33,6 +33,7 @@
     <color name="friendsHeaderYellow">#FFFCE0</color>
     <color name="friendsHeaderYellowTxt">#F9A825</color>
     <color name="whiteOverlay">#B3FFFFFF</color>
+    <color name="subtitleTopBar">#1F2967</color>
 
     <!--LOADER-->
     <color name="loaderBackColor">#DDCCCCCC</color>

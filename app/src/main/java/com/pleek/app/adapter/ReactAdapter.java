@@ -39,7 +39,7 @@ import butterknife.InjectView;
  * Created by nicolas on 19/12/14.
  */
 public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, SurfaceHolder.Callback {
-    private final int NB_COLUMN = 3;
+    private final int NB_COLUMN = 2;
     private final int maxSizeReactPx = 225;
 
     private List<Reaction> listReact;
@@ -141,12 +141,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                         if (heightPiki < maxSizeReactPx) {
                             PicassoUtils.with(context)
                                     .load(react.getUrlPhoto())
-                                    .resize((int) (widthPiki * 0.80), (int) (heightPiki * 0.80))
+                                    .fit()
                                     .into(vh.imgReact);
                         } else {
                             PicassoUtils.with(context)
                                     .load(react.getUrlPhoto())
-                                    .resize((int) (widthPiki * 0.80), (int) (heightPiki * 0.80))
+                                    .fit()
                                     .into(vh.imgReact);
                         }
 

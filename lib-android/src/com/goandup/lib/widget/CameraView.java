@@ -433,7 +433,7 @@ public class CameraView extends FrameLayout
                     }
                     catch (Exception e)
                     {
-                        L.e("ERROR >> release : "+e.getMessage());
+                        L.e("ERROR >> release : " + e.getMessage());
                         e.printStackTrace();
                     }
                     finally

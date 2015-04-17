@@ -375,7 +375,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         pikiHeader.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                int layoutCameraSize = screen.getWidth() / 3;
+                int layoutCameraSize = screen.getWidth() / 2;
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutCamera.getLayoutParams();
                 params.width = layoutCameraSize;
                 params.height = layoutCameraSize - screen.dpToPx(1);
