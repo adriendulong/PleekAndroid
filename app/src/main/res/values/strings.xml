@@ -149,6 +149,10 @@
     <string name="share_replies">replies on the app</string>
     <string name="share_title">Share your Pleek</string>
     <string name="share_text">I love this new Pleek of</string>
+    <string name="add">Add</string>
+    <string name="me">Me</string>
+    <string name="on">On</string>
+    <string name="pleek">Pleek</string>
 
     <!-- FACEBOOK -->
     <!--<string name="app_id">381972298527872</string>-->

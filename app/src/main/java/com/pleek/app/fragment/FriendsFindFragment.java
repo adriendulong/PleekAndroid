@@ -1,11 +1,16 @@
 package com.pleek.app.fragment;
 
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.goandup.lib.utile.L;
+import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.DownTouchListener;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -69,6 +75,10 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
 
     private View header;
 
+    private Thread thread;
+
+    private final static int SIZE_GIF = 320;
+
     public static FriendsFindFragment newInstance()
     {
         FriendsFindFragment fragment = new FriendsFindFragment();
@@ -79,6 +89,24 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         return inflater.inflate(R.layout.fragment_friends_find, container, false);
+    }
+
+    @Override
+    public void onDestroy() {
+        if (thread != null && thread.isAlive()) {
+            thread.interrupt();
+        }
+
+        super.onDestroy();
+    }
+
+    @Override
+    public void onPause() {
+        if (thread != null && thread.isAlive()) {
+            thread.interrupt();
+        }
+
+        super.onPause();
     }
 
     @Override
@@ -366,19 +394,15 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     }
 
     @Override
-    public void clickOnName(final Friend friend)
-    {
-        if(friend.sectionLabel == R.string.friends_section_on)//add
-        {
+    public void clickOnName(final Friend friend) {
+        if (friend.sectionLabel == R.string.friends_section_on) {
             adapter.addFriendLoading(friend);
 
             Map<String, Object> param = new HashMap<String, Object>();
             param.put("friendId", friend.parseId);
-            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>()
-            {
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
                 @Override
-                public void done(Object o, ParseException e)
-                {
+                public void done(Object o, ParseException e) {
                     if (e == null) {
                         ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
                             @Override
@@ -398,16 +422,45 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                     }
                 }
             });
-        }
-        else if(friend.sectionLabel == R.string.friends_section_out) { //sms
-            handler.post(new Runnable() {
+        } else if(friend.sectionLabel == R.string.friends_section_out) { //sms
+            if (thread != null && thread.isAlive()) {
+                thread.interrupt();
+            }
+
+            final Dialog dg = ((ParentActivity) getActivity()).showLoader();
+
+            thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
+                    Bitmap image = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image.eraseColor(getResources().getColor(R.color.secondColor));
+                    bitmaps.add(overlay(image, getBitmapFromAsset("parrot_blue.png")));
+                    Bitmap image2 = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image2.eraseColor(getResources().getColor(R.color.firstColor));
+                    bitmaps.add(overlay(image2, getBitmapFromAsset("parrot_pink.png")));
                     bitmaps.add(getBitmapFromAsset("mosaic_1.png"));
                     bitmaps.add(getBitmapFromAsset("mosaic_2.png"));
+                    bitmaps.add(getBitmapFromAsset("mosaic_full.png"));
+                    Bitmap image3 = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image3.eraseColor(getResources().getColor(R.color.firstColor));
+                    bitmaps.add(overlay(image3, getString(R.string.add)));
+                    Bitmap image4 = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image4.eraseColor(getResources().getColor(R.color.firstColor));
+                    bitmaps.add(overlay(image4, getString(R.string.me)));
+                    Bitmap image5 = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image5.eraseColor(getResources().getColor(R.color.firstColor));
+                    bitmaps.add(overlay(image5, getString(R.string.on)));
+                    Bitmap image7 = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image7.eraseColor(getResources().getColor(R.color.firstColor));
+                    bitmaps.add(overlay(image7, getBitmapFromAsset("parrot_rounded.png"), getString(R.string.pleek)));
+                    Bitmap image8 = Bitmap.createBitmap(320, 320, Bitmap.Config.RGB_565);
+                    image8.eraseColor(getResources().getColor(R.color.firstColor));
+                    bitmaps.add(overlay(image8, getBitmapFromAsset("parrot_rounded.png"), getString(R.string.pleek)));
+
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     AnimatedGifEncoder encoder = new AnimatedGifEncoder();
+                    encoder.setDelay(500);
                     encoder.start(bos);
                     for (Bitmap bitmap : bitmaps) {
                         encoder.addFrame(bitmap);
@@ -422,12 +475,9 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                         File tmpFile = new File(tmpDir, "invite.gif");
 
                         if (!tmpFile.exists()) {
-                            tmpFile.delete();
+                            fos = new FileOutputStream(tmpFile);
+                            fos.write(bos.toByteArray());
                         }
-
-                        //tmpFile.deleteOnExit();
-                        fos = new FileOutputStream(tmpFile);
-                        fos.write(bos.toByteArray());
 
                         Intent intent = new Intent(Intent.ACTION_SEND);
                         intent.setData(Uri.parse("smsto:" + friend.phoneNumber));
@@ -435,9 +485,14 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                         intent.putExtra("sms_body", getString(R.string.sms_invit));
                         intent.putExtra(Intent.EXTRA_STREAM, (Uri.fromFile(tmpFile)));
                         intent.setType("image/gif");
-                        startActivity(Intent.createChooser(intent, "Send"));
                         try {
-                            startActivity(intent);
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ((ParentActivity) getActivity()).hideDialog(dg);
+                                }
+                            }, 400);
+                            startActivity(Intent.createChooser(intent, "Send"));
                         } catch (ActivityNotFoundException e) {
                             Toast.makeText(getActivity().getBaseContext(), R.string.phonenumber_numberinvalid, Toast.LENGTH_SHORT).show();
                         }
@@ -446,15 +501,23 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                         e.printStackTrace();
                     } finally {
                         try {
-                            fos.close();
+                            if (fos != null) {
+                                fos.close();
+                            }
+
+                            for (Bitmap bitmap : bitmaps) {
+                                if (bitmap != null && !bitmap.isRecycled()) {
+                                    bitmap.recycle();
+                                    bitmap = null;
+                                }
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
-
-
                 }
             });
+            thread.start();
         } else if(friend.sectionLabel == R.string.friends_section_pikiuser) {
             adapter.addFriendLoading(friend);
 
@@ -520,5 +583,104 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         Bitmap bitmap = BitmapFactory.decodeStream(istr);
 
         return bitmap;
+    }
+
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
+        Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth(), bmp1.getHeight(), bmp1.getConfig());
+        Canvas canvas = new Canvas(bmOverlay);
+        canvas.drawBitmap(bmp1, new Matrix(), null);
+        canvas.drawBitmap(bmp2, (SIZE_GIF - bmp2.getWidth()) / 2, 10, null);
+
+        ParseUser user = ParseUser.getCurrentUser();
+        if (user != null) {
+            Paint textPaint = new Paint(Paint.LINEAR_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG);
+            textPaint.setARGB(255, 255, 255, 255);
+            textPaint.setTextAlign(Paint.Align.CENTER);
+            int xPos = (canvas.getWidth() / 2);
+            int yPos = SIZE_GIF - (int) ((textPaint.descent() + textPaint.ascent()) / 2) - 30;
+
+            Typeface tf = null;
+            try {
+                tf = Typeface.createFromAsset(getActivity().getAssets(), "gotham-rounded-bold.ttf");
+                textPaint.setTypeface(tf);
+            } catch (Exception e) {
+                L.e("Impossible de charger la CustomFont e=["+e.getMessage()+"]");
+            }
+
+            textPaint.setTextSize(25 * Screen.getDensity(getActivity()));
+
+            canvas.drawText("@" + user.getUsername(), xPos, yPos, textPaint);
+        }
+
+        bmp1.recycle();
+        bmp1 = null;
+        bmp2.recycle();
+        bmp2 = null;
+
+        return bmOverlay;
+    }
+
+    private Bitmap overlay(Bitmap bmp1, String str) {
+        Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth(), bmp1.getHeight(), bmp1.getConfig());
+        Canvas canvas = new Canvas(bmOverlay);
+        canvas.drawBitmap(bmp1, new Matrix(), null);
+
+        Paint textPaint = new Paint(Paint.LINEAR_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG);
+        textPaint.setARGB(255, 255, 255, 255);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        int xPos = (canvas.getWidth() / 2);
+        int yPos = (int) ((canvas.getHeight() / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)) ;
+
+        Typeface tf = null;
+        try {
+            tf = Typeface.createFromAsset(getActivity().getAssets(), "gotham-rounded-bold.ttf");
+            textPaint.setTypeface(tf);
+        } catch (Exception e) {
+            L.e("Impossible de charger la CustomFont e=["+e.getMessage()+"]");
+        }
+
+        textPaint.setTextSize(25 * Screen.getDensity(getActivity()));
+
+        canvas.drawText(str, xPos, yPos, textPaint);
+
+        bmp1.recycle();
+        bmp1 = null;
+
+        return bmOverlay;
+    }
+
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2, String text) {
+        Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth(), bmp1.getHeight(), bmp1.getConfig());
+        Canvas canvas = new Canvas(bmOverlay);
+        canvas.drawBitmap(bmp1, new Matrix(), null);
+        canvas.drawBitmap(bmp2, (SIZE_GIF - bmp2.getWidth()) / 2, 50, null);
+
+        ParseUser user = ParseUser.getCurrentUser();
+        if (user != null) {
+            Paint textPaint = new Paint(Paint.LINEAR_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG);
+            textPaint.setARGB(255, 255, 255, 255);
+            textPaint.setTextAlign(Paint.Align.CENTER);
+            int xPos = (canvas.getWidth() / 2);
+            int yPos = 50 + bmp2.getHeight() + 50;
+
+            Typeface tf = null;
+            try {
+                tf = Typeface.createFromAsset(getActivity().getAssets(), "proximanova_sbold.ttf");
+                textPaint.setTypeface(tf);
+            } catch (Exception e) {
+                L.e("TextViewFont : Impossible de charger la CustomFont e=["+e.getMessage()+"]");
+            }
+
+            textPaint.setTextSize(25 * Screen.getDensity(getActivity()));
+
+            canvas.drawText(text, xPos, yPos, textPaint);
+        }
+
+        bmp1.recycle();
+        bmp1 = null;
+        bmp2.recycle();
+        bmp2 = null;
+
+        return bmOverlay;
     }
 }

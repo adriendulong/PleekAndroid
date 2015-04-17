@@ -310,7 +310,7 @@ public class ParentActivity extends FragmentActivity
     /**********
      MY LOADER*/
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    protected Dialog showLoader()
+    public Dialog showLoader()
     {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -328,7 +328,7 @@ public class ParentActivity extends FragmentActivity
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    protected boolean hideDialog(Dialog dialog)
+    public boolean hideDialog(Dialog dialog)
     {
         boolean ok = false;
         if(dialog != null)

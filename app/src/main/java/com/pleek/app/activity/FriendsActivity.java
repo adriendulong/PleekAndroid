@@ -279,7 +279,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
             showEditTextSearch(true);
         } else if (view == btnClose) {
             showEditTextSearch(false);
-        } else if (view == searchLayout) {
+        } else if (view == searchLayout && friend != null) {
             progressBar.setVisibility(View.VISIBLE);
             Set<String> friendsIds = getFriendsPrefs();
 
