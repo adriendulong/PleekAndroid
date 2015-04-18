@@ -22,13 +22,12 @@
                     android:id="@+id/btnBack"
                     android:layout_width="60dp"
                     android:layout_height="match_parent"
-                    android:gravity="center_vertical"
+                    android:gravity="center"
                     android:layout_alignParentLeft="true">
 
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
                         android:src="@drawable/picto_arrow_left_light"/>
 
                 </LinearLayout>
@@ -105,7 +104,7 @@
                         android:verticalSpacing="1dp"
                         android:numColumns="2"
                         android:listSelector="@null"
-                        android:background="@color/grisSeparate" />
+                        android:background="@color/noir" />
                 </com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff>
 
                 <LinearLayout
@@ -118,8 +117,8 @@
 
                 <RelativeLayout
                     android:id="@+id/layoutCamera"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
                     android:background="@color/noir"
                     android:visibility="gone">
 
@@ -141,7 +140,41 @@
                         app:flipDrawable="@drawable/picto_switch2"
                         app:flipDuration="600"
                         app:flipInterpolator="@android:anim/overshoot_interpolator"
-                        app:flipRotations="y"/>
+                        app:flipRotations="y"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/imgAddReact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/picto_add"
+                        android:scaleType="centerInside"
+                        android:layout_centerInParent="true"
+                        android:visibility="gone"
+                        android:clickable="false" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutTutorialReact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:background="@drawable/bg_tutorial_hint_top"
+                        android:orientation="vertical"
+                        android:layout_below="@id/imgAddReact"
+                        android:layout_marginTop="5dp"
+                        android:gravity="center"
+                        android:visibility="gone">
+
+                        <com.goandup.lib.widget.TextViewFont
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/piki_tutorial_add_react"
+                            android:textSize="12dp"
+                            app:customFont="montserrat-regular.ttf"
+                            android:textColor="@color/noir"
+                            android:gravity="center" />
+
+                    </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/layoutTextReact"
@@ -253,10 +286,11 @@
 
         </LinearLayout>
 
-        <RelativeLayout
+        <!--<RelativeLayout
             android:id="@+id/layoutReply"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="visible">
 
 
             <RelativeLayout
@@ -394,7 +428,7 @@
 
             </LinearLayout>
 
-        </RelativeLayout>
+        </RelativeLayout>-->
 
 
 
@@ -452,6 +486,43 @@
         <RelativeLayout android:id="@+id/removeFocus" android:focusableInTouchMode="true" android:focusable="true" android:layout_width="0px" android:layout_height="0px"/>
 
         <RelativeLayout
+            android:id="@+id/layoutActionBarKeyboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_reply_tabs"
+            android:layout_alignParentBottom="true"
+            android:focusableInTouchMode="true">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/picto_reply_selector"
+                android:layout_centerHorizontal="true"
+                android:clickable="true" />
+
+            <ImageView
+                android:id="@+id/imgFonts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_fonts_selector"
+                android:layout_alignParentLeft="true"
+                android:layout_marginTop="45dp"
+                android:layout_marginLeft="70dp"
+                android:clickable="true" />
+
+            <ImageView
+                android:id="@+id/imgStickers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_stickers_selector"
+                android:layout_marginTop="45dp"
+                android:layout_marginRight="70dp"
+                android:layout_alignParentRight="true"
+                android:clickable="true" />
+
+        </RelativeLayout>
+
+        <!--<RelativeLayout
             android:id="@+id/layoutTuto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -599,7 +670,7 @@
                     android:layout_marginTop="5dp"/>
             </LinearLayout>
 
-        </RelativeLayout>
+        </RelativeLayout>-->
 
 
     </RelativeLayout>

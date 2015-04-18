@@ -75,6 +75,7 @@
     <string name="piki_tuto_add">Add your own reaction</string>
     <string name="piki_tuto_react">This is a reaction</string>
     <string name="piki_public">Public</string>
+    <string name="piki_tutorial_add_react">TAP TO REPLY</string>
 
     <!-- PIKIFRIENDS -->
     <string name="pikifriends_text_topbar">To _nb_ people</string>

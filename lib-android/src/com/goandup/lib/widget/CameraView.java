@@ -43,6 +43,8 @@ public class CameraView extends FrameLayout
     private int width;
     private int height;
 
+    private ListenerStarted cycleListener;
+
     public CameraView(Context context) {
         this(context, null);
     }
@@ -296,7 +298,12 @@ public class CameraView extends FrameLayout
                             @Override
                             public void run()
                             {
-                                if(loader != null) loader.setVisibility(View.GONE);//crash #5
+                                if (loader != null) {
+                                    loader.setVisibility(View.GONE);//crash #5
+
+                                    if (cycleListener != null) cycleListener.started();
+                                }
+
                             }
                         });
                     }
@@ -449,6 +456,9 @@ public class CameraView extends FrameLayout
     }
     public interface ListenerRelease {
         public void end();
+    }
+    public interface ListenerStarted {
+        public void started();
     }
 
     /** flash */
@@ -646,5 +656,9 @@ public class CameraView extends FrameLayout
     public static Camera getCamera()
     {
         return camera;
+    }
+
+    public void setCycleListener(ListenerStarted cycleListener) {
+        this.cycleListener = cycleListener;
     }
 }

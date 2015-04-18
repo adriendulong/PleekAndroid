@@ -180,7 +180,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
             ParseCloud.callFunctionInBackground("checkContactOnPiki", param, new FunctionCallback<ArrayList<HashMap<String, String>>>() {
                 @Override
                 public void done(final ArrayList<HashMap<String, String>> rep, ParseException e) {
-                    if (e == null) {
+                    if (e == null && getActivity() != null) {
                         //get user if no already friend
                         ParseUser currentUser = ParseUser.getCurrentUser();
 

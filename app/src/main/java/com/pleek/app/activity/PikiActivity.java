@@ -89,7 +89,7 @@ import java.util.Map;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -125,15 +125,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private ButtonRoundedMaterialDesign btnConfrimShare;
     private View layoutOverlayReply;
     private View layoutOverlayReplyTop;
-    private View btnReplyHearth;
-    private View btnReplyOk;
-    private View btnReplyStuck;
-    private View btnReplyClose;
-    private View btnReplyTexte;
-    private View layoutBtnReply;
-    private View layoutBtnRoundedReply;
-    private ButtonRoundedMaterialDesign btnReply;
-    private ButtonRoundedMaterialDesign btnCapture;
     private View layoutTextReact;
     private EditText edittexteReact;
     private ImageView imgviewReact;
@@ -141,13 +132,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View layoutCamera;
     private CameraView cameraView;
     private FlipImageView imgSwitch;
-    private View layoutTuto;
-    private View layoutTutoTop;
-    private View layoutTutoCenter;
-    private View layoutTutoReact;
-    private ButtonRoundedMaterialDesign btnReplyTuto;
     private ViewLoadingFooter footer;
     private SwipeRefreshLayoutScrollingOff refreshSwipe;
+
+    // NEW ELEMENTS
+    private LinearLayout layoutTutorialReact;
+    private View imgAddReact;
 
     private static Piki _piki;
     private Piki piki;
@@ -269,96 +259,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutOverlayReply.setOnClickListener(this);
         layoutOverlayReplyTop = findViewById(R.id.layoutOverlayReplyTop);
         layoutOverlayReplyTop.setOnClickListener(this);
-        btnReplyHearth = findViewById(R.id.btnReplyHearth);
-        Drawable drawableUp = getResources().getDrawable(R.drawable.btn_ronded);
-        Drawable drawableDown = getResources().getDrawable(R.drawable.btn_ronded_selected);
-        btnReplyHearth.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        BtnReplyClickListener btnReplyClickListener = new BtnReplyClickListener();
-        btnReplyHearth.setOnClickListener(btnReplyClickListener);
-        btnReplyOk = findViewById(R.id.btnReplyOk);
-        btnReplyOk.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        btnReplyOk.setOnClickListener(btnReplyClickListener);
-        btnReplyStuck = findViewById(R.id.btnReplyStuck);
-        btnReplyStuck.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        btnReplyStuck.setOnClickListener(btnReplyClickListener);
-        btnReplyTexte = findViewById(R.id.btnReplyTexte);
-        btnReplyTexte.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        btnReplyTexte.setOnClickListener(btnReplyClickListener);
-        btnReplyClose = findViewById(R.id.btnReplyClose);
-        btnReplyClose.setOnTouchListener(new DownTouchListener(getResources().getDrawable(R.drawable.overlay_ronded), null));
-        btnReplyClose.setOnClickListener(this);
-        layoutBtnRoundedReply = findViewById(R.id.layoutBtnRoundedReply);
-        layoutBtnReply = findViewById(R.id.layoutBtnReply);
-        layoutBtnReply.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-                initialLayoutBtnReplyMarginBottom = params.bottomMargin;
 
-                layoutBtnRoundedReply.post(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        //fix marginleft for show/hide animation
-                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                        params.bottomMargin = initialLayoutBtnReplyMarginBottom;
-                        params.leftMargin = (int) layoutBtnRoundedReply.getX();
-                        layoutBtnRoundedReply.setLayoutParams(params);
-                    }
-                });
-            }
-        });
-        btnReply = (ButtonRoundedMaterialDesign) findViewById(R.id.btnReply);
-        btnReply.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
-            @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                showReplyButtons(true);
-            }
-        });
-        btnCapture = (ButtonRoundedMaterialDesign) findViewById(R.id.btnCapture);
-        btnCapture.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
-            @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                final Bitmap bitmapLayerReact = getBitmapLayerReact();
-                final Dialog dialogLoader = showLoader();
-                cameraView.captureCamera(new CameraView.CameraViewListener()
-                {
-                    @Override
-                    public void repCaptureCamera(Drawable photo)
-                    {
-                        byte[] reactData = getReactData(photo, bitmapLayerReact);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
-
-                        final Reaction tmpReact = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
-                        tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
-                        Reaction.Type type = Reaction.Type.PHOTO;
-                        if(layoutTextReact.getVisibility() == View.VISIBLE) type = Reaction.Type.TEXTE;
-                        else if(imgviewReact.getVisibility() == View.VISIBLE) type = Reaction.Type.EMOJI;
-                        tmpReact.setType(type);
-                        listReact = adapter.addReact(tmpReact);
-                        sendReact(tmpReact);
-
-                        hideDialog(dialogLoader);
-                        new Handler().postDelayed(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                showReplyButtons(false);
-                            }
-                        }, 500);
-                    }
-                });
-            }
-        });
         int edittexteReactPadding = screen.dpToPx(5);
         edittexteReact = (EditText) findViewById(R.id.edittexteReact);
         int size = screen.getWidth()/3 - edittexteReactPadding;
@@ -388,6 +289,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         });
 
         cameraView = (CameraView) findViewById(R.id.cameraView);
+        cameraView.setCycleListener(this);
         imgSwitch = (FlipImageView) findViewById(R.id.imgSwitch);
 
         // Open/Close Keyboard detection
@@ -427,53 +329,21 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         isPreviewVisible = true;
 
-        //TUTO
-        layoutTuto = findViewById(R.id.layoutTuto);
-        layoutTuto.setVisibility(View.GONE);
-        layoutTuto.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent)
-            {
-                Utile.fadeOut(layoutTuto, 300);
-                return true;
-            }
-        });
-        layoutTutoTop = findViewById(R.id.layoutTutoTop);
-        ViewGroup.LayoutParams lp = layoutTutoTop.getLayoutParams();
-        lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        int marginTop = lp.height = screen.dpToPx(60) + screen.getWidth() + screen.dpToPx(1);
-        layoutTutoTop.setLayoutParams(lp);
-        layoutTutoCenter = findViewById(R.id.layoutTutoCenter);
-        lp = layoutTutoCenter.getLayoutParams();
-        lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        lp.height = screen.getWidth() / 3 - screen.dpToPx(1);
-        layoutTutoCenter.setLayoutParams(lp);
-        layoutTutoReact = findViewById(R.id.layoutTutoReact);
-        mlp = (ViewGroup.MarginLayoutParams) layoutTutoReact.getLayoutParams();
-        mlp.setMargins(0, marginTop - screen.dpToPx(100), 0, 0);
-        btnReplyTuto = (ButtonRoundedMaterialDesign) findViewById(R.id.btnReplyTuto);
-        btnReplyTuto.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
-            @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                Utile.fadeOut(layoutTuto, 300);
-            }
-        });
         refreshSwipe = (SwipeRefreshLayoutScrollingOff) findViewById(R.id.refreshSwipe);
         refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
         refreshSwipe.setScrollingEnabled(false);
+
+        // NEW ELEMENTS
+        layoutTutorialReact = (LinearLayout) findViewById(R.id.layoutTutorialReact);
+        imgAddReact = findViewById(R.id.imgAddReact);
     }
 
 
     private void init() {
         init(true);
     }
-    private void init(boolean withCache)
-    {
-        if(piki != null)
-        {
+    private void init(boolean withCache) {
+        if (piki != null) {
             //mark read
             readDataProvider.setReadDateNow(piki.getId());
 
@@ -592,7 +462,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     endOfLoading = parseObjects.size() < (currentPage > 1 ? NB_BY_PAGE : NB_BY_PAGE-1);//pour first load
 
                     //show tuto
-                    if(listReact != null && listReact.size() > 0) showTuto();
+                    if (listReact != null && listReact.size() > 0) showTuto();
+
                 }
                 else if(e != null)
                 {
@@ -622,40 +493,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         return true;
     }
 
-    private void showTuto()
-    {
-        if(layoutTuto.getVisibility() == View.GONE)
-        {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            if(preferences.getBoolean("first_tuto_piki", true))
-            {
-                Utile.fadeIn(layoutTuto, 300);
-                Utile.fadeIn(layoutTuto, 300);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean("first_tuto_piki", false);
-                editor.commit();
-            }
-            else
-            {
-                layoutTuto.setVisibility(View.GONE);
-            }
-        }
-    }
-
     @Override
-    public void clickOnReaction(Reaction react)
-    {
-        if(react.isTmpReaction() && react.isLoadError())
-        {
+    public void clickOnReaction(Reaction react) {
+        if (react.isTmpReaction() && react.isLoadError()) {
             adapter.markLoadError(react, false);
             sendReact(react);
         }
     }
 
     @Override
-    public void doubleTapReaction(Reaction react)
-    {
-
+    public void doubleTapReaction(Reaction react) {
+        // NOTHING HERE
     }
 
     @Override
@@ -674,12 +522,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         if (isPlaying) stopCurrentVideo();
         adapter.stopCurrentVideo();
 
-        if(view == btnBack)
-        {
+        if (view == btnBack) {
             finish();
-        }
-        else if(view == btnShare)
-        {
+        } else if (view == btnShare) {
             generateShareLayout();
             showShareLayout();
 
@@ -694,9 +539,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             {
                 ee.printStackTrace();
             }
-        }
-        else if(view == txtTroisPoints)
-        {
+        } else if (view == txtTroisPoints) {
             showDialog(R.string.piki_report_title, R.string.piki_report_texte, new MyDialogListener() {
                 @Override
                 public void closed(boolean accept) {
@@ -714,27 +557,28 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 }
             });
-        }
-        else if(view == txtNbFriend)
-        {
+        } else if (view == txtNbFriend) {
             PikiFriendsActivity.initActivity(piki);
             startActivity(new Intent(this, PikiFriendsActivity.class));
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-        }
-        else if(view == btnReplyClose || view == layoutOverlayReply || view == layoutOverlayReplyTop)
-        {
-            if(isKeyboardShow)
-            {
+        } else if (view == layoutOverlayReply || view == layoutOverlayReplyTop) {
+            if (isKeyboardShow) {
                 endEditText();
-            }
-            else
-            {
+            } else {
                 showReplyButtons(false);
             }
-        }
-        else if(view == layoutCamera)
-        {
-            toggleCamera();
+        } else if (view == layoutCamera) {
+            if (layoutTutorialReact.getVisibility() == View.VISIBLE) {
+                imgAddReact.setVisibility(View.GONE);
+                layoutTutorialReact.setVisibility(View.GONE);
+                // TODO LAUNCH ADD REACT
+            } else if (isReplyButtonsShow) {
+                imgAddReact.setVisibility(View.GONE);
+                toggleCamera();
+            } else {
+                imgAddReact.setVisibility(View.GONE);
+                // TODO LAUNCH ADD REACT
+            }
         }
     }
 
@@ -773,6 +617,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     @Override
     public void done(boolean ok, VideoBean react) {
         playVideo();
+    }
+
+    @Override
+    public void started() {
+        imgAddReact.setVisibility(View.VISIBLE);
     }
 
     private class MyListTouchListener implements View.OnTouchListener
@@ -1140,9 +989,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             //anim layout CameraView
-            if((view != null && view.getChildAt(4) != null)) {
+            if((view != null && view.getChildAt(1) != null)) {
                 final boolean isVisible = firstVisibleItem <= 1;
-                final int yPos = isVisible ? view.getChildAt(4).getTop() : 0;
+                final int yPos = isVisible ? view.getChildAt(1).getTop() : 0;
 
                 Runnable updateRunnable = new Runnable() {
                     @Override
@@ -1154,6 +1003,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             layoutCamera.setLayoutParams(mlpCamera);
                             if (isVisible && !isPreviewVisible) {
                                 startCamera();
+                                imgAddReact.setVisibility(View.GONE);
                                 isPreviewVisible = true;
                             }
                         }
@@ -1492,84 +1342,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private final int TIME_ANIM = 300;//ms
     private boolean isReplyButtonsShow;
-    private void showReplyButtons(final boolean show)
-    {
+    private void showReplyButtons(final boolean show) {
         // STOP ALL VIDEOS
         if (isPlaying) stopCurrentVideo();
         adapter.stopCurrentVideo();
 
         isReplyButtonsShow = show;
-
-        final View[] btns = {btnReplyClose, btnReplyTexte, btnReplyStuck, btnReplyOk, btnReplyHearth};
-
-        if(show)
-        {
-            new Thread(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for(int i = 0; i < btns.length; i++)
-                    {
-                        animatedReplyButton((View) btns[i].getParent());
-                        try {
-                            Thread.sleep(TIME_ANIM / (btns.length>>1), 0);
-                        } catch (InterruptedException e) {}
-                    }
-                }
-            }).start();
-
-            Utile.fadeIn(layoutOverlayReply, TIME_ANIM);
-            Utile.fadeIn(layoutOverlayReplyTop, TIME_ANIM);
-            Utile.fadeIn(layoutTextReact, TIME_ANIM);
-            Utile.fadeIn(btnCapture, TIME_ANIM);
-            Utile.fadeOut(btnReply, TIME_ANIM);
-
-            gridViewPiki.smoothScrollToPositionFromTop(7, gridViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
-        }
-        else
-        {
-            RelativeLayout.LayoutParams p1 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-            p1.bottomMargin = initialLayoutBtnReplyMarginBottom;
-            layoutBtnReply.setLayoutParams(p1);
-
-            RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-            p2.bottomMargin = initialLayoutBtnReplyMarginBottom;
-            layoutBtnRoundedReply.setLayoutParams(p2);
-
-            for(int i = 0; i < btns.length; i++)
-            {
-                ((View)btns[i].getParent()).setVisibility(View.GONE);
-            }
-
-            Utile.fadeOut(layoutOverlayReply, TIME_ANIM >> 1);
-            Utile.fadeOut(layoutOverlayReplyTop, TIME_ANIM >> 1);
-            Utile.fadeOut(layoutTextReact, TIME_ANIM >> 1);
-            Utile.fadeOut(btnCapture, TIME_ANIM >> 1);
-            Utile.fadeIn(btnReply, TIME_ANIM >> 1);
-
-            gridViewPiki.smoothScrollToPosition(0);
-        }
-
-        final int leftMarginShow = (screen.getWidth() - layoutBtnRoundedReply.getWidth()) >> 1;
-        final int leftMarginHide = screen.getWidth() - layoutBtnRoundedReply.getWidth() - screen.dpToPx(30);
-
-        Animation translateAnim = new Animation()
-        {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t)
-            {
-                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-                params.leftMargin = (int) ((leftMarginHide - leftMarginShow) * (show ? 1-interpolatedTime : interpolatedTime)) + leftMarginShow;
-                layoutBtnRoundedReply.setLayoutParams(params);
-            }
-        };
-        translateAnim.setDuration(show ? TIME_ANIM : TIME_ANIM >> 1); // in ms
-        layoutBtnRoundedReply.startAnimation(translateAnim);
     }
 
-    private void animatedReplyButton(final View button)
-    {
+    private void animatedReplyButton(final View button) {
         runOnUiThread(new Runnable()
         {
             @Override
@@ -1585,22 +1366,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         });
     }
 
-    private void startEditText()
-    {
+    private void startEditText() {
         edittexteReact.setVisibility(View.VISIBLE);
         edittexteReact.requestFocus();
         ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(edittexteReact, 0);
     }
-    private void animateStartEditText()
-    {
+
+    private void animateStartEditText() {
         edittexteReact.setVisibility(View.VISIBLE);
         imgviewReact.setVisibility(View.GONE);
-        btnReplyTexte.setBackgroundResource(R.drawable.btn_ronded_selected);
-
-        ((View)btnReplyHearth.getParent()).setVisibility(View.GONE);
-        ((View)btnReplyOk.getParent()).setVisibility(View.GONE);
-        ((View)btnReplyStuck.getParent()).setVisibility(View.GONE);
-        ((View)btnReplyClose.getParent()).setVisibility(View.GONE);
 
         RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
 
@@ -1609,37 +1383,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         } else {
             p.topMargin =  -(keyboardHeight);
         }
-
-        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-        p2.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-        layoutBtnReply.setLayoutParams(p2);
-
-        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-        p3.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-        layoutBtnRoundedReply.setLayoutParams(p3);
-
-        //RelativeLayout.LayoutParams mlpCamera = (RelativeLayout.LayoutParams) layoutCamera.getLayoutParams();
-        //mlpCamera.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        //mlpCamera.topMargin = (int) (btnShare.getHeight() + pikiHeader.getHeight() + gridViewPiki.getChildAt(0).getY());
-        //layoutCamera.setLayoutParams(mlpCamera);
-
-        //gridViewPiki.getChildAt(0).getY().getLayoutParams().width.getTop();
     }
 
-    private void endEditText()
-    {
+    private void endEditText() {
         ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
     }
-    private void animateEndEditText()
-    {
+
+    private void animateEndEditText() {
         removeFocus.requestFocus();//remove focus
 
-        ((View)btnReplyHearth.getParent()).setVisibility(View.VISIBLE);
-        ((View)btnReplyOk.getParent()).setVisibility(View.VISIBLE);
-        ((View)btnReplyStuck.getParent()).setVisibility(View.VISIBLE);
-        ((View)btnReplyClose.getParent()).setVisibility(View.VISIBLE);
-
-        btnReplyTexte.setBackgroundResource(R.drawable.btn_ronded);
         edittexteReact.setVisibility(View.GONE);
         edittexteReact.setText("");
         fontTextWatcher.reset();
@@ -1647,14 +1399,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
         p.topMargin = 0;
         rootView.setLayoutParams(p);
-
-        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-        p2.bottomMargin = initialLayoutBtnReplyMarginBottom;
-        layoutBtnReply.setLayoutParams(p2);
-
-        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-        p3.bottomMargin = initialLayoutBtnReplyMarginBottom;
-        layoutBtnRoundedReply.setLayoutParams(p3);
 
         gridViewPiki.post(new Runnable()
         {
@@ -1741,11 +1485,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 hideShareLayout();
                 return false;
             }
-            else if(isReplyButtonsShow)
-            {
-                showReplyButtons(false);
-                return false;
-            }
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -1763,67 +1502,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     {
         super.onResume();
         if(isPreviewVisible) startCamera();
-    }
-
-    private class BtnReplyClickListener implements View.OnClickListener
-    {
-        private int currentEmojiSelected;
-
-        @Override
-        public void onClick(View view)
-        {
-            if(view == btnReplyHearth)
-            {
-                clickOnBtnEmoji(btnReplyHearth, R.drawable.emoji_heart);
-            }
-            else if(view == btnReplyOk)
-            {
-                clickOnBtnEmoji(btnReplyOk, R.drawable.emoji_ok);
-            }
-            else if(view == btnReplyStuck)
-            {
-                clickOnBtnEmoji(btnReplyStuck, R.drawable.emoji_stuck);
-            }
-            else if(view == btnReplyTexte)
-            {
-                btnReplyHearth.setBackgroundResource(R.drawable.btn_ronded);
-                btnReplyOk.setBackgroundResource(R.drawable.btn_ronded);
-                btnReplyStuck.setBackgroundResource(R.drawable.btn_ronded);
-                currentEmojiSelected = 0;
-
-                if(isKeyboardShow) endEditText();
-                else startEditText();
-            }
-        }
-
-        private void clickOnBtnEmoji(View btn, int image)
-        {
-            btnReplyHearth.setBackgroundResource(R.drawable.btn_ronded);
-            btnReplyOk.setBackgroundResource(R.drawable.btn_ronded);
-            btnReplyStuck.setBackgroundResource(R.drawable.btn_ronded);
-            btnReplyTexte.setBackgroundResource(R.drawable.btn_ronded);
-
-            if(currentEmojiSelected == image)
-            {
-                currentEmojiSelected = 0;
-                imgviewReact.setVisibility(View.GONE);
-                btn.setBackgroundResource(R.drawable.btn_ronded);
-            }
-            else
-            {
-                int sticker = R.drawable.stickers_love;
-                if(image == R.drawable.emoji_ok) sticker = R.drawable.stickers_ok;
-                if(image == R.drawable.emoji_stuck) sticker = R.drawable.stickers_stuck;
-
-                currentEmojiSelected = image;
-                imgviewReact.setVisibility(View.VISIBLE);
-                edittexteReact.setVisibility(View.GONE);
-                imgviewReact.setImageResource(sticker);
-                btn.setBackgroundResource(R.drawable.btn_ronded_selected);
-            }
-
-            endEditText();
-        }
     }
 
     @Override
@@ -1942,5 +1620,34 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         mediaPlayer.release();
         mediaPlayer = null;
         isPlaying = false;
+    }
+
+    private void showTuto()  {
+        if (layoutTutorialReact.getVisibility() == View.GONE) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            if (preferences.getBoolean("first_tuto_piki", true)) {
+                Utile.fadeIn(layoutTutorialReact, 300, new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        layoutTutorialReact.setAnimation(AnimationUtils.loadAnimation(PikiActivity.this, R.anim.floating));
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("first_tuto_piki", false);
+                editor.commit();
+            } else {
+                layoutTutorialReact.setVisibility(View.GONE);
+            }
+        }
     }
 }
