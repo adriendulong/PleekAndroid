@@ -77,9 +77,8 @@
             app:customFont="proximanova_sbold.ttf"
             android:layout_centerVertical="true"
             android:padding="5dp"
-            android:singleLine="true"
             android:lines="1"
-            android:maxLines="1"
+            android:singleLine="true"
             android:hint="@string/friends_hint"
             android:textColorHint="@color/firstColorDark"
             android:layout_weight="1"
@@ -88,7 +87,8 @@
             android:visibility="gone"
             android:layout_toRightOf="@id/arobas"
             android:layout_toLeftOf="@id/btnClose"
-            android:layout_marginRight="15dp" />
+            android:layout_marginRight="15dp"
+            android:imeOptions="actionSearch" />
 
     </RelativeLayout>
 

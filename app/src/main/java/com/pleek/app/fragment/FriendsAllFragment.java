@@ -1,7 +1,6 @@
 package com.pleek.app.fragment;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,6 +108,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
             innerQuery.whereEqualTo("friend", ParseUser.getCurrentUser());
             innerQuery.include("user");
         }
+
         innerQuery.orderByAscending("username");
         innerQuery.setSkip(currentPage * NB_BY_PAGE);
         innerQuery.setLimit(NB_BY_PAGE);
@@ -151,8 +151,6 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
         // copie de la liste actuel des friends
         listBeforreRequest = new ArrayList<Friend>(listFriend);
-
-        ParseUser parseUser = ParseUser.getCurrentUser();
 
         isLoading = true;
         fromCache = true;

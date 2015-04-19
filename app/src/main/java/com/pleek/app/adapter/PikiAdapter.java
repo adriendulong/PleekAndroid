@@ -123,6 +123,8 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.txtDeleteOn.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
                     vh.txtDeleteOff.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
 
+                    vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
+
                     // Image Piki
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize((int) (imgPikiWidth * 0.80), (int) (imgPikiHeight * 0.80)).into(vh.imgPiki);
                     PicassoUtils.with(context).load(piki.getUrlReact1()).resize(imgPikiSmallWidth, imgPikiSmallHeight).into(vh.imgPiki1);
@@ -298,6 +300,8 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         RelativeLayout layoutFront;
         @InjectView(R.id.imgPiki)
         ImageView imgPiki;
+        @InjectView(R.id.imgPlay)
+        ImageView imgPlay;
         @InjectView(R.id.txtUserName)
         TextViewFont txtUserName;
         @InjectView(R.id.imgPiki1)

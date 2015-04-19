@@ -101,12 +101,12 @@
                         android:textColor="@color/blanc"
                         android:background="@color/transparent"
                         app:customFont="proximanova_sbold.otf"
-                        android:inputType="textFilter"
+                        android:inputType="textFilter|textVisiblePassword"
                         android:lines="1"
                         android:textCursorDrawable="@drawable/cursor"
                         android:layout_weight="1"
                         android:maxLength="30"
-                        android:digits="abcdefghijklmnopqrstuvwxyz0123456789"/>
+                        android:digits="abcdefghijklmnopqrstuvwxyz0123456789" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"

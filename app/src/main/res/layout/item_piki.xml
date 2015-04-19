@@ -83,11 +83,25 @@
                 android:background="@color/blanc"
                 android:layout_weight="1">
 
-                <com.pleek.app.views.BlockingImageView
-                    android:id="@+id/imgPiki"
+                <RelativeLayout
                     android:layout_width="@dimen/img_piki_width"
-                    android:layout_height="@dimen/img_piki_width"
-                    android:background="@color/grisSeparate"/>
+                    android:layout_height="@dimen/img_piki_width">
+
+                    <com.pleek.app.views.BlockingImageView
+                        android:id="@+id/imgPiki"
+                        android:layout_width="@dimen/img_piki_width"
+                        android:layout_height="@dimen/img_piki_width"
+                        android:background="@color/grisSeparate"/>
+
+                    <ImageView
+                        android:id="@+id/imgPlay"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/picto_play"
+                        android:visibility="gone" />
+
+                </RelativeLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
