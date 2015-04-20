@@ -397,20 +397,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         }
     }
 
-
-    private void tggleMuteVideo(View view) {
-        ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
-
-        if (vh.imgMute.getVisibility() == View.VISIBLE) { //is mute
-            vh.imgMute.setVisibility(View.GONE);
-            mediaPlayer.setVolume(1, 1);
-        } else { //is not mute
-            vh.imgMute.setVisibility(View.VISIBLE);
-            mediaPlayer.setVolume(0, 0);
-        }
-    }
-
-
     private boolean isPreparePlaying;
     private void playVideo(final VideoBean react, final View view) {
         if (isPreparePlaying) return;

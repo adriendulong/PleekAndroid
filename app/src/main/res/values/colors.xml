@@ -34,6 +34,9 @@
     <color name="friendsHeaderYellowTxt">#F9A825</color>
     <color name="whiteOverlay">#B3FFFFFF</color>
     <color name="subtitleTopBar">#1F2967</color>
+    <color name="emojiFontBgNormal">#353637</color>
+    <color name="emojiFontBgSelected">#2F2F30</color>
+    <color name="emojiFontDivider">#2A2929</color>
 
     <!--LOADER-->
     <color name="loaderBackColor">#DDCCCCCC</color>
