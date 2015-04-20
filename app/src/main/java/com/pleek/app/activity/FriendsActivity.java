@@ -413,7 +413,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     }
 
     public void initPage2() {
-        page2.init(true);
+        page2.init(false);
     }
 
     public void reloadPage2() {
