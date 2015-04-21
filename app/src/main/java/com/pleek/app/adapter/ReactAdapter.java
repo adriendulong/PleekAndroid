@@ -164,7 +164,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 } else {
                     isPlaceHolder = true;
                     vh.imgReact.setImageDrawable(null);
-                    vh.imgReact.setBackgroundColor(context.getResources().getColor(i % 2 != 0 ? R.color.grisFondPikiPlaceholder1 : R.color.grisFondPikiPlaceholder2));
+                    vh.imgReact.setBackgroundColor(context.getResources().getColor(R.color.fondPiki));
                     vh.itemView.setOnTouchListener(null);
                     vh.imgPlay.setVisibility(View.GONE);
                     listTextViewUsername.remove(vh.txtUserName);
@@ -507,11 +507,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
     class ReactViewHolder extends RecyclerView.ViewHolder {
         @InjectView(R.id.back)
-        RelativeLayout layoutBack;
-        @InjectView(R.id.imgActionOff)
-        ImageView imgActionOff;
-        @InjectView(R.id.imgActionOn)
-        ImageView imgActionOn;
+        LinearLayout layoutBack;
         @InjectView(R.id.front)
         RelativeLayout layoutFront;
         @InjectView(R.id.imgReact)
@@ -530,6 +526,30 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         RelativeLayout layoutOverlay;
         @InjectView(R.id.layoutVideo)
         LinearLayout layoutVideo;
+        @InjectView(R.id.layoutAddFriend)
+        RelativeLayout layoutAddFriend;
+        @InjectView(R.id.imgAddFriend)
+        ImageView imgAddFriend;
+        @InjectView(R.id.txtAddFriend)
+        TextViewFont txtAddFriend;
+        @InjectView(R.id.layoutLike)
+        RelativeLayout layoutLike;
+        @InjectView(R.id.imgLike)
+        ImageView imgLike;
+        @InjectView(R.id.txtLike)
+        TextViewFont txtLike;
+        @InjectView(R.id.layoutReport)
+        RelativeLayout layoutReport;
+        @InjectView(R.id.imgReport)
+        ImageView imgReport;
+        @InjectView(R.id.txtReport)
+        TextViewFont txtReport;
+        @InjectView(R.id.layoutPreview)
+        RelativeLayout layoutPreview;
+        @InjectView(R.id.imgPreview)
+        ImageView imgPreview;
+        @InjectView(R.id.txtPreview)
+        TextViewFont txtPreview;
 
         public ReactViewHolder(View itemView) {
             super(itemView);

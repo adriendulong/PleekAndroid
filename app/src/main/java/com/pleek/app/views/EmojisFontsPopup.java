@@ -96,7 +96,6 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 		View customView = createCustomView();
 		setContentView(customView);
 		setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-		setSize(LayoutParams.MATCH_PARENT, (int) mContext.getResources().getDimension(R.dimen.keyboard_height));
         setBackgroundDrawable(new ColorDrawable(context.getResources().getColor(R.color.secondColor)));
 
         mData.add(null);
@@ -146,6 +145,7 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 	 */
 	@Override
 	public void dismiss() {
+        mEmojisFontsAdapter.setSelectedId("");
 		super.dismiss();
 	}
 
@@ -221,6 +221,10 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 
     public void setOnEmojiFontClickedListener(OnEmojiFontClickListener onEmojiFontClickedListener) {
         this.mOnEmojiFontClickedListener = onEmojiFontClickedListener;
+
+        if (mEmojisFontsAdapter != null) {
+            mEmojisFontsAdapter.setOnEmojiFontClickListener(onEmojiFontClickedListener);
+        }
     }
 
 	public interface OnSoftKeyboardOpenCloseListener {

@@ -13,6 +13,7 @@
     <color name="progressBackground">#F5F5F5</color>
     <color name="blanc">#FFFFFF</color>
     <color name="noir">#000000</color>
+    <color name="noirTouchDownLight">#11AAAAAA</color>
     <color name="noirTouchDown">#33000000</color>
     <color name="noirOverlay">#D0000000</color>
     <color name="noirOverlayLight">#60000000</color>
@@ -37,6 +38,9 @@
     <color name="emojiFontBgNormal">#353637</color>
     <color name="emojiFontBgSelected">#2F2F30</color>
     <color name="emojiFontDivider">#2A2929</color>
+    <color name="fondPiki">#212325</color>
+    <color name="dividerReactBack">#D5D6D8</color>
+    <color name="fondBackReact">#F9F9FB</color>
 
     <!--LOADER-->
     <color name="loaderBackColor">#DDCCCCCC</color>

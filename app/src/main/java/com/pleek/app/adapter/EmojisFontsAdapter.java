@@ -61,7 +61,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<EmojisFontsAdapt
             holder.itemView.setPadding(0, onePx, onePx, 0);
 
             PicassoUtils.with(mContext)
-                    .load(R.drawable.artboard_3)
+                    .load(emoji.getUrlPhoto())
                     .resize(mSize, mSize)
                     .into(holder.imgEmoji);
 
@@ -113,5 +113,13 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<EmojisFontsAdapt
 
     public void setOnEmojiFontClickListener(EmojisFontsPopup.OnEmojiFontClickListener listener) {
         this.mOnEmojiFontClickListener = listener;
+    }
+
+    public String getSelectedId() {
+        return mSelectedId;
+    }
+
+    public void setSelectedId(String selectedId) {
+        this.mSelectedId = selectedId;
     }
 }

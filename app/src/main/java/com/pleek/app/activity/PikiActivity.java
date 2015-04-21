@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -128,11 +129,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View layoutOverlayReplyTop;
     private View layoutTextReact;
     private EditText edittexteReact;
-    private ImageView imgviewReact;
     private View removeFocus;
     private View layoutCamera;
     private CameraView cameraView;
-    private FlipImageView imgSwitch;
     private ViewLoadingFooter footer;
     private SwipeRefreshLayoutScrollingOff refreshSwipe;
 
@@ -142,6 +141,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private RelativeLayout layoutActionBarKeyboard;
     private ImageView imgStickers;
     private ImageView imgFonts;
+    private ImageView imgSwitch;
+    private ImageView imgViewReact;
 
     private static Piki _piki;
     private Piki piki;
@@ -150,7 +151,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Reaction> listReact;
     private boolean isKeyboardShow;
     private int keyboardHeight;
-    private int initialLayoutBtnReplyMarginBottom;
     private AutoResizeFontTextWatcher fontTextWatcher;
     private boolean isPreviewVisible;
 
@@ -262,7 +262,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutTextReact = findViewById(R.id.layoutTextReact);
         edittexteReact.addTextChangedListener(fontTextWatcher);
         edittexteReact.setPadding(edittexteReactPadding, edittexteReactPadding, edittexteReactPadding, edittexteReactPadding);
-        imgviewReact = (ImageView) findViewById(R.id.imgviewReact);
         removeFocus = findViewById(R.id.removeFocus);
 
         layoutCamera = findViewById(R.id.layoutCamera);
@@ -285,7 +284,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         cameraView = (CameraView) findViewById(R.id.cameraView);
         cameraView.setCycleListener(this);
-        imgSwitch = (FlipImageView) findViewById(R.id.imgSwitch);
 
         // Open/Close Keyboard detection
         rootView = findViewById(R.id.rootView);
@@ -300,14 +298,29 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 if (keyboardHeight > 100 && !isKeyboardShow) { //keyboard SHOW
                     isKeyboardShow = true;
                     Utile.fadeIn(layoutActionBarKeyboard, 300);
-                    setUpPopupEmojis();
+
+                    RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                    p.topMargin =  - pikiHeader.getHeight() - gridViewPiki.getChildAt(0).getTop() + btnShare.getHeight();
+                    rootView.setLayoutParams(p);
+
+                    if (popupEmoji == null) {
+                        setUpPopupEmojis();
+                    }
+                }
+
+                if (keyboardHeight > 100 && isKeyboardShow && popupEmoji != null && popupEmoji.isShowing()) {
+                    popupEmoji.update(Screen.getInstance(PikiActivity.this).getWidth(), keyboardHeight);
                 }
 
                 if (keyboardHeight <= 100 && isKeyboardShow) { //keyboard HIDE
                     isKeyboardShow = false;
                     layoutActionBarKeyboard.setVisibility(View.GONE);
+
+                    RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                    p.topMargin = btnShare.getHeight();
+                    rootView.setLayoutParams(p);
+
                     endEditText();
-                    //animateEndEditText();
                 }
             }
         });
@@ -336,6 +349,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgFonts.setOnClickListener(this);
         imgStickers = (ImageView) findViewById(R.id.imgStickers);
         imgStickers.setOnClickListener(this);
+        imgSwitch = (ImageView) findViewById(R.id.imgSwitch);
+        imgSwitch.setOnClickListener(this);
+        imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
     }
 
 
@@ -356,7 +372,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 imgEmojiEarth.setVisibility(View.VISIBLE);
             }
 
-            txtNamePiki.setText("@" + piki.getName());
+            txtNamePiki.setText(piki.getName());
             PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
                     .resize((int) (pikiHeader.getLayoutParams().width * 0.80), (int) (pikiHeader.getLayoutParams().width * 0.80))
@@ -466,7 +482,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     endOfLoading = parseObjects.size() < (currentPage > 1 ? NB_BY_PAGE : NB_BY_PAGE-1);//pour first load
 
                     //show tuto
-                    if (listReact != null && listReact.size() > 0) showTuto();
+                    //if (listReact != null && listReact.size() > 0) showTuto();
 
                 }
                 else if(e != null)
@@ -572,17 +588,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 showReplyButtons(false);
             }
         } else if (view == layoutCamera) {
-            if (layoutTutorialReact.getVisibility() == View.VISIBLE) {
-                imgAddReact.setVisibility(View.GONE);
-                Utile.fadeOut(layoutTutorialReact, 200);
-                startEditText();
-            } else if (isReplyButtonsShow) {
-                imgAddReact.setVisibility(View.GONE);
-                toggleCamera();
-            } else {
-                imgAddReact.setVisibility(View.GONE);
-                startEditText();
-            }
+            imgAddReact.setVisibility(View.GONE);
+            layoutTutorialReact.setVisibility(View.GONE);
+            startEditText();
         } else if (view == imgStickers) {
             if (!popupEmoji.isShowing()) {
                 imgStickers.setImageResource(R.drawable.picto_stickers_selected_selector);
@@ -591,29 +599,35 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 } else {
                     popupEmoji.showAtBottomPending();
                 }
+
+                edittexteReact.setTranslationY(Screen.getInstance(PikiActivity.this).getWidth());
             } else {
+                imgViewReact.setVisibility(View.GONE);
+                imgViewReact.setImageDrawable(null);
+                startEditText();
                 imgStickers.setImageResource(R.drawable.picto_stickers_selector);
                 popupEmoji.dismiss();
+
+                edittexteReact.setTranslationY(0);
             }
         } else if (view == imgFonts) {
 
+        } else if (view == imgSwitch) {
+            toggleCamera();
         }
     }
 
-    public void startCamera()
-    {
-        if(cameraView != null && cameraView.getCamera() == null)
-        {
+    public void startCamera() {
+        if (cameraView != null && cameraView.getCamera() == null) {
             cameraView.setFaceCamera(pref.getBoolean("selfie_camera", true));
             cameraView.start();
         }
     }
-    public boolean toggleCamera()
-    {
+
+    public boolean toggleCamera() {
         boolean toggled = false;
-        if(cameraView != null && cameraView.toggleFaceCamera())
-        {
-            imgSwitch.setFlipped(!imgSwitch.isFlipped());
+
+        if (cameraView != null && cameraView.toggleFaceCamera()) {
             toggled = true;
 
             //save
@@ -621,14 +635,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             editor.putBoolean("selfie_camera", cameraView.isFaceCamera());
             editor.commit();
         }
+
         return toggled;
     }
 
     @Override
-    public void finish()
-    {
+    public void finish() {
         super.finish();
         Reaction.deleteAllTempFileVideo(this);
+        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
     }
 
@@ -640,10 +655,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     @Override
     public void started() {
         imgAddReact.setVisibility(View.VISIBLE);
+        layoutTutorialReact.setVisibility(View.VISIBLE);
     }
 
-    private class MyListTouchListener implements View.OnTouchListener
-    {
+    private class MyListTouchListener implements View.OnTouchListener {
         private final int DURATION_DELETE_ANIM = 300;//ms
         private int WIDTH_BORDER_BACKVIEW;// 3/5 d'1/3 de l'écran
         private int WIDTH_BORDER_BACKVIEW_START_ALPHA;// WIDTH_BORDER_BACKVIEW / 2
@@ -652,17 +667,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         private View downItem;
 
-        private MyListTouchListener()
-        {
+        private MyListTouchListener() {
             WIDTH_BORDER_BACKVIEW = (Screen.getWidth(PikiActivity.this) / 3) * 3/5;
             WIDTH_BORDER_BACKVIEW_START_ALPHA = WIDTH_BORDER_BACKVIEW >> 1;
         }
 
         @Override
-        public boolean onTouch(View view, MotionEvent event)
-        {
-            try//fix : crash #36
-            {
+        public boolean onTouch(View view, MotionEvent event) {
+            try { //fix : crash #36
                 int action = event.getAction();
 
                 if (action == MotionEvent.ACTION_DOWN) {
@@ -670,106 +682,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     downY = event.getY();
                 }
 
-//                if(action == MotionEvent.ACTION_MOVE && gridViewPiki.isScrollingHorizontalLeft())
-//                {
-//                    if(downItem == null)
-//                    {
-//                        // 1) first scroll horizontal to an item (initialize)
-//
-//                        initialX = (int) event.getRawX();
-//
-//                        // Find the child view that was touched (perform a hit test)
-//                        Rect rect = new Rect();
-//                        int childCount = gridViewPiki.getChildCount();
-//                        int[] listViewCoords = new int[2];
-//                        gridViewPiki.getLocationOnScreen(listViewCoords);
-//                        int x = (int) event.getRawX() - listViewCoords[0];
-//                        int y = (int) event.getRawY() - listViewCoords[1];
-//                        for (int i = 0; i < childCount; i++)
-//                        {
-//                            View child = gridViewPiki.getChildAt(i);
-//                            child.getHitRect(rect);
-//                            if (rect.contains(x, y)) {
-//                                if(child instanceof ViewGroup) downItem = child;
-//                                break;
-//                            }
-//                        }
-//
-//                        //fake view for no loop
-//                        if(downItem == null) downItem = new View(PikiActivity.this);
-//
-//                        //initialize backview
-//                        View backView = downItem.findViewById(R.id.back);
-//                        if(backView != null)
-//                        {
-//                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-//                            lp.setMargins(0, 0, 0, 0);
-//                            backView.setLayoutParams(lp);
-//
-//                            backView.setPadding((screen.getWidth() / 3) - WIDTH_BORDER_BACKVIEW, 0, 0, 0);
-//
-//                            //ERROR : java.lang.IndexOutOfBoundsException: Invalid index 5, size is 0
-//
-//                            //change picto : delete or report
-//                            int numReaction = downItem != null ? (Integer)downItem.getTag() : -1;//fix : crash #6 > downItem==null (SOLVED)//fix : crash #36
-//                            Reaction react = numReaction >= 0 ? listReact.get(numReaction) : null;
-//                            ((ImageView)backView.findViewById(R.id.imgActionOn)).setImageResource(canDeleteReact(react) ? R.drawable.picto_delete_item_big_on : R.drawable.picto_report_item_on);
-//                            ((ImageView)backView.findViewById(R.id.imgActionOff)).setImageResource(canDeleteReact(react) ? R.drawable.picto_delete_item_big_off : R.drawable.picto_report_item_off);
-//                        }
-//                    }
-//                    else
-//                    {
-//                        // 2) When scroll horizontal to an item.
-//
-//                        View frontView = downItem.findViewById(R.id.front);
-//                        View backView = downItem.findViewById(R.id.back);
-//                        if(frontView != null && backView != null && downItem.getTag() != null)
-//                        {
-//                            adapter.stopCurrentVideo();
-//
-//                            int moveX = initialX - (int)event.getRawX();
-//
-//                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-//                            lp.setMargins(-moveX,0,moveX,0);
-//                            frontView.setLayoutParams(lp);
-//
-//                            backView.setVisibility(moveX < 0 ? View.GONE : View.VISIBLE);
-//
-//                            //change alpha action image rouge
-//                            if(moveX > WIDTH_BORDER_BACKVIEW_START_ALPHA)
-//                            {
-//                                //calculate actual alpha of imgDeleteItemOn
-//                                float alpha = (Math.abs(moveX) - WIDTH_BORDER_BACKVIEW_START_ALPHA) / (float)(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA);
-//                                backView.findViewById(R.id.imgActionOn).setAlpha(Math.min(alpha, 1f));
-//                            }
-//                            else
-//                            {
-//                                backView.findViewById(R.id.imgActionOn).setAlpha(0f);//sure alpha is 0 if under WIDTH_BORDER_BACKVIEW_START_ALPHA
-//                            }
-//
-//                            //move action image
-//                            if(moveX > WIDTH_BORDER_BACKVIEW)
-//                            {
-//                                //move item frontview of position X with margin
-//                                moveX -= WIDTH_BORDER_BACKVIEW;
-//                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-//                                lp.setMargins(-moveX, 0, moveX, 0);
-//                                backView.setLayoutParams(lp);
-//                            }
-//                            else
-//                            {
-//                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-//                                lp.setMargins(0, 0, 0, 0);
-//                                backView.setLayoutParams(lp);
-//                            }
-//
-//                            return true;//consume touch event
-//                        }
-//                    }
-//                }
-
-                if(action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
-                {
+                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
 
                     if (action == MotionEvent.ACTION_UP && gridViewPiki.getChildAt(0) != null && gridViewPiki.getFirstVisiblePosition() == 0
                             && event.getY() < pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop() && event.getY() > pikiHeader.getTop()
@@ -780,199 +693,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             else playVideo();
                         }
                     }
-
-//                    if(downItem != null)
-//                    {
-//                        //3) return item view to original state
-//                        View frontView = downItem.findViewById(R.id.front);
-//                        View backView = downItem.findViewById(R.id.back);
-//                        if(frontView != null && backView != null)
-//                        {
-//                            final int moveX = initialX - (int)event.getRawX();
-//                            if(moveX > WIDTH_BORDER_BACKVIEW && action == MotionEvent.ACTION_UP)
-//                            {
-//                                final int position = (Integer)downItem.getTag();
-//                                if(canDeleteReact(listReact.get(position)))
-//                                {
-//                                    ///////////////
-//                                    // POPUP DELETE
-//                                    showDialog(R.string.piki_popup_remove_title, R.string.piki_popup_remove_texte, new MyDialogListener()
-//                                    {
-//                                        @Override
-//                                        public void closed(boolean accept)
-//                                        {
-//                                            // DELETE
-//                                            if(accept)
-//                                            {
-//                                                final int initialHeight = downItem.getMeasuredHeight();
-//                                                animItemDisappear(downItem, moveX, new Animation.AnimationListener()
-//                                                {
-//                                                    @Override
-//                                                    public void onAnimationEnd(Animation a)
-//                                                    {
-//                                                        //reset view for next
-//                                                        downItem.getLayoutParams().height = initialHeight;
-//                                                        downItem.requestLayout();
-//                                                        downItem.invalidate();
-//                                                        View frontView = downItem.findViewById(R.id.front);
-//                                                        View backView = downItem.findViewById(R.id.back);
-//                                                        if (frontView != null && backView != null)
-//                                                        {
-//                                                            //reset margin
-//                                                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-//                                                            lp.setMargins(0, 0, 0, 0);
-//                                                            frontView.setLayoutParams(lp);
-//                                                            lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-//                                                            lp.setMargins(0, 0, 0, 0);
-//                                                            backView.setLayoutParams(lp);
-//                                                        }
-//                                                        downItem = null;
-//
-//                                                        reportOrRemoveReact(adapter.removeReaction(position));
-//                                                    }
-//
-//                                                    @Override public void onAnimationRepeat(Animation animation) {}
-//                                                    @Override public void onAnimationStart(Animation animation) {}
-//                                                });
-//                                            }
-//                                            else // NOT DELETE
-//                                            {
-//                                                animRestorePositionItem(downItem, moveX);
-//                                            }
-//                                        }
-//                                    });
-//                                }
-//                                else
-//                                {
-//                                    ///////////////
-//                                    // POPUP REPORT
-//                                    showDialog(R.string.piki_popup_report_title, R.string.piki_popup_report_texte, new MyDialogListener()
-//                                    {
-//                                        @Override
-//                                        public void closed(boolean accept)
-//                                        {
-//                                            // REPORT
-//                                            if(accept)
-//                                            {
-//                                                animRestorePositionItem(downItem, moveX);
-//                                                reportOrRemoveReact(adapter.getReaction(position));
-//
-//                                                //showAlert(R.string.piki_popup_report_title, R.string.piki_alert_report_texte);
-//                                            }
-//                                            else // NOT REPORT
-//                                            {
-//                                                animRestorePositionItem(downItem, moveX);
-//                                            }
-//                                        }
-//                                    });
-//                                }
-//                            }
-//                            else
-//                            {
-//                                animRestorePositionItem(downItem, moveX);
-//                            }
-//                        }
-//                    }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 L.w("ERROR  >>  MyListTouchListener e="+e.getMessage());
             }
+
             return false;//no consume touch event
-        }
-
-        private void reportOrRemoveReact(Reaction react)
-        {
-            //Parse remove Piki
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put("reactId", react.getId());
-            ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>()
-            {
-                @Override
-                public void done(Object o, ParseException e)
-                {
-                    if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
-                    //else init(false);
-                }
-            });
-        }
-
-        private void animItemDisappear(final View item, int moveX, final Animation.AnimationListener animListener)
-        {
-            if(downItem == null) return;
-
-            final View frontView = downItem.findViewById(R.id.front);
-            final View backView = downItem.findViewById(R.id.back);
-            if(frontView != null && backView != null)
-            {
-                TranslateAnimation ta = new TranslateAnimation(-moveX, -screen.getWidth() / 3,0,0);
-                ta.setDuration(DURATION_DELETE_ANIM);
-                ta.setAnimationListener(animListener);
-                frontView.startAnimation(ta);
-                backView.startAnimation(ta);
-
-                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                lp.setMargins(0, 0, 0, 0);
-                frontView.setLayoutParams(lp);
-                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                lp.setMargins(0, 0, 0, 0);
-                backView.setLayoutParams(lp);
-            }
-
-        }
-
-        private void animRestorePositionItem(final View item, int moveX)
-        {
-            if(item == null) return;
-
-            View frontView = item.findViewById(R.id.front);//TODO : crash #31
-            View backView = item.findViewById(R.id.back);
-            if(frontView != null && backView != null)
-            {
-                TranslateAnimation ta = new TranslateAnimation(-moveX,0,0,0);
-                ta.setDuration(DURATION_DELETE_ANIM);
-                frontView.startAnimation(ta);
-
-                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                lp.setMargins(0, 0, 0, 0);
-                frontView.setLayoutParams(lp);
-
-                //anim alpha imgDeleteItemOn to origin
-                if(moveX > WIDTH_BORDER_BACKVIEW_START_ALPHA)
-                {
-                    //calculate actual alpha of imgDeleteItemOn
-                    float alpha = (moveX - WIDTH_BORDER_BACKVIEW_START_ALPHA) / (float)(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA);
-
-                    AlphaAnimation aa = new AlphaAnimation(alpha, 0);
-                    aa.setDuration(DURATION_DELETE_ANIM);
-                    //aa.setFillAfter(true); /!\ BUG
-                    backView.findViewById(R.id.imgActionOn).startAnimation(aa);
-                }
-
-                //anim position backView to origin
-                if(moveX > WIDTH_BORDER_BACKVIEW)
-                {
-                    //start animation
-                    moveX -= WIDTH_BORDER_BACKVIEW;
-                    ta = new TranslateAnimation(-moveX,0,0,0);
-                    ta.setDuration(DURATION_DELETE_ANIM);
-                    backView.startAnimation(ta);
-
-                    //reset margin
-                    lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                    lp.setMargins(0, 0, 0, 0);
-                    backView.setLayoutParams(lp);
-                }
-            }
-
-            downItem = null;
         }
     }
 
     private int lastItemShow;
-    private class MyOnScrollListener implements AbsListView.OnScrollListener
-    {
+    private class MyOnScrollListener implements AbsListView.OnScrollListener {
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState)
         {
@@ -993,7 +724,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             //anim layout CameraView
             if((view != null && view.getChildAt(1) != null)) {
                 final boolean isVisible = firstVisibleItem <= 1;
-                final int yPos = isVisible ? view.getChildAt(1).getTop() : 0;
 
                 Runnable updateRunnable = new Runnable() {
                     @Override
@@ -1006,6 +736,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             if (isVisible && !isPreviewVisible) {
                                 startCamera();
                                 imgAddReact.setVisibility(View.GONE);
+                                layoutTutorialReact.setVisibility(View.GONE);
                                 isPreviewVisible = true;
                             }
                         } else {
@@ -1236,7 +967,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
         TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
         TextView txtReplies = (TextView) viewShare.findViewById(R.id.txtReplies);
-        txtUserName.setText("@"+piki.getName() + " " + getString(R.string.share_onpleek));
+        txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
         txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
         if(txtReplies != null) txtReplies.setText(piki.getNbReact()+"+ "+getString(R.string.share_replies));
 
@@ -1343,20 +1074,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         isReplyButtonsShow = show;
     }
 
-    private void animatedReplyButton(final View button) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if(!isReplyButtonsShow) return;
-                Animation animBtn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.popin);
-                animBtn.setDuration(TIME_ANIM);
-                animBtn.setInterpolator(new OvershootInterpolator(4));
-                button.startAnimation(animBtn);
-                button.setVisibility(View.VISIBLE);
-            }
-        });
-    }
-
     private void startEditText() {
         edittexteReact.setVisibility(View.VISIBLE);
         edittexteReact.requestFocus();
@@ -1364,47 +1081,19 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(edittexteReact, 0);
     }
 
-    private void animateStartEditText() {
-        edittexteReact.setVisibility(View.VISIBLE);
-        imgviewReact.setVisibility(View.GONE);
-
-        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-
-        if (adapter.getCount() > 3) {
-            p.topMargin =  -(keyboardHeight - screen.getWidth() / 8);
-        } else {
-            p.topMargin =  -(keyboardHeight);
-        }
-    }
-
     private void endEditText() {
         edittexteReact.setVisibility(View.GONE);
         edittexteReact.clearFocus();
+        edittexteReact.setText("");
         layoutOverlayReply.setVisibility(View.GONE);
         ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
         imgAddReact.setVisibility(View.VISIBLE);
+        layoutTutorialReact.setVisibility(View.VISIBLE);
+        imgViewReact.setVisibility(View.GONE);
+        imgViewReact.setImageDrawable(null);
+        edittexteReact.setTranslationY(0);
     }
 
-    private void animateEndEditText() {
-        removeFocus.requestFocus();//remove focus
-
-        edittexteReact.setVisibility(View.GONE);
-        edittexteReact.setText("");
-        fontTextWatcher.reset();
-
-        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-        p.topMargin = 0;
-        rootView.setLayoutParams(p);
-
-        gridViewPiki.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                gridViewPiki.smoothScrollToPositionFromTop(7, gridViewPiki.getHeight() - screen.getWidth()/3, 0);
-            }
-        });
-    }
     ////// ANIMATION //////
     ///////////////////////
 
@@ -1457,17 +1146,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         return stream.toByteArray();
     }
 
-    private Bitmap getBitmapLayerReact()
-    {
+    private Bitmap getBitmapLayerReact() {
         removeFocus.requestFocus();//remove focus
-        Bitmap textBitmap = Bitmap.createBitmap(layoutCamera.getWidth(), layoutCamera.getHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap textBitmap = Bitmap.createBitmap(layoutCamera.getWidth(), layoutCamera.getHeight(), Bitmap.Config.RGB_565);
         Canvas c = new Canvas(textBitmap);
         layoutTextReact.draw(c);
         return textBitmap;
     }
 
-    private boolean canDeleteReact(Reaction react)
-    {
+    private boolean canDeleteReact(Reaction react) {
         return (react != null && react.iamOwner()) || piki.iamOwner();
     }
 
@@ -1494,10 +1181,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
-        if(isPreviewVisible) startCamera();
+        if (isPreviewVisible) startCamera();
     }
 
     @Override
@@ -1655,7 +1341,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
             @Override
             public void onEmojiFontClick(Emoji emoji) {
-                // TODO ONCLICK
+                if (emoji != null) {
+                    imgViewReact.setVisibility(View.VISIBLE);
+                    PicassoUtils.with(PikiActivity.this)
+                            .load(emoji.getUrlPhoto())
+                            .resize(layoutCamera.getWidth(), layoutCamera.getHeight())
+                            .into(imgViewReact);
+                } else {
+                    imgViewReact.setVisibility(View.GONE);
+                    imgViewReact.setImageDrawable(null);
+                }
             }
         });
 
@@ -1669,14 +1364,18 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         popupEmoji.setOnSoftKeyboardOpenCloseListener(new EmojisFontsPopup.OnSoftKeyboardOpenCloseListener() {
             @Override
-            public void onKeyboardOpen(int keyBoardHeight) {
-
-            }
+            public void onKeyboardOpen(int keyBoardHeight) {}
 
             @Override
             public void onKeyboardClose() {
-                if (popupEmoji.isShowing())
+                if (popupEmoji.isShowing()) {
                     popupEmoji.dismiss();
+                    edittexteReact.setText("");
+                    edittexteReact.setVisibility(View.GONE);
+                    imgViewReact.setVisibility(View.GONE);
+                    imgViewReact.setImageDrawable(null);
+                    imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+                }
             }
         });
     }
