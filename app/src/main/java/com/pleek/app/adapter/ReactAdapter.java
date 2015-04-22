@@ -27,8 +27,6 @@ import android.widget.RelativeLayout;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
-import com.goandup.lib.utile.Utile;
-import com.goandup.lib.widget.FlipImageView;
 import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.activity.ParentActivity;
@@ -40,7 +38,6 @@ import com.pleek.app.utils.PicassoUtils;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 

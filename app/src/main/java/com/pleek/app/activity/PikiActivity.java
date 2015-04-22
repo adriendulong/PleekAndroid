@@ -1,6 +1,5 @@
 package com.pleek.app.activity;
 
-import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -13,14 +12,12 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
-import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -29,15 +26,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
-import android.view.animation.Transformation;
-import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -54,7 +47,6 @@ import com.goandup.lib.widget.CameraView;
 import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.EditTextFont;
-import com.goandup.lib.widget.FlipImageView;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
 import com.goandup.lib.widget.TextViewFont;
 import com.parse.CountCallback;
@@ -69,9 +61,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.pleek.app.R;
-import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.adapter.ReactAdapter;
-import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.Emoji;
 import com.pleek.app.bean.Font;
 import com.pleek.app.bean.Overlay;
@@ -149,6 +139,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private ImageView imgFonts;
     private ImageView imgSwitch;
     private ImageView imgViewReact;
+    private ImageView imgReply;
 
     private static Piki _piki;
     private Piki piki;
@@ -329,6 +320,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     p.topMargin = btnShare.getHeight();
                     rootView.setLayoutParams(p);
 
+                    isReplyButtonsShow = false;
                     endEditText();
                 }
             }
@@ -361,6 +353,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgSwitch = (ImageView) findViewById(R.id.imgSwitch);
         imgSwitch.setOnClickListener(this);
         imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
+        imgReply = (ImageView) findViewById(R.id.imgReply);
+        imgReply.setOnClickListener(this);
     }
 
 
@@ -701,12 +695,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         } else if (view == layoutCamera) {
             imgAddReact.setVisibility(View.GONE);
             layoutTutorialReact.setVisibility(View.GONE);
+            isReplyButtonsShow = true;
             startEditText();
         } else if (view == imgStickers) {
-            if (popupFont.isShowing()) {
-                hideFonts();
-            }
-
             if (!popupEmoji.isShowing()) {
                 imgStickers.setImageResource(R.drawable.picto_stickers_selected_selector);
                 if (popupEmoji.isKeyBoardOpen()) {
@@ -716,14 +707,19 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 }
 
                 edittexteReact.setTranslationY(Screen.getInstance(PikiActivity.this).getWidth());
+
+                if (popupFont.isShowing()) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hideFonts();
+                        }
+                    }, 300);
+                }
             } else {
                 hideEmojis();
             }
         } else if (view == imgFonts) {
-            if (popupEmoji.isShowing()) {
-                hideEmojis();
-            }
-
             if (!popupFont.isShowing()) {
                 imgFonts.setImageResource(R.drawable.picto_fonts_selected_selector);
                 if (popupFont.isKeyBoardOpen()) {
@@ -731,11 +727,47 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 } else {
                     popupFont.showAtBottomPending();
                 }
+
+                if (popupEmoji.isShowing()) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hideEmojis();
+                        }
+                    }, 300);
+                }
             } else {
                 hideFonts();
             }
         } else if (view == imgSwitch) {
             toggleCamera();
+        } else if (view == imgReply) {
+            final Bitmap bitmapLayerReact = getBitmapLayerReact();
+            final Dialog dialogLoader = showLoader();
+            cameraView.captureCamera(new CameraView.CameraViewListener() {
+                @Override
+                public void repCaptureCamera(Drawable photo) {
+                    byte[] reactData = getReactData(photo, bitmapLayerReact);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
+
+                    final Reaction tmpReact = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
+                    tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
+                    Reaction.Type type = Reaction.Type.PHOTO;
+                    if (layoutTextReact.getVisibility() == View.VISIBLE) type = Reaction.Type.TEXTE;
+                    else if (imgViewReact.getVisibility() == View.VISIBLE) type = Reaction.Type.EMOJI;
+                    tmpReact.setType(type);
+                    listReact = adapter.addReact(tmpReact);
+                    sendReact(tmpReact);
+
+                    hideDialog(dialogLoader);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            endEditText();
+                        }
+                    }, 500);
+                }
+            });
         }
     }
 
@@ -794,8 +826,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void started() {
-        imgAddReact.setVisibility(View.VISIBLE);
-        layoutTutorialReact.setVisibility(View.VISIBLE);
+        if (!isReplyButtonsShow) {
+            imgAddReact.setVisibility(View.VISIBLE);
+            layoutTutorialReact.setVisibility(View.VISIBLE);
+        }
     }
 
     private class MyListTouchListener implements View.OnTouchListener {
@@ -1239,13 +1273,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
 
     private int SIZE_REACT = 360;
-    private byte[] getReactData(Drawable photo, Bitmap layerReact)
-    {
+    private byte[] getReactData(Drawable photo, Bitmap layerReact) {
         if(photo == null) return new byte[0];//fix : crash #17
 
         ///////////
         // Bitmap de la photo
-        Bitmap photoBitmap = ((BitmapDrawable)photo).getBitmap();
+        Bitmap photoBitmap = ((BitmapDrawable) photo).getBitmap();
         int photoWidth = photoBitmap.getWidth();
         int photoHeight = photoBitmap.getHeight();
 
@@ -1287,8 +1320,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     private Bitmap getBitmapLayerReact() {
-        removeFocus.requestFocus();//remove focus
-        Bitmap textBitmap = Bitmap.createBitmap(layoutCamera.getWidth(), layoutCamera.getHeight(), Bitmap.Config.RGB_565);
+        removeFocus.requestFocus();
+        Bitmap textBitmap = Bitmap.createBitmap(layoutCamera.getWidth(), layoutCamera.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(textBitmap);
         layoutTextReact.draw(c);
         return textBitmap;
@@ -1546,10 +1579,18 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                     if (font != null) {
                         imgViewReact.setVisibility(View.VISIBLE);
+                        edittexteReact.setAllCaps(font.getName().equals("impact.ttf"));
+
+                        if (edittexteReact.getText() == null || edittexteReact.getText().toString().isEmpty()) {
+                            edittexteReact.setText("Yo");
+                        }
+
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
+                        edittexteReact.setSelection(edittexteReact.getText().length());
                     } else {
                         imgViewReact.setVisibility(View.GONE);
                         imgViewReact.setImageDrawable(null);
+                        edittexteReact.setAllCaps(false);
                     }
                 }
             }
@@ -1565,7 +1606,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         popupFont.setOnSoftKeyboardOpenCloseListener(new EmojisFontsPopup.OnSoftKeyboardOpenCloseListener() {
             @Override
-            public void onKeyboardOpen(int keyBoardHeight) {}
+            public void onKeyboardOpen(int keyBoardHeight) {
+            }
 
             @Override
             public void onKeyboardClose() {

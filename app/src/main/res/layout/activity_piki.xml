@@ -106,14 +106,14 @@
                             android:textSize="30dp"
                             android:textCursorDrawable="@drawable/cursor_big"
                             app:customFont="proximanova_sbold.otf"
-                            android:background="@color/noirOverlayLight"
+                            android:background="@null"
                             android:gravity="bottom|left"
                             android:visibility="gone"
                             android:privateImeOptions="nm"
                             android:shadowColor="@color/noir"
-                            android:shadowDx="5"
-                            android:shadowDy="5"
-                            android:shadowRadius="2"
+                            android:shadowDx="2.5"
+                            android:shadowDy="2.5"
+                            android:shadowRadius="8"
                             android:maxLines="10" />
 
                         <ImageView

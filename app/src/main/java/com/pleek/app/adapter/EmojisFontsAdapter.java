@@ -72,8 +72,18 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
             final Emoji emoji = (Emoji) mViews.get(position);
 
             if (emoji != null) {
-                int onePx = (int) (1 * Screen.getInstance(mContext).getDensity());
-                holder.itemView.setPadding(0, onePx, onePx, 0);
+                int halfOnePx = (int) (0.5 * Screen.getInstance(mContext).getDensity());
+                holder.itemView.setPadding(0, halfOnePx, halfOnePx, 0);
+
+                ViewGroup.LayoutParams params = holderE.imgEmoji.getLayoutParams();
+                params.width = mSize;
+                params.height = mSize;
+                holderE.imgEmoji.setLayoutParams(params);
+
+                ViewGroup.LayoutParams params2 = holderE.layoutEmoji.getLayoutParams();
+                params2.width = mSize;
+                params2.height = mSize;
+                holderE.layoutEmoji.setLayoutParams(params2);
 
                 PicassoUtils.with(mContext)
                         .load(emoji.getUrlPhoto())
@@ -101,6 +111,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
             } else {
                 holderE.layoutEmoji.setBackgroundResource(R.color.emojiFontBgNormal);
                 holderE.imgEmoji.setImageDrawable(null);
+                holderE.imgEmoji.setVisibility(View.GONE);
                 holderE.imgSelected.setVisibility(View.GONE);
             }
         } else if (mViews.get(position) instanceof Font) {
@@ -108,8 +119,8 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
             final Font font = (Font) mViews.get(position);
 
             if (font != null) {
-                int onePx = (int) (1 * Screen.getInstance(mContext).getDensity());
-                holderF.itemView.setPadding(0, onePx, onePx, 0);
+                int halfOnePx = (int) (0.5 * Screen.getInstance(mContext).getDensity());
+                holderF.itemView.setPadding(0, halfOnePx, halfOnePx, 0);
                 holderF.txtFont.setCustomFont(mContext, font.getName());
                 holderF.txtFont.setVisibility(View.VISIBLE);
 
