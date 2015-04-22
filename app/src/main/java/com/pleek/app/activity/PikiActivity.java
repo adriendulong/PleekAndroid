@@ -1,5 +1,6 @@
 package com.pleek.app.activity;
 
+import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
@@ -18,6 +20,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
+import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -50,8 +53,10 @@ import com.goandup.lib.widget.ButtonRoundedMaterialDesign;
 import com.goandup.lib.widget.CameraView;
 import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.DownTouchListener;
+import com.goandup.lib.widget.EditTextFont;
 import com.goandup.lib.widget.FlipImageView;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
+import com.goandup.lib.widget.TextViewFont;
 import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
@@ -92,6 +97,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by nicolas on 18/12/14.
@@ -128,7 +134,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View layoutOverlayReply;
     private View layoutOverlayReplyTop;
     private View layoutTextReact;
-    private EditText edittexteReact;
+    private EditTextFont edittexteReact;
     private View removeFocus;
     private View layoutCamera;
     private CameraView cameraView;
@@ -151,7 +157,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Reaction> listReact;
     private boolean isKeyboardShow;
     private int keyboardHeight;
-    private AutoResizeFontTextWatcher fontTextWatcher;
     private boolean isPreviewVisible;
 
     private int initMarginBottom = 0;
@@ -159,6 +164,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Emoji> emojis;
     private List<Font> fonts;
     private EmojisFontsPopup<Emoji> popupEmoji;
+    private EmojisFontsPopup<Font> popupFont;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -255,12 +261,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutOverlayReplyTop = findViewById(R.id.layoutOverlayReplyTop);
         layoutOverlayReplyTop.setOnClickListener(this);
 
-        int edittexteReactPadding = screen.dpToPx(5);
-        edittexteReact = (EditText) findViewById(R.id.edittexteReact);
-        int size = screen.getWidth()/3 - edittexteReactPadding;
-        fontTextWatcher = new AutoResizeFontTextWatcher(edittexteReact, size, size, screen.dpToPx(30));
+        int edittexteReactPadding = screen.dpToPx(10);
+        edittexteReact = (EditTextFont) findViewById(R.id.edittexteReact);
+        edittexteReact.setSingleLine(false);
+        int size = screen.getWidth() / 2 - edittexteReactPadding;
         layoutTextReact = findViewById(R.id.layoutTextReact);
-        edittexteReact.addTextChangedListener(fontTextWatcher);
         edittexteReact.setPadding(edittexteReactPadding, edittexteReactPadding, edittexteReactPadding, edittexteReactPadding);
         removeFocus = findViewById(R.id.removeFocus);
 
@@ -306,6 +311,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     if (popupEmoji == null) {
                         setUpPopupEmojis();
                     }
+
+                    if (popupFont == null) {
+                        setUpPopupFonts();
+                    }
                 }
 
                 if (keyboardHeight > 100 && isKeyboardShow && popupEmoji != null && popupEmoji.isShowing()) {
@@ -325,7 +334,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         });
 
-        adapter = new ReactAdapter(new ArrayList<Reaction>(), PikiActivity.this);
+        adapter = new ReactAdapter(new ArrayList<Reaction>(), PikiActivity.this, piki.iamOwner());
         //wait gridViewPiki is created for get height
         gridViewPiki.post(new Runnable() {
             @Override
@@ -537,8 +546,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
-    public void onDeleteReact(int position) {
-
+    public void onDeleteReact(final int position) {
+        showDialog(R.string.piki_popup_remove_title, R.string.piki_popup_remove_texte, new MyDialogListener() {
+            @Override
+            public void closed(boolean accept) {
+                // DELETE
+                if (accept) {
+                    reportOrRemoveReact(adapter.removeReaction(position));
+                }
+            }
+        });
     }
 
     @Override
@@ -549,10 +566,74 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 // REPORT
                 if (accept) {
                     reportOrRemoveReact(adapter.getReaction(position));
-                    //showAlert(R.string.piki_popup_report_title, R.string.piki_alert_report_texte);
                 }
             }
         });
+    }
+
+    @Override
+    public void onAddFriend(int position, final Reaction react, final ProgressBar pg, final ImageView img, final TextViewFont txt) {
+        pg.setVisibility(View.VISIBLE);
+        final String friendId = adapter.getReaction(position).getUserId();
+        Set<String> friendsIds = getFriendsPrefs();
+
+        final FunctionCallback callback = new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                if (e == null) {
+                    getFriendsBg(new FunctionCallback() {
+                        @Override
+                        public void done(Object o, ParseException e) {
+                            if (getFriendsPrefs() != null && getFriendsPrefs().contains(react.getUserId())) {
+                                txt.setTextColor(Color.BLACK);
+                                img.setVisibility(View.VISIBLE);
+                                img.setImageResource(R.drawable.picto_added);
+                            } else {
+                                img.setVisibility(View.VISIBLE);
+                                txt.setTextColor(getResources().getColor(R.color.grisTextDisable));
+                                img.setImageResource(R.drawable.picto_add_user);
+                            }
+
+                            pg.setVisibility(View.GONE);
+                        }
+                    });
+                } else {
+                    pg.setVisibility(View.GONE);
+                    img.setVisibility(View.VISIBLE);
+                    Utile.showToast(R.string.pikifriends_action_nok, PikiActivity.this);
+                }
+            }
+        };
+
+        if (!friendsIds.contains(friendId)) {
+            Map<String, Object> param = new HashMap<String, Object>();
+            param.put("friendId", friendId);
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
+        } else {
+            Map<String, Object> param = new HashMap<String, Object>();
+            param.put("friendId", friendId);
+            ParseCloud.callFunctionInBackground("removeFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onPreviewReact(int position) {
+
+    }
+
+    @Override
+    public void onLikeReact(int position) {
+
     }
 
     private void reportOrRemoveReact(Reaction react) {
@@ -622,6 +703,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             layoutTutorialReact.setVisibility(View.GONE);
             startEditText();
         } else if (view == imgStickers) {
+            if (popupFont.isShowing()) {
+                hideFonts();
+            }
+
             if (!popupEmoji.isShowing()) {
                 imgStickers.setImageResource(R.drawable.picto_stickers_selected_selector);
                 if (popupEmoji.isKeyBoardOpen()) {
@@ -632,19 +717,44 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                 edittexteReact.setTranslationY(Screen.getInstance(PikiActivity.this).getWidth());
             } else {
-                imgViewReact.setVisibility(View.GONE);
-                imgViewReact.setImageDrawable(null);
-                startEditText();
-                imgStickers.setImageResource(R.drawable.picto_stickers_selector);
-                popupEmoji.dismiss();
-
-                edittexteReact.setTranslationY(0);
+                hideEmojis();
             }
         } else if (view == imgFonts) {
+            if (popupEmoji.isShowing()) {
+                hideEmojis();
+            }
 
+            if (!popupFont.isShowing()) {
+                imgFonts.setImageResource(R.drawable.picto_fonts_selected_selector);
+                if (popupFont.isKeyBoardOpen()) {
+                    popupFont.showAtBottom();
+                } else {
+                    popupFont.showAtBottomPending();
+                }
+            } else {
+                hideFonts();
+            }
         } else if (view == imgSwitch) {
             toggleCamera();
         }
+    }
+
+    private void hideEmojis() {
+        imgViewReact.setVisibility(View.GONE);
+        imgViewReact.setImageDrawable(null);
+        startEditText();
+        imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+        popupEmoji.dismiss();
+
+        edittexteReact.setTranslationY(0);
+    }
+
+    private void hideFonts() {
+        imgViewReact.setVisibility(View.GONE);
+        imgViewReact.setImageDrawable(null);
+        startEditText();
+        imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+        popupFont.dismiss();
     }
 
     public void startCamera() {
@@ -1184,10 +1294,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         return textBitmap;
     }
 
-    private boolean canDeleteReact(Reaction react) {
-        return (react != null && react.iamOwner()) || piki.iamOwner();
-    }
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
@@ -1370,16 +1476,20 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         popupEmoji.setOnEmojiFontClickedListener(new EmojisFontsPopup.OnEmojiFontClickListener() {
 
             @Override
-            public void onEmojiFontClick(Emoji emoji) {
-                if (emoji != null) {
-                    imgViewReact.setVisibility(View.VISIBLE);
-                    PicassoUtils.with(PikiActivity.this)
-                            .load(emoji.getUrlPhoto())
-                            .resize(layoutCamera.getWidth(), layoutCamera.getHeight())
-                            .into(imgViewReact);
-                } else {
-                    imgViewReact.setVisibility(View.GONE);
-                    imgViewReact.setImageDrawable(null);
+            public void onEmojiFontClick(Overlay overlay) {
+                if (overlay instanceof Emoji) {
+                    Emoji emoji = (Emoji) overlay;
+
+                    if (emoji != null) {
+                        imgViewReact.setVisibility(View.VISIBLE);
+                        PicassoUtils.with(PikiActivity.this)
+                                .load(emoji.getUrlPhoto())
+                                .resize(layoutCamera.getWidth(), layoutCamera.getHeight())
+                                .into(imgViewReact);
+                    } else {
+                        imgViewReact.setVisibility(View.GONE);
+                        imgViewReact.setImageDrawable(null);
+                    }
                 }
             }
         });
@@ -1405,6 +1515,68 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     imgViewReact.setVisibility(View.GONE);
                     imgViewReact.setImageDrawable(null);
                     imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+                    imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+                }
+            }
+        });
+    }
+
+    private void setUpPopupFonts() {
+        // POPUP EMOJIS / FONTS ON TOP OF SHOWN KEYBOARD
+        fonts = new ArrayList<Font>();
+        fonts.add(new Font("banzaibros.otf"));
+        fonts.add(new Font("voltebold.otf"));
+        fonts.add(new Font("trashhand2.ttf"));
+        fonts.add(new Font("plasticapro.otf"));
+        fonts.add(new Font("impact.ttf"));
+        fonts.add(new Font("story.otf"));
+        fonts.add(new Font("americantypewriter.ttf"));
+        fonts.add(new Font("higher.otf"));
+        fonts.add(new Font("daftbrush.otf"));
+        fonts.add(new Font("baronneueblack.otf"));
+
+        popupFont = new EmojisFontsPopup(rootView, this, fonts, EmojisFontsPopup.POPUP_FONTS, keyboardHeight);
+        popupFont.setSizeForSoftKeyboard();
+        popupFont.setOnEmojiFontClickedListener(new EmojisFontsPopup.OnEmojiFontClickListener() {
+
+            @Override
+            public void onEmojiFontClick(Overlay overlay) {
+                if (overlay instanceof Font) {
+                    Font font = (Font) overlay;
+
+                    if (font != null) {
+                        imgViewReact.setVisibility(View.VISIBLE);
+                        edittexteReact.setCustomFont(PikiActivity.this, font.getName());
+                    } else {
+                        imgViewReact.setVisibility(View.GONE);
+                        imgViewReact.setImageDrawable(null);
+                    }
+                }
+            }
+        });
+
+        popupFont.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                // TODO ON DISMISS
+            }
+        });
+
+        popupFont.setOnSoftKeyboardOpenCloseListener(new EmojisFontsPopup.OnSoftKeyboardOpenCloseListener() {
+            @Override
+            public void onKeyboardOpen(int keyBoardHeight) {}
+
+            @Override
+            public void onKeyboardClose() {
+                if (popupFont.isShowing()) {
+                    popupFont.dismiss();
+                    edittexteReact.setText("");
+                    edittexteReact.setVisibility(View.GONE);
+                    imgViewReact.setVisibility(View.GONE);
+                    imgViewReact.setImageDrawable(null);
+                    imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+                    imgFonts.setImageResource(R.drawable.picto_fonts_selector);
                 }
             }
         });

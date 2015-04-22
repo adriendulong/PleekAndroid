@@ -1,6 +1,12 @@
 package com.pleek.app.adapter;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +16,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,10 +28,13 @@ import android.widget.RelativeLayout;
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
+import com.goandup.lib.widget.FlipImageView;
 import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
+import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
+import com.pleek.app.listeners.FlipListener;
 import com.pleek.app.utils.PicassoUtils;
 
 import java.io.FileDescriptor;
@@ -30,6 +42,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -38,19 +51,23 @@ import butterknife.InjectView;
  * Created by nicolas on 19/12/14.
  */
 public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, SurfaceHolder.Callback {
+
+    private static final DecelerateInterpolator DECCELERATE_INTERPOLATOR = new DecelerateInterpolator();
+    private static final AccelerateInterpolator ACCELERATE_INTERPOLATOR = new AccelerateInterpolator();
+    private static final OvershootInterpolator OVERSHOOT_INTERPOLATOR = new OvershootInterpolator(4);
+
     private final int NB_COLUMN = 2;
     private final int maxSizeReactPx = 225;
 
     private List<Reaction> listReact;
     private Listener listener;
     private Context context;
-    private List<View> listTextViewUsername;
+    private boolean mIsOwnerOfPiki = false;
 
     private int heightListView;
     private MediaPlayer mediaPlayer;
     private ReactViewHolder currentItemPlay;
     private VideoBean currentReactPlay;
-    private boolean isUsernameShow;
 
     private Screen screen;
     private DoubletapRunnable doubletapRunnable;
@@ -58,18 +75,19 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     int oneDp, heightPiki, widthPiki;
 
     private SurfaceView surfaceView;
+    private ValueAnimator mFlipAnimator;
 
-    public ReactAdapter(List<Reaction> listReact, Listener listener) {
-        this(listReact, listener, listener instanceof Context ? (Context) listener : null);
+    public ReactAdapter(List<Reaction> listReact, Listener listener, boolean isOwnerOfPiki) {
+        this(listReact, listener, listener instanceof Context ? (Context) listener : null, isOwnerOfPiki);
     }
 
-    public ReactAdapter(List<Reaction> listReact, Listener listener, Context context) {
+    public ReactAdapter(List<Reaction> listReact, Listener listener, Context context, boolean isOwnerOfPiki) {
         this.listReact = listReact;
         this.listener = listener;
         this.context = context;
+        this.mIsOwnerOfPiki = isOwnerOfPiki;
 
         screen = Screen.getInstance(context);
-        listTextViewUsername = new ArrayList<View>();
         doubletapRunnable = new DoubletapRunnable();
 
         oneDp = screen.dpToPx(1);
@@ -79,10 +97,9 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         surfaceView = new SurfaceView(context);
         surfaceView.getHolder().addCallback(this);
         surfaceView.setZOrderOnTop(true);
-    }
 
-    private int nbRow = -1;
-    private int minNbRow = -1;
+        mFlipAnimator = ValueAnimator.ofFloat(0f, 1f);
+    }
 
     @Override
     public int getCount() {
@@ -114,13 +131,11 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             view.setTag(R.id.vh, vh);
         }
 
-        ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
+        final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
         clearView(vh);
 
         if (vh != null) {
             // All other itm is item_react or placeholder
-            listTextViewUsername.remove(vh.txtUserName);
-            listTextViewUsername.add(vh.txtUserName);
             boolean isPlaceHolder = false;
 
             if (vh.imgReact != null) {
@@ -128,11 +143,9 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 vh.progressBar.setVisibility(View.GONE);
                 vh.imgError.setVisibility(View.GONE);
                 vh.imgMute.setVisibility(View.GONE);
-                vh.txtUserName.setVisibility(isUsernameShow ? View.VISIBLE : View.GONE);
 
                 if (i >= 1 && i <= listReact.size()) {
-                    Reaction react = listReact.get(i - 1);
-                    vh.txtUserName.setText("@" + react.getNameUser());
+                    final Reaction react = listReact.get(i - 1);
 
                     if (react.getUrlPhoto() != null) { //is Parse React
                         if (heightPiki < maxSizeReactPx) {
@@ -159,10 +172,82 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                         }
                     }
 
-                    vh.layoutReport.setOnClickListener(new View.OnClickListener() {
+                    if (canDeleteReact(react)) {
+                        vh.imgReport.setImageResource(R.drawable.picto_trash);
+                        vh.txtReport.setText(R.string.piki_react_delete);
+                        vh.layoutReport.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                listener.onDeleteReact(i);
+                            }
+                        });
+                    } else {
+                        vh.imgReport.setImageResource(R.drawable.picto_report);
+                        vh.txtReport.setText(R.string.piki_popup_report_title);
+                        vh.layoutReport.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                listener.onReportReact(i);
+                            }
+                        });
+                    }
+
+                    final Set<String> friendsIds = ((ParentActivity) context).getFriendsPrefs();
+                    vh.txtAddFriend.setText(react.getNameUser());
+                    if (friendsIds != null && friendsIds.contains(react.getUserId())) {
+                        vh.txtAddFriend.setTextColor(Color.BLACK);
+                        vh.imgAddFriend.setImageResource(R.drawable.picto_added);
+                    } else {
+                        vh.txtAddFriend.setTextColor(context.getResources().getColor(R.color.grisTextDisable));
+                        vh.imgAddFriend.setImageResource(R.drawable.picto_add_user);
+                    }
+
+                    vh.layoutAddFriend.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onClick(View view) {
-                            listener.onReportReact(i);
+                        public void onClick(View v) {
+                            vh.friendsProgressBar.setVisibility(View.VISIBLE);
+                            vh.imgAddFriend.setVisibility(View.GONE);
+                            listener.onAddFriend(i, react, vh.friendsProgressBar, vh.imgAddFriend, vh.txtAddFriend);
+                        }
+                    });
+
+                    if (react.isHasLiked()) {
+                        vh.imgLike.setImageResource(R.drawable.picto_like_done);
+                        vh.txtLike.setTextColor(Color.BLACK);
+                    } else {
+                        vh.imgLike.setImageResource(R.drawable.picto_like_grey);
+                        vh.txtLike.setTextColor(context.getResources().getColor(R.color.grisTextDisable));
+                    }
+
+                    vh.layoutLike.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (!react.isHasLiked()) {
+                                AnimatorSet animatorSet = new AnimatorSet();
+
+                                ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(vh.imgLike, "scaleX", 0.2f, 1f);
+                                bounceAnimX.setDuration(300);
+                                bounceAnimX.setInterpolator(OVERSHOOT_INTERPOLATOR);
+
+                                ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(vh.imgLike, "scaleY", 0.2f, 1f);
+                                bounceAnimY.setDuration(300);
+                                bounceAnimY.setInterpolator(OVERSHOOT_INTERPOLATOR);
+                                bounceAnimY.addListener(new AnimatorListenerAdapter() {
+                                    @Override
+                                    public void onAnimationStart(Animator animation) {
+                                        vh.imgLike.setImageResource(R.drawable.picto_like_done);
+                                        vh.txtLike.setTextColor(Color.BLACK);
+                                        react.setHasLiked(true);
+                                    }
+                                });
+
+                                animatorSet.play(bounceAnimX).with(bounceAnimY);
+                                animatorSet.start();
+                            } else {
+                                vh.imgLike.setImageResource(R.drawable.picto_like_grey);
+                                vh.txtLike.setTextColor(context.getResources().getColor(R.color.grisTextDisable));
+                                react.setHasLiked(false);
+                            }
                         }
                     });
                 } else {
@@ -171,15 +256,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                     vh.imgReact.setBackgroundColor(context.getResources().getColor(R.color.fondPiki));
                     vh.itemView.setOnTouchListener(null);
                     vh.imgPlay.setVisibility(View.GONE);
-                    listTextViewUsername.remove(vh.txtUserName);
-                    vh.txtUserName.setText("");
                 }
             }
 
             if (!isPlaceHolder && i > 0) {
                 vh.itemView.setTag(new Integer(i - 1));
                 vh.itemView.setTag(R.string.tag_downpresse, new DownRunnable(vh.itemView));
-                vh.itemView.setTag(R.string.tag_longpresse, new LongpressRunnable());
                 vh.itemView.setOnTouchListener(this);
             }
         }
@@ -195,14 +277,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             int position = (Integer)view.getTag();
 
             DownRunnable down = (DownRunnable) view.getTag(R.string.tag_downpresse);
-            LongpressRunnable longpress = (LongpressRunnable) view.getTag(R.string.tag_longpresse);
 
             if (action == MotionEvent.ACTION_DOWN) {
                 //highlight with 90ms delay. Because I dont want highlight if user scroll
                 handler.postDelayed(down, DOWN_TIME);
-                handler.postDelayed(longpress, LOGNPRESS_TIME);
 
-                if(isLastTapForDoubleTap && listener != null) {
+                if (isLastTapForDoubleTap && listener != null) {
                     listener.doubleTapReaction(listReact.get(position));
                 } else {
                     isLastTapForDoubleTap = true;
@@ -211,15 +291,22 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             } else if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
                 //finger move, cancel highlight
                 handler.removeCallbacks(down);
-                handler.removeCallbacks(longpress);
-                if(isUsernameShow) showUsername(false);
 
                 itemMarkDown(view, false);
             }
 
             if (action == MotionEvent.ACTION_UP) {
                 // highlight just after clicked during 90ms
-                itemMarkDown(view, true);
+                final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
+
+                if (mFlipAnimator.getAnimatedFraction() == 1) {
+                    mFlipAnimator.reverse();
+                } else {
+                    itemMarkDown(view, true);
+                    mFlipAnimator.removeAllUpdateListeners();
+                    mFlipAnimator.start();
+                    mFlipAnimator.addUpdateListener(new FlipListener(vh.layoutFront, vh.layoutBack));
+                }
 
                 handler.postDelayed(down, DOWN_TIME);
 
@@ -245,13 +332,13 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     final Handler handler = new Handler();
 
     public Reaction removeReaction(int position) {
-        Reaction removed = listReact.remove(position);
+        Reaction removed = listReact.remove(position - 1);
         notifyDataSetChanged();
         return removed;
     }
 
     public Reaction getReaction(int position) {
-        return listReact.get(position);
+        return listReact.get(position - 1);
     }
 
     @Override
@@ -343,14 +430,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         }
     }
 
-    private final int LOGNPRESS_TIME = 700;//ms
-    class LongpressRunnable implements Runnable {
-        @Override
-        public void run() {
-            showUsername(true);
-        }
-    }
-
     private final int DOUBLETAP_TIME = 300;//ms
     private boolean isLastTapForDoubleTap;
     class DoubletapRunnable implements Runnable {
@@ -432,6 +511,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     }
 
     public void stopCurrentVideo() {
+        stopCurrentFlip();
+
         if (currentItemPlay != null && currentReactPlay != null && mediaPlayer != null) {
             currentItemPlay.layoutVideo.setVisibility(View.GONE);
             currentItemPlay.layoutVideo.removeAllViews();
@@ -454,12 +535,9 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         }
     }
 
-    private int TIME_SHOW_USERNAME = 150; // ms
-    public void showUsername(boolean show) {
-        isUsernameShow = show;
-        for (View textView : listTextViewUsername) {
-            if (show) Utile.fadeIn(textView, TIME_SHOW_USERNAME);
-            else Utile.fadeOut(textView, TIME_SHOW_USERNAME);
+    public void stopCurrentFlip() {
+        if (mFlipAnimator.getAnimatedFraction() == 1) {
+            mFlipAnimator.reverse();
         }
     }
 
@@ -494,11 +572,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         return i >= 0;
     }
 
-    @Override
-    public void notifyDataSetChanged() {
-        nbRow = -1;
-        minNbRow = -1;
-        super.notifyDataSetChanged();
+    private boolean canDeleteReact(Reaction react) {
+        return (react != null && react.iamOwner()) || mIsOwnerOfPiki;
     }
 
     //INTERFACE
@@ -509,11 +584,14 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         public void onPlayVideo();
         public void onDeleteReact(int position);
         public void onReportReact(int position);
+        public void onAddFriend(int position, Reaction react, ProgressBar pg, ImageView img, TextViewFont txt);
+        public void onPreviewReact(int position);
+        public void onLikeReact(int position);
     }
 
     class ReactViewHolder extends RecyclerView.ViewHolder {
         @InjectView(R.id.back)
-        LinearLayout layoutBack;
+        RelativeLayout layoutBack;
         @InjectView(R.id.front)
         RelativeLayout layoutFront;
         @InjectView(R.id.imgReact)
@@ -526,14 +604,14 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         ImageView imgMute;
         @InjectView(R.id.imgError)
         ImageView imgError;
-        @InjectView(R.id.txtUserName)
-        TextViewFont txtUserName;
         @InjectView(R.id.layoutOverlay)
         RelativeLayout layoutOverlay;
         @InjectView(R.id.layoutVideo)
         LinearLayout layoutVideo;
         @InjectView(R.id.layoutAddFriend)
         RelativeLayout layoutAddFriend;
+        @InjectView(R.id.progressBarAddFriend)
+        ProgressBar friendsProgressBar;
         @InjectView(R.id.imgAddFriend)
         ImageView imgAddFriend;
         @InjectView(R.id.txtAddFriend)

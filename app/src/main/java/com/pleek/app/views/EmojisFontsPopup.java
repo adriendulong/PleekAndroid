@@ -79,7 +79,6 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 	private RecyclerView mEmojisFontsRecycler;
     private int mKeyboardHeight;
 
-
 	/**
 	 * Constructor
 	 * @param rootView	The top most layout in your view hierarchy. The difference of this view and the screen height will be used to calculate the keyboard height.
@@ -98,7 +97,9 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 		setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         setBackgroundDrawable(new ColorDrawable(context.getResources().getColor(R.color.secondColor)));
 
-        mData.add(null);
+        if (mData.size() % 2 == 1) {
+            mData.add(null);
+        }
 	}
 
 	/**
@@ -233,6 +234,6 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 	}
 
     public interface OnEmojiFontClickListener {
-        void onEmojiFontClick(Emoji emoji);
+        void onEmojiFontClick(Overlay overlay);
     }
 }

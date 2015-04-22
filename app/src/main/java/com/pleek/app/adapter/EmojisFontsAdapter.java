@@ -1,6 +1,7 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +11,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.goandup.lib.utile.Screen;
+import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.bean.Emoji;
+import com.pleek.app.bean.Font;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.EmojisFontsPopup;
 
@@ -20,7 +23,7 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<EmojisFontsAdapter.EmojisViewHolder> {
+public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private List<T> mViews;
     private Context mContext;
@@ -41,52 +44,112 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<EmojisFontsAdapt
     }
 
     @Override
-    public EmojisFontsAdapter.EmojisViewHolder onCreateViewHolder(ViewGroup parent, int position) {
-        final View view = mLayoutInflater.inflate(R.layout.row_emoji, parent, false);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int position) {
+        final View view;
+
+        if (mType == EmojisFontsPopup.POPUP_STICKERS) {
+            view = mLayoutInflater.inflate(R.layout.row_emoji, parent, false);
+        } else {
+            view = mLayoutInflater.inflate(R.layout.row_font, parent, false);
+        }
 
         ViewGroup.LayoutParams params = view.getLayoutParams();
         params.width = mSize;
         params.height = mSize;
         view.setLayoutParams(params);
 
-        return new EmojisFontsAdapter.EmojisViewHolder(view);
+        if (mType == EmojisFontsPopup.POPUP_STICKERS) {
+            return new EmojisFontsAdapter.EmojisViewHolder(view);
+        } else {
+            return new FontsViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(final EmojisFontsAdapter.EmojisViewHolder holder, int position) {
-        final Emoji emoji = (Emoji) mViews.get(position);
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        if (mViews.get(position) instanceof Emoji) {
+            EmojisViewHolder holderE = (EmojisViewHolder) holder;
+            final Emoji emoji = (Emoji) mViews.get(position);
 
-        if (emoji != null) {
-            int onePx = (int) (1 * Screen.getInstance(mContext).getDensity());
-            holder.itemView.setPadding(0, onePx, onePx, 0);
+            if (emoji != null) {
+                int onePx = (int) (1 * Screen.getInstance(mContext).getDensity());
+                holder.itemView.setPadding(0, onePx, onePx, 0);
 
-            PicassoUtils.with(mContext)
-                    .load(emoji.getUrlPhoto())
-                    .resize(mSize, mSize)
-                    .into(holder.imgEmoji);
+                PicassoUtils.with(mContext)
+                        .load(emoji.getUrlPhoto())
+                        .resize(mSize, mSize)
+                        .into(holderE.imgEmoji);
 
-            holder.layoutEmoji.setBackgroundResource(emoji.getId().equals(mSelectedId) ? R.color.emojiFontBgSelected : R.color.emojiFontBgNormal);
-            holder.imgSelected.setVisibility(emoji.getId().equals(mSelectedId) ? View.VISIBLE : View.GONE);
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (!emoji.getId().equals(mSelectedId)) {
-                        mSelectedId = emoji.getId();
-                    } else {
-                        mSelectedId = "";
+                holderE.layoutEmoji.setBackgroundResource(emoji.getId().equals(mSelectedId) ? R.color.emojiFontBgSelected : R.color.emojiFontBgNormal);
+                holderE.imgSelected.setVisibility(emoji.getId().equals(mSelectedId) ? View.VISIBLE : View.GONE);
+                holderE.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (!emoji.getId().equals(mSelectedId)) {
+                            mSelectedId = emoji.getId();
+                        } else {
+                            mSelectedId = "";
+                        }
+
+                        notifyDataSetChanged();
+
+                        if (mOnEmojiFontClickListener != null) {
+                            mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : emoji);
+                        }
                     }
+                });
+            } else {
+                holderE.layoutEmoji.setBackgroundResource(R.color.emojiFontBgNormal);
+                holderE.imgEmoji.setImageDrawable(null);
+                holderE.imgSelected.setVisibility(View.GONE);
+            }
+        } else if (mViews.get(position) instanceof Font) {
+            FontsViewHolder holderF = (FontsViewHolder) holder;
+            final Font font = (Font) mViews.get(position);
 
-                    notifyDataSetChanged();
+            if (font != null) {
+                int onePx = (int) (1 * Screen.getInstance(mContext).getDensity());
+                holderF.itemView.setPadding(0, onePx, onePx, 0);
+                holderF.txtFont.setCustomFont(mContext, font.getName());
+                holderF.txtFont.setVisibility(View.VISIBLE);
 
-                    if (mOnEmojiFontClickListener != null) {
-                        mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : emoji);
+                Rect bounds = new Rect();
+                holderF.txtFont.getPaint().getTextBounds("a", 0, 1, bounds);
+                System.out.println("HEIGHT : " + bounds.height());
+
+                ViewGroup.LayoutParams params = holderF.txtFont.getLayoutParams();
+                params.width = mSize;
+                params.height = mSize;
+                holderF.txtFont.setLayoutParams(params);
+
+                ViewGroup.LayoutParams params2 = holderF.layoutFont.getLayoutParams();
+                params2.width = mSize;
+                params2.height = mSize;
+                holderF.layoutFont.setLayoutParams(params2);
+
+                holderF.layoutFont.setBackgroundResource(font.getName().equals(mSelectedId) ? R.color.emojiFontBgSelected : R.color.emojiFontBgNormal);
+                holderF.imgSelected.setVisibility(font.getName().equals(mSelectedId) ? View.VISIBLE : View.GONE);
+                holderF.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (!font.getName().equals(mSelectedId)) {
+                            mSelectedId = font.getName();
+                        } else {
+                            mSelectedId = "";
+                        }
+
+                        notifyDataSetChanged();
+
+                        if (mOnEmojiFontClickListener != null) {
+                            mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : font);
+                        }
                     }
-                }
-            });
-        } else {
-            holder.layoutEmoji.setBackgroundResource(R.color.emojiFontBgNormal);
-            holder.imgEmoji.setImageDrawable(null);
-            holder.imgSelected.setVisibility(View.GONE);
+                });
+            } else {
+                holderF.layoutFont.setBackgroundResource(R.color.emojiFontBgNormal);
+                holderF.imgSelected.setVisibility(View.GONE);
+                holderF.txtFont.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -106,6 +169,21 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<EmojisFontsAdapt
         ImageView imgSelected;
 
         public EmojisViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.inject(this, itemView);
+        }
+    }
+
+    class FontsViewHolder extends RecyclerView.ViewHolder {
+
+        @InjectView(R.id.layoutFont)
+        RelativeLayout layoutFont;
+        @InjectView(R.id.imgSelected)
+        ImageView imgSelected;
+        @InjectView(R.id.txtFont)
+        TextViewFont txtFont;
+
+        public FontsViewHolder(View itemView) {
             super(itemView);
             ButterKnife.inject(this, itemView);
         }

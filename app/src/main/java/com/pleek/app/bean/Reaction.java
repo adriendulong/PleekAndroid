@@ -31,7 +31,9 @@ public class Reaction extends VideoBean
 
     private String urlPhoto;
     private String nameUser;
+    private String userId;
     private Bitmap tmpPhoto;//use between create and save to Parse
+    private boolean hasLiked = false;
     public Type type = Type.UNKNOW;
 
     public Reaction(String nameUser, Bitmap tmpPhoto)
@@ -58,6 +60,7 @@ public class Reaction extends VideoBean
 
         ParseObject user = parseObject.containsKey("user") ? parseObject.getParseObject("user") : null;
         if(user != null) nameUser = user.containsKey("username") ? user.getString("username") : null;
+        if(user != null) userId = user.getObjectId();
         if(nameUser == null) nameUser = "@none";
 
         this.parseObject = parseObject;
@@ -157,5 +160,21 @@ public class Reaction extends VideoBean
     public String toString()
     {
         return "Reaction("+id+")";
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public boolean isHasLiked() {
+        return hasLiked;
+    }
+
+    public void setHasLiked(boolean hasLiked) {
+        this.hasLiked = hasLiked;
     }
 }

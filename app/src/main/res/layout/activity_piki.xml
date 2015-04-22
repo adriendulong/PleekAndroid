@@ -101,21 +101,25 @@
                             android:id="@+id/edittexteReact"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:inputType="textShortMessage|textMultiLine|textNoSuggestions|textVisiblePassword"
+                            android:inputType="textNoSuggestions|textVisiblePassword"
                             android:textColor="@color/blanc"
                             android:textSize="30dp"
                             android:textCursorDrawable="@drawable/cursor_big"
                             app:customFont="proximanova_sbold.otf"
                             android:background="@color/noirOverlayLight"
-                            android:gravity="center"
+                            android:gravity="bottom|left"
                             android:visibility="gone"
-                            android:privateImeOptions="nm" />
+                            android:privateImeOptions="nm"
+                            android:shadowColor="@color/noir"
+                            android:shadowDx="5"
+                            android:shadowDy="5"
+                            android:shadowRadius="2"
+                            android:maxLines="10" />
 
                         <ImageView
                             android:id="@+id/imgViewReact"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@color/noirOverlayLight"
                             android:visibility="gone" />
 
                     </RelativeLayout>

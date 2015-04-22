@@ -7,6 +7,200 @@
     android:background="@android:color/transparent">
 
     <RelativeLayout
+        android:id="@+id/back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:background="@drawable/shadow_inner_right">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.5"
+                android:orientation="horizontal"
+                android:background="@color/blanc">
+
+                <RelativeLayout
+                    android:id="@+id/layoutAddFriend"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:background="@drawable/bg_back_react"
+                    android:clickable="true"
+                    android:gravity="center">
+
+                    <LinearLayout
+                        android:id="@+id/layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true">
+
+                        <ImageView
+                            android:id="@+id/imgAddFriend"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/picto_add_user" />
+
+                        <ProgressBar
+                            android:id="@+id/progressBarAddFriend"
+                            style="?android:attr/progressBarStyleLarge"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:visibility="gone" />
+
+                    </LinearLayout>
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:id="@+id/txtAddFriend"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="jackblack"
+                        android:textSize="10dp"
+                        app:customFont="montserrat-regular.ttf"
+                        android:textColor="@color/grisTextDisable"
+                        android:gravity="center"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/layout"
+                        android:layout_marginTop="10dp" />
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="0.5dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/dividerReactBack" />
+
+                <RelativeLayout
+                    android:id="@+id/layoutLike"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_back_react"
+                    android:clickable="true"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/imgLike"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/picto_like_grey"
+                        android:layout_centerHorizontal="true" />
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:id="@+id/txtLike"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1,398"
+                        android:textSize="10dp"
+                        app:customFont="montserrat-regular.ttf"
+                        android:textColor="@color/grisTextDisable"
+                        android:gravity="center"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/imgLike"
+                        android:layout_marginTop="10dp" />
+
+                </RelativeLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/dividerReactBack" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.5"
+                android:orientation="horizontal"
+                android:background="@color/fondBackReact">
+
+                <RelativeLayout
+                    android:id="@+id/layoutReport"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:orientation="horizontal"
+                    android:clickable="true"
+                    android:background="@drawable/bg_back_react"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/imgReport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:src="@drawable/picto_report" />
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:id="@+id/txtReport"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/piki_popup_report_title"
+                        android:textSize="9dp"
+                        app:customFont="montserrat-regular.ttf"
+                        android:textColor="@color/noir"
+                        android:gravity="center"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/imgReport"
+                        android:layout_marginTop="10dp" />
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="0.5dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/dividerReactBack" />
+
+                <RelativeLayout
+                    android:id="@+id/layoutPreview"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_back_react"
+                    android:clickable="true"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/imgPreview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/picto_share_react"
+                        android:layout_centerHorizontal="true" />
+
+                    <com.goandup.lib.widget.TextViewFont
+                        android:id="@+id/txtPreview"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/piki_react_preview"
+                        android:textSize="9dp"
+                        app:customFont="montserrat-regular.ttf"
+                        android:textColor="@color/noir"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/imgPreview"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center" />
+
+                </RelativeLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/inner_shadow"
+            android:focusableInTouchMode="false"/>
+    </RelativeLayout>
+
+    <RelativeLayout
         android:id="@+id/front"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -67,22 +261,6 @@
             android:src="@drawable/picto_loaderror"
             android:visibility="gone" />
 
-        <com.goandup.lib.widget.TextViewFont
-            android:id="@+id/txtUserName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:textSize="13dp"
-            app:customFont="proximanova_sbold.otf"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="5dp"
-            android:textColor="@color/blanc"
-            android:shadowColor="@color/noir"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="1" />
-
         <RelativeLayout
             android:id="@+id/layoutOverlay"
             android:layout_width="match_parent"
@@ -90,204 +268,5 @@
             android:background="@color/overlay"
             android:visibility="gone" />
 
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <LinearLayout
-            android:id="@+id/back"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:background="@drawable/shadow_inner_right">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:orientation="horizontal"
-                android:background="@color/blanc">
-
-                <RelativeLayout
-                    android:id="@+id/layoutAddFriend"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.5"
-                    android:background="@drawable/bg_back_react"
-                    android:clickable="true"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgAddFriend"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:src="@drawable/picto_add_user"
-                        android:layout_centerHorizontal="true" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtAddFriend"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="jackblack"
-                        android:textSize="10dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:textColor="@color/grisTextDisable"
-                        android:gravity="center"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/imgAddFriend"
-                        android:layout_marginTop="10dp" />
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/dividerReactBack" />
-
-                <RelativeLayout
-                    android:id="@+id/layoutLike"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.5"
-                    android:orientation="horizontal"
-                    android:background="@drawable/bg_back_react"
-                    android:clickable="true"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgLike"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:src="@drawable/picto_like_grey"
-                        android:layout_centerHorizontal="true" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtLike"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="1,398"
-                        android:textSize="10dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:textColor="@color/grisTextDisable"
-                        android:gravity="center"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/imgLike"
-                        android:layout_marginTop="10dp" />
-
-                </RelativeLayout>
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/dividerReactBack" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="0.5"
-                android:orientation="horizontal"
-                android:background="@color/fondBackReact">
-
-                <RelativeLayout
-                    android:id="@+id/layoutReport"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.5"
-                    android:orientation="horizontal"
-                    android:clickable="true"
-                    android:background="@drawable/bg_back_react"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgReport"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerHorizontal="true"
-                        android:src="@drawable/picto_report" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtReport"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/piki_popup_report_title"
-                        android:textSize="10dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:textColor="@color/noir"
-                        android:gravity="center"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/imgReport"
-                        android:layout_marginTop="10dp" />
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/dividerReactBack" />
-
-                <RelativeLayout
-                    android:id="@+id/layoutPreview"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.5"
-                    android:orientation="horizontal"
-                    android:background="@drawable/bg_back_react"
-                    android:clickable="true"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgPreview"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/picto_share_react"
-                        android:layout_centerHorizontal="true" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtPreview"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/piki_react_preview"
-                        android:textSize="10dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:textColor="@color/noir"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/imgPreview"
-                        android:layout_marginTop="10dp"
-                        android:gravity="center" />
-
-                </RelativeLayout>
-            </LinearLayout>
-        </LinearLayout>
-
-        <!--<View
-            android:layout_width="3dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/shadow_inner_right"
-            android:layout_alignParentRight="true" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:background="@drawable/shadow_inner_top"
-            android:layout_alignParentTop="true" />
-
-        <View
-            android:layout_width="3dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/shadow_inner_left"
-            android:layout_alignParentLeft="true" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:background="@drawable/shadow_inner_bottom"
-            android:layout_alignParentBottom="true" />-->
     </RelativeLayout>
 </RelativeLayout>

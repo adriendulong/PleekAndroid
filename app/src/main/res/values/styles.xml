@@ -1,5 +1,4 @@
 <resources>
-
     <!-- Base application theme. -->
     <style name="AppTheme" parent="@android:style/Theme.Light">
         <item name="android:windowNoTitle">true</item>
@@ -10,11 +9,13 @@
         <item name="android:windowEnterAnimation">@anim/dialog_enter</item>
         <item name="android:windowExitAnimation">@anim/dialog_exit</item>
     </style>
+
     <style name="DialogLoaderAnimation">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowEnterAnimation">@anim/dialog_loader_enter</item>
         <item name="android:windowExitAnimation">@anim/dialog_loader_exit</item>
     </style>
+
     <style name="CustomUnderlinePageIndicator">
         <item name="selectedColor">@color/secondColor</item>
     </style>

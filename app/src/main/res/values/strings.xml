@@ -77,6 +77,7 @@
     <string name="piki_public">Public</string>
     <string name="piki_tutorial_add_react">TAP TO REPLY</string>
     <string name="piki_react_preview">PREVIEW</string>
+    <string name="piki_react_delete">DELETE</string>
 
     <!-- PIKIFRIENDS -->
     <string name="pikifriends_text_topbar">To _nb_ people</string>

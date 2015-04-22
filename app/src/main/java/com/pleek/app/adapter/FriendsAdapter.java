@@ -34,8 +34,7 @@ public class FriendsAdapter extends BaseAdapter implements StickyListHeadersAdap
         this(listener, (Context)listener);
     }
 
-    public FriendsAdapter(Listener listener, Context context)
-    {
+    public FriendsAdapter(Listener listener, Context context) {
         this.listener = listener;
         this.context = context;
 
