@@ -537,6 +537,36 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
+    public void onDeleteReact(int position) {
+
+    }
+
+    @Override
+    public void onReportReact(final int position) {
+        showDialog(R.string.piki_popup_report_title, R.string.piki_popup_report_texte, new MyDialogListener() {
+            @Override
+            public void closed(boolean accept) {
+                // REPORT
+                if (accept) {
+                    reportOrRemoveReact(adapter.getReaction(position));
+                    //showAlert(R.string.piki_popup_report_title, R.string.piki_alert_report_texte);
+                }
+            }
+        });
+    }
+
+    private void reportOrRemoveReact(Reaction react) {
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("reactId", react.getId());
+        ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
+            }
+        });
+    }
+
+    @Override
     public void onClick(View view)
     {
         if (isPlaying) stopCurrentVideo();

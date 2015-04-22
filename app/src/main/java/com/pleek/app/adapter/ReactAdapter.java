@@ -1,7 +1,6 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
@@ -105,7 +104,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     }
 
     @Override
-    public View getView(int i, View view, ViewGroup parent) {
+    public View getView(final int i, View view, ViewGroup parent) {
         if (view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.item_react, parent, false);
             view.getLayoutParams().height = heightPiki;
@@ -136,8 +135,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                     vh.txtUserName.setText("@" + react.getNameUser());
 
                     if (react.getUrlPhoto() != null) { //is Parse React
-                        //Drawable drawablePlaceHolder = new BitmapDrawable(context.getResources(), react.getTmpPhoto());
-
                         if (heightPiki < maxSizeReactPx) {
                             PicassoUtils.with(context)
                                     .load(react.getUrlPhoto())
@@ -161,6 +158,13 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                             vh.imgError.setImageResource(R.drawable.picto_reload);
                         }
                     }
+
+                    vh.layoutReport.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            listener.onReportReact(i);
+                        }
+                    });
                 } else {
                     isPlaceHolder = true;
                     vh.imgReact.setImageDrawable(null);
@@ -503,6 +507,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         public void doubleTapReaction(Reaction react);
         public void showPlaceHolderItem(boolean show);
         public void onPlayVideo();
+        public void onDeleteReact(int position);
+        public void onReportReact(int position);
     }
 
     class ReactViewHolder extends RecyclerView.ViewHolder {
