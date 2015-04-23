@@ -1,7 +1,6 @@
 package com.pleek.app.adapter;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -123,10 +122,6 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 holderF.itemView.setPadding(0, halfOnePx, halfOnePx, 0);
                 holderF.txtFont.setCustomFont(mContext, font.getName());
                 holderF.txtFont.setVisibility(View.VISIBLE);
-
-                Rect bounds = new Rect();
-                holderF.txtFont.getPaint().getTextBounds("a", 0, 1, bounds);
-                System.out.println("HEIGHT : " + bounds.height());
 
                 ViewGroup.LayoutParams params = holderF.txtFont.getLayoutParams();
                 params.width = mSize;

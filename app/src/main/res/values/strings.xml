@@ -79,6 +79,8 @@
     <string name="piki_react_preview">PREVIEW</string>
     <string name="piki_react_delete">DELETE</string>
     <string name="piki_react_remove_like_nok">Can\'t remove your like for now.</string>
+    <string name="piki_replies">REPLIES</string>
+    <string name="piki_reply_first">REPLY FIRST</string>
 
     <!-- PIKIFRIENDS -->
     <string name="pikifriends_text_topbar">To _nb_ people</string>

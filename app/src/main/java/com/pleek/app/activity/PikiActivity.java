@@ -107,7 +107,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     // HEADER
     private TextView txtNbFriend;
-    private ImageView imgEmojiEarth;
+    private TextView txtNbReplies;
     private View pikiHeader;
     private ImageView imgPiki;
     private SurfaceView surfaceView;
@@ -205,13 +205,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         pikiHeader.setLayoutParams(new AbsListView.LayoutParams(screen.getWidth(), screen.getWidth()));
         imgPiki = (ImageView) pikiHeader.findViewById(R.id.imgPiki);
         imgPiki.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imgEmojiEarth = (ImageView) pikiHeader.findViewById(R.id.imgEmojiEarth);
-        txtNbFriend = (TextView) pikiHeader.findViewById(R.id.txtNbFriend);
-        txtNbFriend.setVisibility(View.GONE);
-        if (!piki.isPublic()) {
-            txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
-            txtNbFriend.setOnClickListener(this);
-        }
+        txtNbFriend = (TextView) findViewById(R.id.txtNbFriends);
+        txtNbReplies = (TextView) pikiHeader.findViewById(R.id.txtNbReplies);
+        txtNbReplies.setVisibility(View.GONE);
+        //if (!piki.isPublic()) {
+        //    txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
+        //    txtNbFriend.setOnClickListener(this);
+        //}
 
         imgMute = new ImageView(this);
         imgMute.setImageResource(R.drawable.picto_mute);
@@ -377,10 +377,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             //header
             txtNbFriend.setVisibility(View.VISIBLE);
             if (!piki.isPublic()) {
-                txtNbFriend.setText(piki.getNbRecipient() + " " + getString(R.string.piki_friend) + (piki.getNbRecipient() > 1 ? "s" : ""));
+                txtNbFriend.setText(getString(R.string.pikifriends_text_topbar).replace("_nb_", "" + piki.getNbRecipient()));
             } else {
                 txtNbFriend.setText(getString(R.string.piki_public));
-                imgEmojiEarth.setVisibility(View.VISIBLE);
             }
 
             txtNamePiki.setText(piki.getName());
@@ -408,7 +407,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             query.whereEqualTo("Piki", piki.getParseObject());
             query.countInBackground(new CountCallback() {
                 public void done(int count, ParseException e) {
-                    // TODO NB REPLIES
+                    txtNbReplies.setVisibility(View.VISIBLE);
+
+                    if (count > 0) {
+                        txtNbReplies.setText(count + " " + getString(R.string.piki_replies));
+                    } else {
+                        txtNbReplies.setText(R.string.piki_reply_first);
+                    }
                 }
             });
 
@@ -704,7 +709,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         parseO.delete();
                         parseO.saveInBackground();
                     } catch (ParseException exception) {
-                        e.printStackTrace();
+                        exception.printStackTrace();
                     }
                 }
 
@@ -765,10 +770,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 }
             });
-        } else if (view == txtNbFriend) {
-            PikiFriendsActivity.initActivity(piki);
-            startActivity(new Intent(this, PikiFriendsActivity.class));
-            overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        //} else if (view == txtNbFriend) {
+          //  PikiFriendsActivity.initActivity(piki);
+          //  startActivity(new Intent(this, PikiFriendsActivity.class));
+           // overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
         } else if (view == layoutOverlayReply || view == layoutOverlayReplyTop) {
             if (isKeyboardShow) {
                 endEditText();
@@ -837,7 +842,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
                     Reaction.Type type = Reaction.Type.PHOTO;
                     if (layoutTextReact.getVisibility() == View.VISIBLE) type = Reaction.Type.TEXTE;
-                    else if (imgViewReact.getVisibility() == View.VISIBLE) type = Reaction.Type.EMOJI;
+                    else if (imgViewReact.getVisibility() == View.VISIBLE)
+                        type = Reaction.Type.EMOJI;
                     tmpReact.setType(type);
                     listReact = adapter.addReact(tmpReact);
                     sendReact(tmpReact);
@@ -1526,8 +1532,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         imgPlay.setVisibility(View.GONE);
         imgError.setVisibility(View.GONE);
-        txtNbFriend.setVisibility(View.GONE);
-        imgEmojiEarth.setVisibility(View.GONE);
+        txtNbReplies.setVisibility(View.GONE);
         txtTroisPoints.setVisibility(View.GONE);
 
         if (surfaceView.getParent() != null) {
@@ -1546,8 +1551,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgError.setVisibility(View.GONE);
         progressBar.setVisibility(View.GONE);
         pikiHeader.invalidate();
-        txtNbFriend.setVisibility(View.VISIBLE);
-        imgEmojiEarth.setVisibility(View.VISIBLE);
+        txtNbReplies.setVisibility(View.VISIBLE);
         txtTroisPoints.setVisibility(View.VISIBLE);
 
         mediaPlayer.stop();
@@ -1662,10 +1666,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                     if (font != null) {
                         imgViewReact.setVisibility(View.VISIBLE);
-                        edittexteReact.setAllCaps(font.getName().equals("impact.ttf"));
+                        edittexteReact.setAllCaps(true);
 
                         if (edittexteReact.getText() == null || edittexteReact.getText().toString().isEmpty()) {
-                            edittexteReact.setText("Yo");
+                            edittexteReact.setText("YO");
                         }
 
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
