@@ -52,6 +52,7 @@ import com.goandup.lib.widget.TextViewFont;
 import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.GetCallback;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -64,6 +65,7 @@ import com.pleek.app.R;
 import com.pleek.app.adapter.ReactAdapter;
 import com.pleek.app.bean.Emoji;
 import com.pleek.app.bean.Font;
+import com.pleek.app.bean.LikeReact;
 import com.pleek.app.bean.Overlay;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
@@ -85,6 +87,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -156,6 +159,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Font> fonts;
     private EmojisFontsPopup<Emoji> popupEmoji;
     private EmojisFontsPopup<Font> popupFont;
+
+    private HashSet<String> likeForReacts;
+    boolean fromCacheLikes = true;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -355,6 +361,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
         imgReply = (ImageView) findViewById(R.id.imgReply);
         imgReply.setOnClickListener(this);
+
+        likeForReacts = new HashSet<String>();
     }
 
 
@@ -398,10 +406,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             //count nombre react
             ParseQuery<ParseObject> query = ParseQuery.getQuery("React");
             query.whereEqualTo("Piki", piki.getParseObject());
-            query.countInBackground(new CountCallback()
-            {
-                public void done(int count, ParseException e)
-                {
+            query.countInBackground(new CountCallback() {
+                public void done(int count, ParseException e) {
                     // TODO NB REPLIES
                 }
             });
@@ -424,9 +430,34 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 }
             });
-        }
-        else
-        {
+
+            ParseQuery<ParseObject> likes = ParseQuery.getQuery("Like");
+            likes.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
+            likes.whereEqualTo("piki", piki.getParseObject());
+            likes.whereEqualTo("user", ParseUser.getCurrentUser());
+            likes.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> parseObjects, ParseException e) {
+                    if (e == null && parseObjects != null) {
+                        likeForReacts.clear();
+
+                        for (ParseObject parseLike : parseObjects) {
+                            LikeReact like = new LikeReact(parseLike);
+                            likeForReacts.add(like.getIdReact());
+                        }
+
+                        if (adapter != null) {
+                            adapter.setLikeReactMap(likeForReacts);
+                        }
+                    } else if (e != null && !fromCacheLikes) {
+                        Utile.showToast("Error getting likes", PikiActivity.this);
+                        e.printStackTrace();
+                    }
+
+                    fromCacheLikes = false;
+                }
+            });
+        } else {
             L.e("Erreur : Activity not init, call PikiActivity.initActivity()");
             finish();
         }
@@ -438,20 +469,20 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Reaction> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
-    private boolean loadNext(boolean withCache)
-    {
-        if(isLoading) return false;
+    private boolean loadNext(boolean withCache) {
+        if (isLoading) return false;
 
         //il n'y a plus rien a charger
-        if(endOfLoading) return false;
+        if (endOfLoading) return false;
 
         if (footer.getParent() != null) {
             ViewGroup par = (ViewGroup) footer.getParent();
             par.removeView(footer);
         }
+
         gridViewPiki.addFooterView(footer);
 
-        if(listReact == null) listReact = new ArrayList<Reaction>();
+        if (listReact == null) listReact = new ArrayList<Reaction>();
         listBeforreRequest = new ArrayList<Reaction>(listReact);
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("React");
@@ -459,27 +490,26 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         query.include("user");
         query.whereEqualTo("Piki", piki.getParseObject());
         query.orderByDescending("createdAt");
-        query.setSkip(currentPage*NB_BY_PAGE);
+        query.setSkip(currentPage * NB_BY_PAGE);
         query.setLimit(currentPage > 0 ? NB_BY_PAGE : NB_BY_PAGE-1);//first laod que 29. pour faire pile 10 lignes.
 
         isLoading = true;
         fromCache = withCache;
 
-        query.findInBackground(new FindCallback<ParseObject>()
-        {
+        query.findInBackground(new FindCallback<ParseObject>() {
+
             @Override
-            public void done(List<ParseObject> parseObjects, ParseException e)
-            {
-                if(e == null && parseObjects != null)
-                {
-                    if(!fromCache) currentPage++;
+            public void done(List<ParseObject> parseObjects, ParseException e) {
+                if(e == null && parseObjects != null) {
+                    if (!fromCache) currentPage++;
 
                     listReact = new ArrayList<Reaction>(listBeforreRequest);
-                    for (ParseObject parsePiki : parseObjects)
-                    {
+                    for (ParseObject parsePiki : parseObjects) {
                         listReact.add(new Reaction(parsePiki));
                     }
                     adapter.setListReact(listReact);
+
+                    if (likeForReacts.size() > 0) adapter.setLikeReactMap(likeForReacts);
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
                     endOfLoading = parseObjects.size() < (currentPage > 1 ? NB_BY_PAGE : NB_BY_PAGE-1);//pour first load
@@ -487,25 +517,21 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     //show tuto
                     //if (listReact != null && listReact.size() > 0) showTuto();
 
-                }
-                else if(e != null)
-                {
+                } else if (e != null) {
                     if(!fromCache) Utile.showToast(R.string.piki_react_nok, PikiActivity.this);
                     e.printStackTrace();
                 }
 
-                if(!fromCache)
-                {
+                if (!fromCache) {
                     refreshSwipe.setRefreshing(false);
                     gridViewPiki.removeFooterView(footer);
-                    gridViewPiki.post(new Runnable()
-                    {
+                    gridViewPiki.post(new Runnable() {
                         @Override
-                        public void run()
-                        {
+                        public void run() {
                             adapter.notifyDataSetChanged();
                         }
                     });
+
                     isLoading = false;
                 }
 
@@ -627,7 +653,64 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void onLikeReact(int position) {
+        Reaction react = adapter.getReaction(position);
 
+        final ParseObject like = new ParseObject("Like");
+        like.put("react", react.getParseObject());
+        like.put("piki", piki.getParseObject());
+        like.put("user", ParseUser.getCurrentUser());
+        ParseACL acl = new ParseACL();
+        acl.setPublicReadAccess(true);
+        acl.setWriteAccess(ParseUser.getCurrentUser(), true);
+        like.setACL(acl);
+        like.saveEventually();
+
+        stopSound();
+
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.like_react_sound);
+            mediaPlayer.setVolume(1f, 1f);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    stopSound();
+                }
+            });
+        }
+
+        mediaPlayer.start();
+    }
+
+    private void stopSound() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public void onDislikeReact(int position) {
+        Reaction react = adapter.getReaction(position);
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Like");
+        query.whereEqualTo("react", react.getParseObject());
+        query.getFirstInBackground(new GetCallback<ParseObject>() {
+
+            @Override
+            public void done(ParseObject parseO, ParseException e) {
+                if (e == null && parseO != null) {
+                    try {
+                        parseO.delete();
+                        parseO.saveInBackground();
+                    } catch (ParseException exception) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (e != null) Utile.showToast(R.string.piki_react_remove_like_nok, PikiActivity.this);
+            }
+        });
     }
 
     private void reportOrRemoveReact(Reaction react) {

@@ -24,21 +24,26 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.activity.ParentActivity;
+import com.pleek.app.bean.LikeReact;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
 import com.pleek.app.listeners.FlipListener;
 import com.pleek.app.utils.PicassoUtils;
 
+import org.w3c.dom.Text;
+
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import butterknife.ButterKnife;
@@ -49,8 +54,6 @@ import butterknife.InjectView;
  */
 public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, SurfaceHolder.Callback {
 
-    private static final DecelerateInterpolator DECCELERATE_INTERPOLATOR = new DecelerateInterpolator();
-    private static final AccelerateInterpolator ACCELERATE_INTERPOLATOR = new AccelerateInterpolator();
     private static final OvershootInterpolator OVERSHOOT_INTERPOLATOR = new OvershootInterpolator(4);
 
     private final int NB_COLUMN = 2;
@@ -74,6 +77,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     private SurfaceView surfaceView;
     private ValueAnimator mFlipAnimator;
 
+    private Set<String> likeReactSet;
+
     public ReactAdapter(List<Reaction> listReact, Listener listener, boolean isOwnerOfPiki) {
         this(listReact, listener, listener instanceof Context ? (Context) listener : null, isOwnerOfPiki);
     }
@@ -96,6 +101,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         surfaceView.setZOrderOnTop(true);
 
         mFlipAnimator = ValueAnimator.ofFloat(0f, 1f);
+        mFlipAnimator.setDuration(300);
     }
 
     @Override
@@ -208,7 +214,16 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                         }
                     });
 
-                    if (react.isHasLiked()) {
+                    vh.txtLike.setText("" + react.getNbLikes());
+
+                    if (react.getNbLikes() > 0) {
+                        vh.txtNBLikesFront.setText("" + react.getNbLikes());
+                        vh.layoutNBLikesFront.setVisibility(View.VISIBLE);
+                    } else {
+                        vh.layoutNBLikesFront.setVisibility(View.GONE);
+                    }
+
+                    if (hasLikedReact(react)) {
                         vh.imgLike.setImageResource(R.drawable.picto_like_done);
                         vh.txtLike.setTextColor(Color.BLACK);
                     } else {
@@ -219,7 +234,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                     vh.layoutLike.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (!react.isHasLiked()) {
+                            if (!hasLikedReact(react)) {
+                                likeReactSet.add(react.getId());
                                 AnimatorSet animatorSet = new AnimatorSet();
 
                                 ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(vh.imgLike, "scaleX", 0.2f, 1f);
@@ -234,16 +250,28 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                                     public void onAnimationStart(Animator animation) {
                                         vh.imgLike.setImageResource(R.drawable.picto_like_done);
                                         vh.txtLike.setTextColor(Color.BLACK);
-                                        react.setHasLiked(true);
+                                        react.incrementLike();
+                                        vh.txtLike.setText("" + react.getLikeCount());
+
+                                        if (listener != null) {
+                                            listener.onLikeReact(i);
+                                        }
                                     }
                                 });
 
                                 animatorSet.play(bounceAnimX).with(bounceAnimY);
                                 animatorSet.start();
                             } else {
+                                likeReactSet.remove(react.getId());
                                 vh.imgLike.setImageResource(R.drawable.picto_like_grey);
                                 vh.txtLike.setTextColor(context.getResources().getColor(R.color.grisTextDisable));
+                                react.decrementLike();
+                                vh.txtLike.setText("" + react.getLikeCount());
                                 react.setHasLiked(false);
+
+                                if (listener != null) {
+                                    listener.onDislikeReact(i);
+                                }
                             }
                         }
                     });
@@ -272,6 +300,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
         if (view.getTag() instanceof Integer) {
             int position = (Integer)view.getTag();
+            Reaction react = listReact.get(position);
 
             DownRunnable down = (DownRunnable) view.getTag(R.string.tag_downpresse);
 
@@ -298,7 +327,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
                 if (mFlipAnimator.getAnimatedFraction() == 1) {
                     mFlipAnimator.reverse();
-                } else {
+                } else if (!react.isVideo() || react.equals(currentReactPlay)) {
                     itemMarkDown(view, true);
                     mFlipAnimator.removeAllUpdateListeners();
                     mFlipAnimator.start();
@@ -309,8 +338,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
                 //send to listener
                 if (position >= 0) {
-                    Reaction react = listReact.get(position);
-
                     if (react.isVideo()) {
                         if (react.equals(currentReactPlay)) stopCurrentVideo();
                         else playVideo(react, view);
@@ -511,6 +538,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         stopCurrentFlip();
 
         if (currentItemPlay != null && currentReactPlay != null && mediaPlayer != null) {
+            currentItemPlay.layoutBack.setVisibility(View.GONE);
             currentItemPlay.layoutVideo.setVisibility(View.GONE);
             currentItemPlay.layoutVideo.removeAllViews();
             currentItemPlay.imgReact.setVisibility(View.VISIBLE);
@@ -518,7 +546,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             currentItemPlay.imgMute.setVisibility(View.GONE);
             currentItemPlay.imgError.setVisibility(View.GONE);
             currentItemPlay.progressBar.setVisibility(View.GONE);
-            currentItemPlay.layoutBack.setVisibility(View.VISIBLE);
 
             if (currentItemPlay.itemView != null) {
                 currentItemPlay.itemView.invalidate();
@@ -573,6 +600,21 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         return (react != null && react.iamOwner()) || mIsOwnerOfPiki;
     }
 
+    private boolean hasLikedReact(Reaction react) {
+        if (likeReactSet == null || likeReactSet.size() == 0 || react == null) return false;
+
+        return likeReactSet.contains(react.getId());
+    }
+
+    public Set<String> getLikeReactMap() {
+        return likeReactSet;
+    }
+
+    public void setLikeReactMap(Set<String> likeReactSet) {
+        this.likeReactSet = likeReactSet;
+        notifyDataSetChanged();
+    }
+
     //INTERFACE
     public interface Listener {
         public void clickOnReaction(Reaction react);
@@ -584,6 +626,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         public void onAddFriend(int position, Reaction react, ProgressBar pg, ImageView img, TextViewFont txt);
         public void onPreviewReact(int position);
         public void onLikeReact(int position);
+        public void onDislikeReact(int position);
     }
 
     class ReactViewHolder extends RecyclerView.ViewHolder {
@@ -601,8 +644,6 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         ImageView imgMute;
         @InjectView(R.id.imgError)
         ImageView imgError;
-        @InjectView(R.id.layoutOverlay)
-        RelativeLayout layoutOverlay;
         @InjectView(R.id.layoutVideo)
         LinearLayout layoutVideo;
         @InjectView(R.id.layoutAddFriend)
@@ -631,6 +672,10 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         ImageView imgPreview;
         @InjectView(R.id.txtPreview)
         TextViewFont txtPreview;
+        @InjectView(R.id.txtNBLikesFront)
+        TextViewFont txtNBLikesFront;
+        @InjectView(R.id.layoutNBLikesFront)
+        LinearLayout layoutNBLikesFront;
 
         public ReactViewHolder(View itemView) {
             super(itemView);

@@ -32,7 +32,6 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="0.5"
-                    android:background="@drawable/bg_back_react"
                     android:clickable="true"
                     android:gravity="center">
 
@@ -83,7 +82,6 @@
                     android:layout_height="match_parent"
                     android:layout_weight="0.5"
                     android:orientation="horizontal"
-                    android:background="@drawable/bg_back_react"
                     android:clickable="true"
                     android:gravity="center">
 
@@ -223,8 +221,7 @@
             android:id="@+id/imgReact"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:background="@color/grisFondPikiPlaceholder1" />
+            android:scaleType="centerCrop" />
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -260,13 +257,35 @@
             android:layout_centerInParent="true"
             android:src="@drawable/picto_loaderror"
             android:visibility="gone" />
+        
+        <LinearLayout
+            android:id="@+id/layoutNBLikesFront"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_like"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone">
 
-        <RelativeLayout
-            android:id="@+id/layoutOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/overlay"
-            android:visibility="gone" />
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtNBLikesFront"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11dp"
+                app:customFont="montserrat-regular.ttf"
+                android:textColor="@color/blanc"
+                android:layout_marginLeft="5dp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_like_white"
+                android:visibility="visible"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"/>
+        </LinearLayout>
 
     </RelativeLayout>
 </RelativeLayout>

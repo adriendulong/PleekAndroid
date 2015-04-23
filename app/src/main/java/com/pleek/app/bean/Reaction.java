@@ -34,6 +34,7 @@ public class Reaction extends VideoBean
     private String userId;
     private Bitmap tmpPhoto;//use between create and save to Parse
     private boolean hasLiked = false;
+    private int nbLikes = 0;
     public Type type = Type.UNKNOW;
 
     public Reaction(String nameUser, Bitmap tmpPhoto)
@@ -62,6 +63,8 @@ public class Reaction extends VideoBean
         if(user != null) nameUser = user.containsKey("username") ? user.getString("username") : null;
         if(user != null) userId = user.getObjectId();
         if(nameUser == null) nameUser = "@none";
+
+        nbLikes = parseObject.getInt("nbLikes");
 
         this.parseObject = parseObject;
     }
@@ -143,10 +146,9 @@ public class Reaction extends VideoBean
         return urlPhoto == null || urlPhoto.trim().isEmpty();
     }
 
-    public boolean iamOwner()
-    {
+    public boolean iamOwner() {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        if(currentUser == null || parseObject == null || parseObject.getParseUser("user") == null) return false;//fix : crash #18
+        if (currentUser == null || parseObject == null || parseObject.getParseUser("user") == null) return false;//fix : crash #18
         return currentUser.getObjectId().equals(parseObject.getParseUser("user").getObjectId());
     }
 
@@ -176,5 +178,29 @@ public class Reaction extends VideoBean
 
     public void setHasLiked(boolean hasLiked) {
         this.hasLiked = hasLiked;
+    }
+
+    public int getLikeCount() {
+        return nbLikes;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.nbLikes = likeCount;
+    }
+
+    public void incrementLike () {
+        this.nbLikes++;
+    }
+
+    public void decrementLike () {
+        this.nbLikes--;
+    }
+
+    public int getNbLikes() {
+        return nbLikes;
+    }
+
+    public void setNbLikes(int nbLikes) {
+        this.nbLikes = nbLikes;
     }
 }
