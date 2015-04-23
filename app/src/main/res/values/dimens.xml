@@ -4,4 +4,6 @@
     <dimen name="img_piki_height">110dp</dimen>
     <dimen name="img_piki_small_width">24dp</dimen>
     <dimen name="img_piki_small_height">24dp</dimen>
+
+    <dimen name="txt_new">16dp</dimen>
 </resources>

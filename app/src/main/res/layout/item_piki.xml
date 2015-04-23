@@ -110,7 +110,7 @@
                     android:gravity="bottom"
                     android:paddingLeft="20dp"
                     android:paddingBottom="20dp"
-                    android:paddingRight="20dp">
+                    android:paddingRight="10dp">
 
 
                     <LinearLayout
@@ -201,10 +201,11 @@
                                 android:paddingLeft="7dp"
                                 android:paddingRight="7dp"
                                 android:gravity="center"
-                                android:textSize="16dp"
+                                android:textSize="13dp"
+                                android:singleLine="true"
                                 app:customFont="proximanova_sbold.otf"
                                 android:background="@drawable/gris_label_back"
-                                android:textColor="@color/blanc"/>
+                                android:textColor="@color/blanc" />
 
                             <com.goandup.lib.widget.TextViewFont
                                 android:id="@+id/txtUnread"
@@ -214,17 +215,15 @@
                                 android:paddingLeft="7dp"
                                 android:paddingRight="7dp"
                                 android:gravity="center"
-                                android:textSize="16dp"
+                                android:textSize="13dp"
+                                android:singleLine="true"
                                 app:customFont="proximanova_sbold.otf"
                                 android:background="@drawable/second_color_label_back"
                                 android:textColor="@color/blanc" />
 
                         </RelativeLayout>
-
                     </LinearLayout>
-
                 </LinearLayout>
-
             </LinearLayout>
 
             <RelativeLayout

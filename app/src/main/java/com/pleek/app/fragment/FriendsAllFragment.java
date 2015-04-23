@@ -291,7 +291,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
                             ((FriendsActivity) getActivity()).reloadPage3();
 
-                            if (friend.image == R.drawable.picto_added) {
+                            if (friend.image == R.drawable.picto_added || type == TYPE_ADDED_YOU) {
                                 adapter.addPikiUser(friend);
                             }
                         }
