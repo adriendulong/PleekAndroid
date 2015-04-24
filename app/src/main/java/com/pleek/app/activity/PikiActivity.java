@@ -72,8 +72,12 @@ import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.utils.PicassoUtils;
+import com.pleek.app.views.CircleProgressBar;
 import com.pleek.app.views.CustomGridView;
 import com.pleek.app.views.EmojisFontsPopup;
+import com.pleek.app.views.TextViewFontAutoResize;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -114,7 +118,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private ImageView imgPlay;
     private ImageView imgMute;
     private ImageView imgError;
-    private ProgressBar progressBar;
+    private CircleProgressBar progressBar;
     private MediaPlayer mediaPlayer;
     private RelativeLayout layoutVideo;
     private boolean isPreparePlaying;
@@ -208,10 +212,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         txtNbFriend = (TextView) findViewById(R.id.txtNbFriends);
         txtNbReplies = (TextView) pikiHeader.findViewById(R.id.txtNbReplies);
         txtNbReplies.setVisibility(View.GONE);
-        //if (!piki.isPublic()) {
-        //    txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
-        //    txtNbFriend.setOnClickListener(this);
-        //}
+        if (!piki.isPublic()) {
+            txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
+            txtNbFriend.setOnClickListener(this);
+        }
 
         imgMute = new ImageView(this);
         imgMute.setImageResource(R.drawable.picto_mute);
@@ -223,7 +227,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             piki.setLoadVideoEndListener(this);
         }
         imgError = (ImageView) pikiHeader.findViewById(R.id.imgError);
-        progressBar = (ProgressBar) pikiHeader.findViewById(R.id.progressBar);
+        progressBar = (CircleProgressBar) pikiHeader.findViewById(R.id.progressBar);
+        progressBar.setColorSchemeResources(R.color.progressBar);
         surfaceView = new SurfaceView(this);
         surfaceView.getHolder().addCallback(this);
         surfaceView.setZOrderOnTop(true);
@@ -383,12 +388,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
 
             txtNamePiki.setText(piki.getName());
+            progressBar.setVisibility(View.VISIBLE);
             PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
                     .resize((int) (pikiHeader.getLayoutParams().width * 0.80), (int) (pikiHeader.getLayoutParams().width * 0.80))
-                    .placeholder(R.drawable.piki_placeholder)
                     .error(R.drawable.piki_placeholder)
-                    .into(imgPiki);
+                    .into(imgPikiTarget);
 
             currentPage = 0;
             listReact = new ArrayList<Reaction>();
@@ -437,7 +442,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             });
 
             ParseQuery<ParseObject> likes = ParseQuery.getQuery("Like");
-            likes.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
+            likes.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
             likes.whereEqualTo("piki", piki.getParseObject());
             likes.whereEqualTo("user", ParseUser.getCurrentUser());
             likes.findInBackground(new FindCallback<ParseObject>() {
@@ -540,6 +545,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     isLoading = false;
                 }
 
+                btnShare.setBackgroundDrawable(new BitmapDrawable(getResources(), generateShareLayout()));
+
                 fromCache = false;
             }
         });
@@ -577,7 +584,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             public void closed(boolean accept) {
                 // DELETE
                 if (accept) {
-                    reportOrRemoveReact(adapter.removeReaction(position));
+                    adapter.stopCurrentFlip();
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            reportOrRemoveReact(adapter.removeReaction(position));
+                        }
+                    }, 500);
                 }
             }
         });
@@ -597,7 +611,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
-    public void onAddFriend(int position, final Reaction react, final ProgressBar pg, final ImageView img, final TextViewFont txt) {
+    public void onAddFriend(int position, final Reaction react, final ProgressBar pg, final ImageView img, final TextViewFontAutoResize txt) {
         pg.setVisibility(View.VISIBLE);
         final String friendId = adapter.getReaction(position).getUserId();
         Set<String> friendsIds = getFriendsPrefs();
@@ -770,10 +784,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 }
             });
-        //} else if (view == txtNbFriend) {
-          //  PikiFriendsActivity.initActivity(piki);
-          //  startActivity(new Intent(this, PikiFriendsActivity.class));
-           // overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        } else if (view == txtNbFriend) {
+            PikiFriendsActivity.initActivity(piki);
+            startActivity(new Intent(this, PikiFriendsActivity.class));
+            overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
         } else if (view == layoutOverlayReply || view == layoutOverlayReplyTop) {
             if (isKeyboardShow) {
                 endEditText();
@@ -788,6 +802,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         } else if (view == imgStickers) {
             if (!popupEmoji.isShowing()) {
                 imgStickers.setImageResource(R.drawable.picto_stickers_selected_selector);
+                imgFonts.setImageResource(R.drawable.picto_fonts_selector);
                 if (popupEmoji.isKeyBoardOpen()) {
                     popupEmoji.showAtBottom();
                 } else {
@@ -810,6 +825,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         } else if (view == imgFonts) {
             if (!popupFont.isShowing()) {
                 imgFonts.setImageResource(R.drawable.picto_fonts_selected_selector);
+                imgStickers.setImageResource(R.drawable.picto_stickers_selector);
                 if (popupFont.isKeyBoardOpen()) {
                     popupFont.showAtBottom();
                 } else {
@@ -1205,9 +1221,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     }
 
-    private void generateShareLayout()
-    {
-        if(piki == null || listReact == null) return;
+    private Bitmap generateShareLayout() {
+        if (piki == null || listReact == null) return null;
 
         layoutShare.removeAllViews();
 
@@ -1250,8 +1265,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                 int id = R.id.class.getField("imgReact" + (i+1)).getInt(0);
                 ImageView imgReact = (ImageView) viewShare.findViewById(id);
-                if(!react.isTmpReaction())
-                {
+                if(!react.isTmpReaction()) {
                     PicassoUtils.with(this)
                             .load(react.getUrlPhoto())
                             .placeholder(R.drawable.piki_placeholder)
@@ -1266,6 +1280,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                 View pictoPlay = ((ViewGroup)imgReact.getParent()).getChildAt(1);
                 pictoPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
+
+                layoutShare.setDrawingCacheEnabled(true);
+                layoutShare.buildDrawingCache();
+                Bitmap bm = layoutShare.getDrawingCache();
+                return bm;
             }
             catch (Exception e)
             {
@@ -1274,6 +1293,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 break;
             }
         }
+
+        return null;
     }
 
     ///////////////////////
@@ -1644,16 +1665,22 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private void setUpPopupFonts() {
         // POPUP EMOJIS / FONTS ON TOP OF SHOWN KEYBOARD
         fonts = new ArrayList<Font>();
-        fonts.add(new Font("banzaibros.otf"));
-        fonts.add(new Font("voltebold.otf"));
-        fonts.add(new Font("trashhand2.ttf"));
-        fonts.add(new Font("plasticapro.otf"));
-        fonts.add(new Font("impact.ttf"));
-        fonts.add(new Font("story.otf"));
-        fonts.add(new Font("americantypewriter.ttf"));
-        fonts.add(new Font("higher.otf"));
-        fonts.add(new Font("daftbrush.otf"));
-        fonts.add(new Font("baronneueblack.otf"));
+        fonts.add(new Font("banzaibros.otf", R.color.blanc));
+        fonts.add(new Font("banzaibros.otf", R.color.emojiGreen));
+        fonts.add(new Font("voltebold.otf", R.color.blanc));
+        fonts.add(new Font("voltebold.otf", R.color.emojiLightBlue));
+        fonts.add(new Font("trashhand2.ttf", R.color.blanc));
+        fonts.add(new Font("trashhand2.ttf", R.color.emojiRed));
+        fonts.add(new Font("impact.ttf", R.color.blanc));
+        fonts.add(new Font("impact.ttf", R.color.emojiGreenFluo));
+        fonts.add(new Font("plasticapro.otf", R.color.blanc));
+        fonts.add(new Font("plasticapro.otf", R.color.emojiYellow));
+        fonts.add(new Font("trendsansfour.otf", R.color.blanc));
+        fonts.add(new Font("trendsansfour.otf", R.color.emojiBrickRed));
+        fonts.add(new Font("story.otf", R.color.blanc));
+        fonts.add(new Font("story.otf", R.color.emojiPurple));
+        fonts.add(new Font("baronneueblack.otf", R.color.blanc));
+        fonts.add(new Font("baronneueblack.otf", R.color.emojiBlue));
 
         popupFont = new EmojisFontsPopup(rootView, this, fonts, EmojisFontsPopup.POPUP_FONTS, keyboardHeight);
         popupFont.setSizeForSoftKeyboard();
@@ -1666,18 +1693,19 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                     if (font != null) {
                         imgViewReact.setVisibility(View.VISIBLE);
-                        edittexteReact.setAllCaps(true);
 
                         if (edittexteReact.getText() == null || edittexteReact.getText().toString().isEmpty()) {
-                            edittexteReact.setText("YO");
+                            edittexteReact.setText("Yo");
                         }
 
+                        edittexteReact.setTextColor(getResources().getColor(font.getColor()));
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
                         edittexteReact.setSelection(edittexteReact.getText().length());
                     } else {
                         imgViewReact.setVisibility(View.GONE);
                         imgViewReact.setImageDrawable(null);
                         edittexteReact.setAllCaps(false);
+                        edittexteReact.setTextColor(getResources().getColor(R.color.blanc));
                     }
                 }
             }
@@ -1710,4 +1738,23 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         });
     }
+
+    private Target imgPikiTarget = new Target() {
+
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            imgPiki.setImageBitmap(bitmap);
+            progressBar.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            progressBar.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            progressBar.setVisibility(View.GONE);
+        }
+    };
 }

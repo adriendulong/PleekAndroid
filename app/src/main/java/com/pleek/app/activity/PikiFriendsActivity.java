@@ -50,8 +50,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pikifriends);
 
@@ -90,7 +89,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         NumberFormat nf_ge = NumberFormat.getInstance(Locale.getDefault());
         String txtTopbar = getString(R.string.pikifriends_text_topbar);
         txtTopbar = txtTopbar.replace("_nb_", nf_ge.format(piki.getNbRecipient()));
-        if(piki.getNbRecipient() > 1) txtTopbar += "s";
+        if (piki.getNbRecipient() > 1 && !txtTopbar.contains("people")) txtTopbar += "s";
         txtNbFriend.setText(txtTopbar);
     }
 

@@ -6,7 +6,9 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
@@ -31,11 +33,16 @@ import com.goandup.lib.utile.Screen;
 import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.activity.ParentActivity;
+import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.LikeReact;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
 import com.pleek.app.listeners.FlipListener;
 import com.pleek.app.utils.PicassoUtils;
+import com.pleek.app.views.CircleProgressBar;
+import com.pleek.app.views.TextViewFontAutoResize;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import org.w3c.dom.Text;
 
@@ -76,6 +83,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
     private SurfaceView surfaceView;
     private ValueAnimator mFlipAnimator;
+    private AutoResizeFontTextWatcher autoResizeFontTextWatcher;
 
     private Set<String> likeReactSet;
 
@@ -146,22 +154,18 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 vh.progressBar.setVisibility(View.GONE);
                 vh.imgError.setVisibility(View.GONE);
                 vh.imgMute.setVisibility(View.GONE);
+                vh.progressBar.setColorSchemeResources(R.color.progressBar);
 
                 if (i >= 1 && i <= listReact.size()) {
                     final Reaction react = listReact.get(i - 1);
 
+                    vh.progressBar.setVisibility(View.VISIBLE);
+
                     if (react.getUrlPhoto() != null) { //is Parse React
-                        if (heightPiki < maxSizeReactPx) {
-                            PicassoUtils.with(context)
-                                    .load(react.getUrlPhoto())
-                                    .fit()
-                                    .into(vh.imgReact);
-                        } else {
-                            PicassoUtils.with(context)
-                                    .load(react.getUrlPhoto())
-                                    .fit()
-                                    .into(vh.imgReact);
-                        }
+                        PicassoUtils.with(context)
+                            .load(react.getUrlPhoto())
+                            .resize(widthPiki, heightPiki)
+                            .into(new CustomTarget(vh));
 
                         vh.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
                         react.loadVideoToTempFile(context);
@@ -252,10 +256,13 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                                         vh.txtLike.setTextColor(Color.BLACK);
                                         react.incrementLike();
                                         vh.txtLike.setText("" + react.getLikeCount());
+                                        vh.txtNBLikesFront.setText("" + react.getLikeCount());
 
                                         if (listener != null) {
                                             listener.onLikeReact(i);
                                         }
+
+                                        notifyDataSetChanged();
                                     }
                                 });
 
@@ -266,19 +273,23 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                                 vh.imgLike.setImageResource(R.drawable.picto_like_grey);
                                 vh.txtLike.setTextColor(context.getResources().getColor(R.color.grisTextDisable));
                                 react.decrementLike();
-                                vh.txtLike.setText("" + react.getLikeCount());
                                 react.setHasLiked(false);
 
                                 if (listener != null) {
                                     listener.onDislikeReact(i);
                                 }
+
+                                notifyDataSetChanged();
                             }
+
+                            vh.txtLike.setText("" + react.getLikeCount());
+                            vh.txtNBLikesFront.setText("" + react.getLikeCount());
                         }
                     });
                 } else {
                     isPlaceHolder = true;
                     vh.imgReact.setImageDrawable(null);
-                    vh.imgReact.setBackgroundColor(context.getResources().getColor(R.color.fondPiki));
+                    vh.imgReact.setBackgroundColor(context.getResources().getColor(R.color.fondBackReact));
                     vh.itemView.setOnTouchListener(null);
                     vh.imgPlay.setVisibility(View.GONE);
                 }
@@ -300,7 +311,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
         if (view.getTag() instanceof Integer) {
             int position = (Integer)view.getTag();
-            Reaction react = listReact.get(position);
+            final Reaction react = listReact.get(position);
 
             DownRunnable down = (DownRunnable) view.getTag(R.string.tag_downpresse);
 
@@ -325,13 +336,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 // highlight just after clicked during 90ms
                 final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
 
-                if (mFlipAnimator.getAnimatedFraction() == 1) {
-                    mFlipAnimator.reverse();
-                } else if (!react.isVideo() || react.equals(currentReactPlay)) {
+                if (!isFlipping()) {
+                    flipLogic(vh, react);
+                }
+
+                if (!react.isVideo() || react.equals(currentReactPlay)) {
                     itemMarkDown(view, true);
-                    mFlipAnimator.removeAllUpdateListeners();
-                    mFlipAnimator.start();
-                    mFlipAnimator.addUpdateListener(new FlipListener(vh.layoutFront, vh.layoutBack));
                 }
 
                 handler.postDelayed(down, DOWN_TIME);
@@ -349,6 +359,16 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         }
 
         return true;
+    }
+
+    private void flipLogic(ReactViewHolder vh, Reaction react) {
+        if (isFlipped()) {
+            mFlipAnimator.reverse();
+        } else if (!react.isVideo() || react.equals(currentReactPlay)) {
+            mFlipAnimator.removeAllUpdateListeners();
+            mFlipAnimator.start();
+            mFlipAnimator.addUpdateListener(new FlipListener(vh.layoutFront, vh.layoutBack));
+        }
     }
 
     //DOWN EFFECT
@@ -560,7 +580,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     }
 
     public void stopCurrentFlip() {
-        if (mFlipAnimator.getAnimatedFraction() == 1) {
+        if (isFlipped()) {
             mFlipAnimator.reverse();
         }
     }
@@ -606,6 +626,15 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         return likeReactSet.contains(react.getId());
     }
 
+    private boolean isFlipped() {
+        return mFlipAnimator.getAnimatedFraction() == 1;
+    }
+
+    private boolean isFlipping() {
+        final float currentValue = mFlipAnimator.getAnimatedFraction();
+        return (currentValue < 1 && currentValue > 0);
+    }
+
     public Set<String> getLikeReactMap() {
         return likeReactSet;
     }
@@ -613,6 +642,46 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
     public void setLikeReactMap(Set<String> likeReactSet) {
         this.likeReactSet = likeReactSet;
         notifyDataSetChanged();
+    }
+
+    class CustomTarget implements Target {
+
+        private ReactViewHolder vh;
+
+        public CustomTarget(ReactViewHolder vh) {
+            this.vh = vh;
+        }
+
+        @Override
+        public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+            vh.imgReact.setImageBitmap(bitmap);
+            vh.progressBar.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            vh.imgReact.setImageDrawable(errorDrawable);
+            vh.progressBar.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            vh.imgReact.setImageDrawable(placeHolderDrawable);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof CustomTarget) {
+                return ((CustomTarget) o).vh.imgReact.equals(this.vh.imgReact);
+            }
+
+            return super.equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return vh.imgReact.hashCode();
+        }
     }
 
     //INTERFACE
@@ -623,7 +692,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         public void onPlayVideo();
         public void onDeleteReact(int position);
         public void onReportReact(int position);
-        public void onAddFriend(int position, Reaction react, ProgressBar pg, ImageView img, TextViewFont txt);
+        public void onAddFriend(int position, Reaction react, ProgressBar pg, ImageView img, TextViewFontAutoResize txt);
         public void onPreviewReact(int position);
         public void onLikeReact(int position);
         public void onDislikeReact(int position);
@@ -637,7 +706,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         @InjectView(R.id.imgReact)
         ImageView imgReact;
         @InjectView(R.id.progressBar)
-        ProgressBar progressBar;
+        CircleProgressBar progressBar;
         @InjectView(R.id.imgPlay)
         ImageView imgPlay;
         @InjectView(R.id.imgMute)
@@ -653,7 +722,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         @InjectView(R.id.imgAddFriend)
         ImageView imgAddFriend;
         @InjectView(R.id.txtAddFriend)
-        TextViewFont txtAddFriend;
+        TextViewFontAutoResize txtAddFriend;
         @InjectView(R.id.layoutLike)
         RelativeLayout layoutLike;
         @InjectView(R.id.imgLike)

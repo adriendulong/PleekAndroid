@@ -181,7 +181,7 @@ public class Reaction extends VideoBean
     }
 
     public int getLikeCount() {
-        return nbLikes;
+        return nbLikes > 0 ? nbLikes : 0;
     }
 
     public void setLikeCount(int likeCount) {

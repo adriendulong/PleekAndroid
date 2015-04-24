@@ -121,6 +121,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 int halfOnePx = (int) (0.5 * Screen.getInstance(mContext).getDensity());
                 holderF.itemView.setPadding(0, halfOnePx, halfOnePx, 0);
                 holderF.txtFont.setCustomFont(mContext, font.getName());
+                holderF.txtFont.setTextColor(mContext.getResources().getColor(font.getColor()));
                 holderF.txtFont.setVisibility(View.VISIBLE);
 
                 ViewGroup.LayoutParams params = holderF.txtFont.getLayoutParams();
@@ -133,13 +134,13 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 params2.height = mSize;
                 holderF.layoutFont.setLayoutParams(params2);
 
-                holderF.layoutFont.setBackgroundResource(font.getName().equals(mSelectedId) ? R.color.emojiFontBgSelected : R.color.emojiFontBgNormal);
-                holderF.imgSelected.setVisibility(font.getName().equals(mSelectedId) ? View.VISIBLE : View.GONE);
+                holderF.layoutFont.setBackgroundResource(font.getId().equals(mSelectedId) ? R.color.emojiFontBgSelected : R.color.emojiFontBgNormal);
+                holderF.imgSelected.setVisibility(font.getId().equals(mSelectedId) ? View.VISIBLE : View.GONE);
                 holderF.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (!font.getName().equals(mSelectedId)) {
-                            mSelectedId = font.getName();
+                        if (!font.getId().equals(mSelectedId)) {
+                            mSelectedId = font.getId();
                         } else {
                             mSelectedId = "";
                         }

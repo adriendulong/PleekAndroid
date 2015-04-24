@@ -31,7 +31,7 @@
                         android:verticalSpacing="1dp"
                         android:numColumns="2"
                         android:listSelector="@null"
-                        android:background="@color/fondPiki" />
+                        android:background="@color/blanc" />
                 </com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff>
 
                 <LinearLayout

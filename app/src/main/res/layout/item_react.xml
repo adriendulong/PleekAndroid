@@ -56,9 +56,9 @@
 
                     </LinearLayout>
 
-                    <com.goandup.lib.widget.TextViewFont
+                    <com.pleek.app.views.TextViewFontAutoResize
                         android:id="@+id/txtAddFriend"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="jackblack"
                         android:textSize="10dp"
@@ -67,7 +67,10 @@
                         android:gravity="center"
                         android:layout_centerHorizontal="true"
                         android:layout_below="@id/layout"
-                        android:layout_marginTop="10dp" />
+                        android:layout_marginTop="10dp"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:singleLine="true" />
 
                 </RelativeLayout>
 
@@ -221,16 +224,18 @@
             android:id="@+id/imgReact"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:background="@color/fondBackReact" />
 
-        <ProgressBar
+        <com.pleek.app.views.CircleProgressBar
             android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_centerInParent="true"
-            android:visibility="gone"
-            android:alpha="0.85" />
+            app:mlpb_show_arrow="false"
+            app:mlpb_enable_circle_background="false"
+            app:mlpb_progress_stoke_width="2dp"
+            app:mlpb_progress_text_visibility="invisible"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerInParent="true" />
 
         <ImageView
             android:id="@+id/imgPlay"

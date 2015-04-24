@@ -6,9 +6,13 @@ package com.pleek.app.bean;
 public class Font extends Overlay {
 
     private String mName;
+    private int mColor;
+    private String id;
 
-    public Font(String name) {
+    public Font(String name, int color) {
         this.mName = name;
+        this.mColor = color;
+        this.id = name + color;
     }
 
     public String getName() {
@@ -17,5 +21,23 @@ public class Font extends Overlay {
 
     public void setName(String name) {
         this.mName = name;
+    }
+
+    public int getColor() {
+        return mColor;
+    }
+
+    public void setColor(int mColor) {
+        this.mColor = mColor;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(String id) {
+        this.id = id;
     }
 }

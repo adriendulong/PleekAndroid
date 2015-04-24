@@ -41,6 +41,17 @@
     <color name="fondPiki">#212325</color>
     <color name="dividerReactBack">#D5D6D8</color>
     <color name="fondBackReact">#F9F9FB</color>
+    <color name="progressBar">#88929E</color>
+
+    <!-- EMOJI -->
+    <color name="emojiGreen">#24E47A</color>
+    <color name="emojiLightBlue">#34FFFE</color>
+    <color name="emojiRed">#E84156</color>
+    <color name="emojiGreenFluo">#7BFD31</color>
+    <color name="emojiYellow">#FFFD37</color>
+    <color name="emojiBrickRed">#F2522B</color>
+    <color name="emojiPurple">#DE4BF8</color>
+    <color name="emojiBlue">#3356FA</color>
 
     <!--LOADER-->
     <color name="loaderBackColor">#DDCCCCCC</color>
