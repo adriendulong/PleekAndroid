@@ -289,19 +289,28 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/btnShare"
             android:layout_width="60dp"
-            android:layout_height="match_parent"
+            android:layout_height="60dp"
             android:gravity="center"
             android:clickable="true"
             android:background="@color/firstColor"
             android:layout_alignParentRight="true">
+
+            <LinearLayout
+                android:id="@+id/smallLayoutShare"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical" />
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/picto_share"/>
-        </LinearLayout>
+                android:src="@drawable/picto_share"
+                android:layout_centerInParent="true" />
+        </RelativeLayout>
 
         <LinearLayout
             android:id="@+id/layoutOverlayReplyTop"

@@ -207,6 +207,7 @@
                     android:gravity="center_vertical">
 
                     <ImageView
+                        android:id="@+id/icon_piki"
                         android:layout_width="25dp"
                         android:layout_height="wrap_content"
                         android:src="@drawable/icon_piki"/>

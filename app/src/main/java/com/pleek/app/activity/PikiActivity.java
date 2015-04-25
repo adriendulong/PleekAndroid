@@ -48,7 +48,6 @@ import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.EditTextFont;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
-import com.goandup.lib.widget.TextViewFont;
 import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
@@ -127,6 +126,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private TextView txtTroisPoints;
     private View layoutOverlayShare;
     private LinearLayout layoutShare;
+    private LinearLayout smallLayoutShare;
     private ButtonRoundedMaterialDesign btnConfrimShare;
     private View layoutOverlayReply;
     private View layoutOverlayReplyTop;
@@ -247,6 +247,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutOverlayShare.setVisibility(View.GONE);
         layoutOverlayShare.setOnTouchListener(new DisableTouchListener());
         layoutShare = (LinearLayout) findViewById(R.id.layoutShare);
+        smallLayoutShare = (LinearLayout) findViewById(R.id.smallLayoutShare);
         btnConfrimShare = (ButtonRoundedMaterialDesign) findViewById(R.id.btnConfrimShare);
         btnConfrimShare.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
         {
@@ -543,9 +544,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     });
 
                     isLoading = false;
-                }
 
-                btnShare.setBackgroundDrawable(new BitmapDrawable(getResources(), generateShareLayout()));
+                    // ONLY THE FIRST TIME
+                    if (currentPage == 1) {
+                        generateShareLayout(smallLayoutShare);
+                    }
+                }
 
                 fromCache = false;
             }
@@ -752,7 +756,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         if (view == btnBack) {
             finish();
         } else if (view == btnShare) {
-            generateShareLayout();
+            generateShareLayout(layoutShare);
             showShareLayout();
 
             //send track mixpanel
@@ -1221,10 +1225,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     }
 
-    private Bitmap generateShareLayout() {
-        if (piki == null || listReact == null) return null;
+    private void generateShareLayout(ViewGroup layout) {
+        if (piki == null || listReact == null) return;
 
-        layoutShare.removeAllViews();
+        layout.removeAllViews();
 
         int nbReact = listReact.size();
         int nbReactShow;
@@ -1235,19 +1239,31 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         else if(nbReact >= (nbReactShow = 11)) layoutID = R.layout.share2;
         else if(nbReact >= (nbReactShow = 6)) layoutID = R.layout.share1;
 
-        int size = screen.dpToPx(310);
+        int size = 0;
 
-        View viewShare = LayoutInflater.from(this).inflate(layoutID, layoutShare, false);
+        if (layout == smallLayoutShare) {
+            size = screen.dpToPx(60);
+        } else {
+            size = screen.dpToPx(310);
+        }
+
+        View viewShare = LayoutInflater.from(this).inflate(layoutID, layout, false);
         viewShare.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         viewShare = screen.adapt(viewShare);
-        layoutShare.addView(viewShare);
+        layout.addView(viewShare);
 
+        ImageView iconPiki = (ImageView) viewShare.findViewById(R.id.icon_piki);
         TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
         TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
         TextView txtReplies = (TextView) viewShare.findViewById(R.id.txtReplies);
-        txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
-        txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
-        if(txtReplies != null) txtReplies.setText(piki.getNbReact()+"+ "+getString(R.string.share_replies));
+        if (iconPiki != null && layout == smallLayoutShare) {
+            iconPiki.setVisibility(View.GONE);
+        } else {
+            txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
+            txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
+            if (txtReplies != null)
+                txtReplies.setText(piki.getNbReact() + "+ " + getString(R.string.share_replies));
+        }
 
         ImageView imgPiki = (ImageView)viewShare.findViewById(R.id.imgPiki);
         PicassoUtils.with(this)
@@ -1279,12 +1295,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 }
 
                 View pictoPlay = ((ViewGroup)imgReact.getParent()).getChildAt(1);
-                pictoPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
-
-                layoutShare.setDrawingCacheEnabled(true);
-                layoutShare.buildDrawingCache();
-                Bitmap bm = layoutShare.getDrawingCache();
-                return bm;
+                pictoPlay.setVisibility(react.isVideo() && layout == layoutShare ? View.VISIBLE : View.GONE);
             }
             catch (Exception e)
             {
@@ -1293,8 +1304,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 break;
             }
         }
-
-        return null;
     }
 
     ///////////////////////
