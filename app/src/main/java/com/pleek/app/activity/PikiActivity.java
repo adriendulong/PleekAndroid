@@ -608,7 +608,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             public void closed(boolean accept) {
                 // REPORT
                 if (accept) {
-                    reportOrRemoveReact(adapter.getReaction(position));
+                    reportReact(adapter.getReaction(position));
                 }
             }
         });
@@ -671,7 +671,46 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void onPreviewReact(int position) {
+        Reaction react = adapter.getReaction(position);
 
+        layoutShare.removeAllViews();
+
+        int layoutID = R.layout.share_preview;
+
+        int size = screen.dpToPx(310);
+
+        View viewShare = LayoutInflater.from(this).inflate(layoutID, layoutShare, false);
+        viewShare.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        viewShare = screen.adapt(viewShare);
+        layoutShare.addView(viewShare);
+
+        TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
+        TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
+        txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
+        txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
+
+        ImageView imgPiki = (ImageView)viewShare.findViewById(R.id.imgPiki);
+        PicassoUtils.with(this)
+                .load(piki.getUrlPiki())
+                .placeholder(R.drawable.piki_placeholder)
+                .fit()
+                .error(R.drawable.piki_placeholder)
+                .into(imgPiki);
+
+        ImageView imgReact = (ImageView) viewShare.findViewById(R.id.imgReact);
+
+        if (!react.isTmpReaction()) {
+            PicassoUtils.with(this)
+                    .load(react.getUrlPhoto())
+                    .placeholder(R.drawable.piki_placeholder)
+                    .fit()
+                    .error(R.drawable.piki_placeholder)
+                    .into(imgReact);
+        } else {
+            imgReact.setImageBitmap(react.getTmpPhoto());
+        }
+
+        showShareLayout();
     }
 
     @Override
@@ -742,6 +781,20 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>() {
             @Override
             public void done(Object o, ParseException e) {
+                if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
+            }
+        });
+    }
+
+    private void reportReact(Reaction react) {
+        final Dialog dialogLoader = showLoader();
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("reactId", react.getId());
+        ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                hideDialog(dialogLoader);
+                if (e == null) Utile.showToast(R.string.piki_alert_report_texte, PikiActivity.this);
                 if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
             }
         });
@@ -1062,7 +1115,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     {
         if(layoutShare.getChildCount() > 0)
         {
-            if(lastSharefile == null || !lastSharefile.exists())
+            if(lastSharefile == null || !lastSharefile.exists() || layoutShare.findViewById(R.id.layoutReplies) == null)
             {
                 View view = layoutShare.getChildAt(0);
                 view.setDrawingCacheEnabled(true);
@@ -1114,6 +1167,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 share.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_text) + " @" + piki.getName());
 
                 startActivity(Intent.createChooser(share, getString(R.string.share_title)));
+
+                if (layoutShare.findViewById(R.id.layoutReplies) == null)
+                    lastSharefile = null;
             }
             else
             {
@@ -1253,11 +1309,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layout.addView(viewShare);
 
         ImageView iconPiki = (ImageView) viewShare.findViewById(R.id.icon_piki);
+        LinearLayout layoutReplies = (LinearLayout) viewShare.findViewById(R.id.layoutReplies);
         TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
         TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
         TextView txtReplies = (TextView) viewShare.findViewById(R.id.txtReplies);
         if (iconPiki != null && layout == smallLayoutShare) {
             iconPiki.setVisibility(View.GONE);
+            layoutReplies.setVisibility(View.GONE);
         } else {
             txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
             txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));

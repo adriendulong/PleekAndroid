@@ -18,15 +18,12 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
@@ -34,7 +31,6 @@ import com.goandup.lib.widget.TextViewFont;
 import com.pleek.app.R;
 import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.bean.AutoResizeFontTextWatcher;
-import com.pleek.app.bean.LikeReact;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
 import com.pleek.app.listeners.FlipListener;
@@ -44,13 +40,10 @@ import com.pleek.app.views.TextViewFontAutoResize;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import org.w3c.dom.Text;
-
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import butterknife.ButterKnife;
@@ -284,6 +277,13 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
                             vh.txtLike.setText("" + react.getLikeCount());
                             vh.txtNBLikesFront.setText("" + react.getLikeCount());
+                        }
+                    });
+
+                    vh.layoutPreview.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (listener != null) listener.onPreviewReact(i);
                         }
                     });
                 } else {

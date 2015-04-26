@@ -68,6 +68,7 @@
     <string name="piki_popup_report_texte">Are you sure you want to report this reaction ?</string>
     <string name="piki_alert_report_texte">This react has been reported. Thank you.</string>
     <string name="piki_react_remove_nok">Can\'t remove your reaction for now.</string>
+    <string name="piki_react_report_nok">Can\'t report this reaction for now.</string>
     <string name="piki_popup_adduser_title">ADD THIS USER</string>
     <string name="piki_popup_mute_title">MUTE THIS USER</string>
     <string name="piki_popup_unmute_title">UNMUTE THIS USER</string>
