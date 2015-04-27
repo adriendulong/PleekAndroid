@@ -53,6 +53,7 @@
     <string name="home_piki_nok">Can\'t recover your Pleek for now. Try again ?</string>
     <string name="home_tuto_friend">Find more friends to get more Pleeks</string>
     <string name="home_tuto_pleek">This is a PLEEK</string>
+    <string name="home_from">From</string>
 
     <!-- PIKI -->
     <string name="piki_friend">friend</string>

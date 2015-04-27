@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.DownTouchListener;
+import com.parse.Parse;
 import com.parse.ParseInstallation;
 import com.pleek.app.R;
 
@@ -112,6 +113,9 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
         else if(view == btnNotification)
         {
             chbxNotif.setChecked(!chbxNotif.isChecked());
+            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+            installation.put("notificationsEnabled", !chbxNotif.isChecked());
+            installation.saveInBackground();
         }
         else if(view == btnEmail)
         {

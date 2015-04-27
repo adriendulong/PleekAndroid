@@ -6,6 +6,7 @@ import com.appsflyer.AppsFlyerLib;
 import com.goandup.lib.utile.L;
 import com.parse.Parse;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParsePush;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
@@ -36,6 +37,7 @@ public class PleekApplication extends Application {
         });
 
         if (ParseUser.getCurrentUser() != null) ParseUser.getCurrentUser().fetchInBackground();
+        if (ParseInstallation.getCurrentInstallation() != null) ParseInstallation.getCurrentInstallation().fetchInBackground();
 
         super.onCreate();
     }

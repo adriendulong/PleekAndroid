@@ -133,24 +133,26 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 Font impact = (Font) mViews.get(5);
                 txtTest.setText(holderF.txtFont.getText());
                 txtTest.setCustomFont(mContext, impact.getName());
-                float refHeight = 100;
+                float refHeight = Screen.dpToPx(35, mContext);
                 float actualHeight = holderF.txtFont.getPaint().measureText("YO");
 
-                if (actualHeight < refHeight - 5) {
-                    while (actualHeight < refHeight - 5) {
+                if (actualHeight < refHeight) {
+                    while (actualHeight < refHeight) {
                         float textSize = holderF.txtFont.getTextSize();
                         textSize++;
                         holderF.txtFont.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
                         actualHeight = holderF.txtFont.getPaint().measureText("YO");
                     }
-                } else if (actualHeight > refHeight + 5) {
-                    while (actualHeight > refHeight + 5) {
+                } else if (actualHeight > refHeight) {
+                    while (actualHeight > refHeight) {
                         float textSize = holderF.txtFont.getTextSize();
                         textSize--;
                         holderF.txtFont.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
                         actualHeight = holderF.txtFont.getPaint().measureText("YO");
                     }
                 }
+
+                System.out.println("Position : " + position + " HEIGHT : " + holderF.txtFont.getPaint().measureText("YO"));
 
                 ViewGroup.LayoutParams params = holderF.txtFont.getLayoutParams();
                 params.width = mSize;

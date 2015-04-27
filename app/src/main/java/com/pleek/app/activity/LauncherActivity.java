@@ -1,10 +1,13 @@
 package com.pleek.app.activity;
 
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.BounceInterpolator;
+import android.widget.ImageView;
 
 import com.appsflyer.AppsFlyerLib;
 import com.crashlytics.android.Crashlytics;
@@ -14,7 +17,7 @@ import com.pleek.app.R;
 
 public class LauncherActivity extends ParentActivity
 {
-    private ButtonRoundedMaterialDesign btnNext;
+    private ImageView btnNext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -38,12 +41,10 @@ public class LauncherActivity extends ParentActivity
 
             setContentView(R.layout.activity_launcher);
 
-            btnNext = (ButtonRoundedMaterialDesign) findViewById(R.id.btnNext);
-            btnNext.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-            {
+            btnNext = (ImageView) findViewById(R.id.btnNext);
+            btnNext.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void endPress(ButtonRoundedMaterialDesign button)
-                {
+                public void onClick(View v) {
                     startActivity(new Intent(LauncherActivity.this, PhoneNumberActivity.class));
                     overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
                 }

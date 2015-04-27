@@ -101,11 +101,11 @@
                             android:id="@+id/edittexteReact"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:inputType="textNoSuggestions|textVisiblePassword"
+                            android:inputType="textNoSuggestions|textVisiblePassword|textCapCharacters"
                             android:textColor="@color/blanc"
                             android:textSize="30dp"
                             android:textCursorDrawable="@drawable/cursor_big"
-                            app:customFont="proximanova_sbold.otf"
+                            app:customFont="banzaibros.otf"
                             android:background="@null"
                             android:gravity="bottom|left"
                             android:visibility="gone"
@@ -114,7 +114,9 @@
                             android:shadowDx="2.5"
                             android:shadowDy="2.5"
                             android:shadowRadius="8"
-                            android:maxLines="10" />
+                            android:maxLines="10"
+                            android:includeFontPadding="false"
+                            android:textAllCaps="true" />
 
                         <ImageView
                             android:id="@+id/imgViewReact"
@@ -128,13 +130,13 @@
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shadow_bot"/>
+                    android:background="@drawable/shadow_bot" />
 
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/shadow_top"
-                    android:layout_alignParentBottom="true"/>
+                    android:layout_alignParentBottom="true" />
             </RelativeLayout>
         </LinearLayout>
 
@@ -157,7 +159,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical"/>
+                    android:orientation="vertical" />
 
                 <LinearLayout
                     android:id="@+id/layoutActionShare"
@@ -171,17 +173,19 @@
 
             </LinearLayout>
 
-            <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+            <ImageView
                 android:id="@+id/btnConfrimShare"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                app:buttonColor="@color/secondColor"
-                app:buttonPicto="@drawable/picto_share"
-                android:layout_marginRight="30dp"
-                android:layout_marginBottom="30dp"
+                android:src="@drawable/picto_share"
+                android:layout_marginRight="15dp"
+                android:layout_marginBottom="15dp"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
-                android:visibility="gone"/>
+                android:background="@drawable/btn_rounded_selector_alt"
+                android:visibility="gone"
+                android:scaleType="centerInside"
+                android:paddingBottom="5dp" />
 
         </RelativeLayout>
 
@@ -197,14 +201,27 @@
             android:clickable="true"
             android:visibility="gone">
 
-            <ImageView
+            <com.goandup.lib.widget.FlipImageView
                 android:id="@+id/imgSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/picto_switch"
                 android:layout_alignParentLeft="true"
                 android:layout_marginTop="48dp"
                 android:layout_marginLeft="30dp"
+                android:src="@drawable/picto_switch_back_selector"
+                app:flipDrawable="@drawable/picto_switch_selfie_selector"
+                app:flipDuration="600"
+                app:flipInterpolator="@android:anim/overshoot_interpolator"
+                app:flipRotations="y"/>
+
+            <ImageView
+                android:id="@+id/imgKeyboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_keyboard_selected"
+                android:layout_alignParentLeft="true"
+                android:layout_marginTop="48dp"
+                android:layout_marginLeft="80dp"
                 android:clickable="true" />
 
             <ImageView
@@ -300,10 +317,15 @@
 
             <LinearLayout
                 android:id="@+id/smallLayoutShare"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:gravity="center"
                 android:orientation="vertical" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/overlayShare" />
 
             <ImageView
                 android:layout_width="wrap_content"

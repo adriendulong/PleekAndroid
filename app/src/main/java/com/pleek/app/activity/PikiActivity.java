@@ -18,6 +18,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -48,6 +50,7 @@ import com.goandup.lib.widget.CameraView;
 import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.EditTextFont;
+import com.goandup.lib.widget.FlipImageView;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
 import com.parse.CountCallback;
 import com.parse.FindCallback;
@@ -128,7 +131,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View layoutOverlayShare;
     private LinearLayout layoutShare;
     private LinearLayout smallLayoutShare;
-    private ButtonRoundedMaterialDesign btnConfrimShare;
+    private ImageView btnConfrimShare;
     private View layoutOverlayReply;
     private View layoutOverlayReplyTop;
     private View layoutTextReact;
@@ -145,7 +148,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private RelativeLayout layoutActionBarKeyboard;
     private ImageView imgStickers;
     private ImageView imgFonts;
-    private ImageView imgSwitch;
+    private ImageView imgKeyboard;
+    private FlipImageView imgSwitch;
     private ImageView imgViewReact;
     private ImageView imgReply;
 
@@ -246,15 +250,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         //share
         layoutOverlayShare = findViewById(R.id.layoutOverlayShare);
         layoutOverlayShare.setVisibility(View.GONE);
-        layoutOverlayShare.setOnTouchListener(new DisableTouchListener());
+        layoutOverlayShare.setOnClickListener(this);
         layoutShare = (LinearLayout) findViewById(R.id.layoutShare);
         smallLayoutShare = (LinearLayout) findViewById(R.id.smallLayoutShare);
-        btnConfrimShare = (ButtonRoundedMaterialDesign) findViewById(R.id.btnConfrimShare);
-        btnConfrimShare.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
+        btnConfrimShare = (ImageView) findViewById(R.id.btnConfrimShare);
+        btnConfrimShare.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
+            public void onClick(View v) {
                 sharePiki();
             }
         });
@@ -361,10 +363,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutActionBarKeyboard = (RelativeLayout) findViewById(R.id.layoutActionBarKeyboard);
         imgFonts = (ImageView) findViewById(R.id.imgFonts);
         imgFonts.setOnClickListener(this);
+        imgKeyboard = (ImageView) findViewById(R.id.imgKeyboard);
+        imgKeyboard.setOnClickListener(this);
         imgStickers = (ImageView) findViewById(R.id.imgStickers);
         imgStickers.setOnClickListener(this);
-        imgSwitch = (ImageView) findViewById(R.id.imgSwitch);
+        imgSwitch = (FlipImageView) findViewById(R.id.imgSwitch);
         imgSwitch.setOnClickListener(this);
+
         imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
         imgReply = (ImageView) findViewById(R.id.imgReply);
         imgReply.setOnClickListener(this);
@@ -856,6 +861,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             imgAddReact.setVisibility(View.GONE);
             layoutTutorialReact.setVisibility(View.GONE);
             isReplyButtonsShow = true;
+
+            if (cameraView.isFaceCamera()) {
+                imgSwitch.setImageResource(R.drawable.picto_switch_selfie_selector);
+                imgSwitch.setFlippedDrawable(getResources().getDrawable(R.drawable.picto_switch_back_selector));
+            } else {
+                imgSwitch.setImageResource(R.drawable.picto_switch_back_selector);
+                imgSwitch.setFlippedDrawable(getResources().getDrawable(R.drawable.picto_switch_selfie_selector));
+            }
+
             startEditText();
         } else if (view == imgStickers) {
             if (!popupEmoji.isShowing()) {
@@ -877,8 +891,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         }
                     }, 300);
                 }
+
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard);
             } else {
                 hideEmojis();
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
             }
         } else if (view == imgFonts) {
             if (!popupFont.isShowing()) {
@@ -898,7 +915,20 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         }
                     }, 300);
                 }
+
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard);
             } else {
+                hideFonts();
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
+            }
+        } else if (view == imgKeyboard) {
+            imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+            imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+            imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
+
+            if (popupEmoji.isShowing()) {
+                hideEmojis();
+            } else if (popupFont.isShowing()) {
                 hideFonts();
             }
         } else if (view == imgSwitch) {
@@ -931,6 +961,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }, 500);
                 }
             });
+        } else if (view == layoutOverlayShare) {
+            if (shareLayoutShow) {
+                hideShareLayout();
+            }
         }
     }
 
@@ -963,6 +997,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         boolean toggled = false;
 
         if (cameraView != null && cameraView.toggleFaceCamera()) {
+            imgSwitch.setFlipped(!imgSwitch.isFlipped());
             toggled = true;
 
             //save
@@ -1029,6 +1064,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             if (isPlaying) stopCurrentVideo();
                             else playVideo();
                         }
+
+                        adapter.stopCurrentFlip();
                     }
                 }
             } catch (Exception e) {
@@ -1304,7 +1341,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         int size = 0;
 
         if (layout == smallLayoutShare) {
-            size = screen.dpToPx(60);
+            size = smallLayoutShare.getWidth();
         } else {
             size = screen.dpToPx(310);
         }
@@ -1779,10 +1816,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
                         edittexteReact.setIncludeFontPadding(false);
                         edittexteReact.setSelection(edittexteReact.getText().length());
+                        edittexteReact.setAllCaps(true);
                     } else {
                         imgViewReact.setVisibility(View.GONE);
                         imgViewReact.setImageDrawable(null);
-                        edittexteReact.setAllCaps(false);
                         edittexteReact.setTextColor(getResources().getColor(R.color.blanc));
                     }
                 }

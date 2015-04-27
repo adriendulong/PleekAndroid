@@ -14,6 +14,7 @@ import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
+import android.widget.ImageView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
@@ -51,7 +52,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private View btnTopBar;
     private View btnSettings;
     private ListViewScrollingOff listViewPiki;
-    private ButtonRoundedMaterialDesign btnPlus;
+    private ImageView btnPlus;
     private SwipeRefreshLayoutScrollingOff refreshSwipe;
     private View layoutTuto;
     private ViewLoadingFooter footer;
@@ -76,16 +77,6 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
     private void setup()
     {
-        //initiale set user to installation
-        ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-        ParseUser user = ParseUser.getCurrentUser();
-
-        if (user != null) {
-            installation.put("notificationsEnabled", true);
-            installation.put("user", user);
-        }
-        installation.saveInBackground();
-
         btnTopBar = findViewById(R.id.btnTopBar);
         int colorDown = getResources().getColor(R.color.firstColorDark);
         int colorUp = getResources().getColor(R.color.firstColor);
@@ -106,12 +97,10 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
             }
         });
 
-        btnPlus = (ButtonRoundedMaterialDesign)findViewById(R.id.btnPlus);
-        btnPlus.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
+        btnPlus = (ImageView) findViewById(R.id.btnPlus);
+        btnPlus.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
+            public void onClick(View v) {
                 startActivity(new Intent(HomeActivity.this, CaptureActivity.class));
                 overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
             }

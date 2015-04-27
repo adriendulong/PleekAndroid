@@ -26,6 +26,7 @@ import com.parse.FunctionCallback;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -205,6 +206,15 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                     acl.setReadAccess(currentUser, true);
                                     userInfos.setACL(acl);
                                     userInfos.saveEventually();
+
+                                    ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+
+                                    if (currentUser != null) {
+                                        installation.put("notificationsEnabled", true);
+
+                                        installation.put("user", currentUser);
+                                    }
+                                    installation.saveInBackground();
 
                                     mixpanel.track("Sign Up", null);
                                     fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_REGISTRATION);

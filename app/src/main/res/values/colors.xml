@@ -43,6 +43,7 @@
     <color name="fondBackReact">#F9F9FB</color>
     <color name="progressBar">#88929E</color>
     <color name="likesText">#1D2029</color>
+    <color name="overlayShare">#B3303F9F</color>
 
     <!-- EMOJI -->
     <color name="emojiGreen">#24E47A</color>

@@ -145,17 +145,10 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
-
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/picto_piki_reply"/>
-
                         <com.makeramen.RoundedImageView
                             android:id="@+id/imgPiki1"
                             android:layout_width="@dimen/img_piki_small_width"
                             android:layout_height="@dimen/img_piki_small_height"
-                            android:layout_marginLeft="10dp"
                             android:background="@color/grisSeparate"
                             app:riv_corner_radius="3dip"/>
 

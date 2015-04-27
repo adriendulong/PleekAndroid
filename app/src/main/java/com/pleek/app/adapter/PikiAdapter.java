@@ -119,7 +119,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
                 if (piki != null) { // If is not placeholder
                     PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
-                    vh.txtUserName.setText("@" + piki.getName());
+                    vh.txtUserName.setText(context.getString(R.string.home_from) + " " + piki.getName());
                     vh.txtDeleteOn.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
                     vh.txtDeleteOff.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
 
@@ -152,7 +152,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                         vh.txtUnread.setBackgroundResource(R.drawable.second_color_label_back);
                         vh.txtUnread.setVisibility(View.VISIBLE);
                     } else {
-                        vh.txtUnread.setText("+"+Utile.formatBigNumber(piki.getNbReact()-NB_THUMBNAIL_REACT));
+                        vh.txtUnread.setText("+ " + Utile.formatBigNumber(piki.getNbReact() - NB_THUMBNAIL_REACT));
                         vh.txtUnread.setBackgroundResource(isUpdated ? R.drawable.first_color_label_back : R.drawable.gris_label_back);
                         vh.txtUnread.setVisibility(isMoreReact && isUpdated ? View.VISIBLE : View.GONE);
                     }

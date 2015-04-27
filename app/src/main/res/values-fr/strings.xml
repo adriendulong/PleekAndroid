@@ -53,6 +53,7 @@
     <string name="home_piki_nok">Impossible de récuppérer ton Pleek pour l\'instant.</string>
     <string name="home_tuto_friend">Cherche plus d\'amis pour plus de Pleek</string>
     <string name="home_tuto_pleek">Ceci est un PLEEK</string>
+    <string name="home_from">De</string>
 
     <!-- PIKI -->
     <string name="piki_friend">destinataire</string>
