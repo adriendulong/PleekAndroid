@@ -1056,17 +1056,22 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
 
         @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        public void onScroll(AbsListView view, final int firstVisibleItem, int visibleItemCount, int totalItemCount) {
             //anim layout CameraView
             if((view != null && view.getChildAt(1) != null)) {
-                final boolean isVisible = firstVisibleItem <= 1;
+                final boolean isVisible = firstVisibleItem < 4;
 
                 Runnable updateRunnable = new Runnable() {
                     @Override
                     public void run() {
                         if (isVisible) {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                            mlpCamera.topMargin = (int) (1 * screen.getDensity()) + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop());
+
+                            if (firstVisibleItem == 0) {
+                                mlpCamera.topMargin = (int) (1 * screen.getDensity()) + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop());
+                            } else {
+                                mlpCamera.topMargin = gridViewPiki.getChildAt(firstVisibleItem).getTop() - screen.getWidth() / 2;
+                            }
 
                             layoutCamera.setLayoutParams(mlpCamera);
                             if (isVisible && !isPreviewVisible) {
@@ -1308,14 +1313,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         viewShare = screen.adapt(viewShare);
         layout.addView(viewShare);
 
-        ImageView iconPiki = (ImageView) viewShare.findViewById(R.id.icon_piki);
+        LinearLayout iconPiki = (LinearLayout) viewShare.findViewById(R.id.icon_piki);
         LinearLayout layoutReplies = (LinearLayout) viewShare.findViewById(R.id.layoutReplies);
         TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
         TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
         TextView txtReplies = (TextView) viewShare.findViewById(R.id.txtReplies);
         if (iconPiki != null && layout == smallLayoutShare) {
             iconPiki.setVisibility(View.GONE);
-            layoutReplies.setVisibility(View.GONE);
+
+            if (layoutReplies != null) {
+                layoutReplies.setVisibility(View.GONE);
+            }
         } else {
             txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
             txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
