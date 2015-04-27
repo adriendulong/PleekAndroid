@@ -234,6 +234,6 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 	}
 
     public interface OnEmojiFontClickListener {
-        void onEmojiFontClick(Overlay overlay);
+        void onEmojiFontClick(Overlay overlay, float size);
     }
 }

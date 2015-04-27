@@ -16,8 +16,9 @@
             android:layout_height="match_parent"
             android:text="YO"
             android:textColor="@color/blanc"
-            android:textSize="30dp"
-            android:gravity="center" />
+            android:textSize="40dp"
+            android:gravity="center"
+            android:layout_centerInParent="true" />
 
         <ImageView
             android:id="@+id/imgSelected"

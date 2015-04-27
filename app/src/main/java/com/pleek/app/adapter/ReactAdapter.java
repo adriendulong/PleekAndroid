@@ -102,7 +102,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         surfaceView.setZOrderOnTop(true);
 
         mFlipAnimator = ValueAnimator.ofFloat(0f, 1f);
-        mFlipAnimator.setDuration(300);
+        mFlipAnimator.setDuration(250);
     }
 
     @Override
@@ -155,10 +155,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                     vh.progressBar.setVisibility(View.VISIBLE);
 
                     if (react.getUrlPhoto() != null) { //is Parse React
+                        if (vh.customTarget != null) Picasso.with(context).cancelRequest(vh.customTarget);
+
                         PicassoUtils.with(context)
                             .load(react.getUrlPhoto())
                             .resize(widthPiki, heightPiki)
-                            .into(new CustomTarget(vh));
+                            .into(vh.customTarget);
 
                         vh.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
                         react.loadVideoToTempFile(context);
@@ -745,11 +747,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         TextViewFont txtNBLikesFront;
         @InjectView(R.id.layoutNBLikesFront)
         LinearLayout layoutNBLikesFront;
+        CustomTarget customTarget;
 
         public ReactViewHolder(View itemView) {
             super(itemView);
-
             ButterKnife.inject(this, itemView);
+            customTarget = new CustomTarget(this);
         }
     }
 }

@@ -2,12 +2,14 @@ package com.pleek.app.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.widget.TextViewFont;
@@ -32,6 +34,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
     private String mSelectedId;
     private int mSize;
     private EmojisFontsPopup.OnEmojiFontClickListener mOnEmojiFontClickListener;
+    private TextViewFont txtTest;
 
     public EmojisFontsAdapter(Context context, List<T> views, int type, int keyboardHeight) {
         this.mViews = views;
@@ -40,6 +43,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
         mType = type;
         mKeyboardHeight = keyboardHeight;
         mSize = mKeyboardHeight / 2;
+        txtTest = new TextViewFont(context);
     }
 
     @Override
@@ -103,7 +107,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                         notifyDataSetChanged();
 
                         if (mOnEmojiFontClickListener != null) {
-                            mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : emoji);
+                            mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : emoji, 0);
                         }
                     }
                 });
@@ -114,7 +118,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 holderE.imgSelected.setVisibility(View.GONE);
             }
         } else if (mViews.get(position) instanceof Font) {
-            FontsViewHolder holderF = (FontsViewHolder) holder;
+            final FontsViewHolder holderF = (FontsViewHolder) holder;
             final Font font = (Font) mViews.get(position);
 
             if (font != null) {
@@ -123,6 +127,30 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 holderF.txtFont.setCustomFont(mContext, font.getName());
                 holderF.txtFont.setTextColor(mContext.getResources().getColor(font.getColor()));
                 holderF.txtFont.setVisibility(View.VISIBLE);
+                holderF.txtFont.setIncludeFontPadding(false);
+
+                // We get the font Impact, that is the reference for the text's height
+                Font impact = (Font) mViews.get(5);
+                txtTest.setText(holderF.txtFont.getText());
+                txtTest.setCustomFont(mContext, impact.getName());
+                float refHeight = 100;
+                float actualHeight = holderF.txtFont.getPaint().measureText("YO");
+
+                if (actualHeight < refHeight - 5) {
+                    while (actualHeight < refHeight - 5) {
+                        float textSize = holderF.txtFont.getTextSize();
+                        textSize++;
+                        holderF.txtFont.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+                        actualHeight = holderF.txtFont.getPaint().measureText("YO");
+                    }
+                } else if (actualHeight > refHeight + 5) {
+                    while (actualHeight > refHeight + 5) {
+                        float textSize = holderF.txtFont.getTextSize();
+                        textSize--;
+                        holderF.txtFont.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+                        actualHeight = holderF.txtFont.getPaint().measureText("YO");
+                    }
+                }
 
                 ViewGroup.LayoutParams params = holderF.txtFont.getLayoutParams();
                 params.width = mSize;
@@ -148,7 +176,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                         notifyDataSetChanged();
 
                         if (mOnEmojiFontClickListener != null) {
-                            mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : font);
+                            mOnEmojiFontClickListener.onEmojiFontClick(mSelectedId.equals("") ? null : font, holderF.txtFont.getTextSize());
                         }
                     }
                 });

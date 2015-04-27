@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -1692,7 +1693,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         popupEmoji.setOnEmojiFontClickedListener(new EmojisFontsPopup.OnEmojiFontClickListener() {
 
             @Override
-            public void onEmojiFontClick(Overlay overlay) {
+            public void onEmojiFontClick(Overlay overlay, float size) { // size not used here
                 if (overlay instanceof Emoji) {
                     Emoji emoji = (Emoji) overlay;
 
@@ -1744,8 +1745,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         fonts.add(new Font("banzaibros.otf", R.color.emojiGreen));
         fonts.add(new Font("voltebold.otf", R.color.blanc));
         fonts.add(new Font("voltebold.otf", R.color.emojiLightBlue));
-        fonts.add(new Font("trashhand2.ttf", R.color.blanc));
-        fonts.add(new Font("trashhand2.ttf", R.color.emojiRed));
+        fonts.add(new Font("trashhand.otf", R.color.blanc));
+        fonts.add(new Font("trashhand.otf", R.color.emojiRed));
         fonts.add(new Font("impact.ttf", R.color.blanc));
         fonts.add(new Font("impact.ttf", R.color.emojiGreenFluo));
         fonts.add(new Font("plasticapro.otf", R.color.blanc));
@@ -1762,7 +1763,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         popupFont.setOnEmojiFontClickedListener(new EmojisFontsPopup.OnEmojiFontClickListener() {
 
             @Override
-            public void onEmojiFontClick(Overlay overlay) {
+            public void onEmojiFontClick(Overlay overlay, float size) {
                 if (overlay instanceof Font) {
                     Font font = (Font) overlay;
 
@@ -1773,8 +1774,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             edittexteReact.setText("Yo");
                         }
 
+                        edittexteReact.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
                         edittexteReact.setTextColor(getResources().getColor(font.getColor()));
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
+                        edittexteReact.setIncludeFontPadding(false);
                         edittexteReact.setSelection(edittexteReact.getText().length());
                     } else {
                         imgViewReact.setVisibility(View.GONE);
