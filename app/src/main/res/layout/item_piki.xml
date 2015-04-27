@@ -83,11 +83,25 @@
                 android:background="@color/blanc"
                 android:layout_weight="1">
 
-                <com.pleek.app.views.BlockingImageView
-                    android:id="@+id/imgPiki"
+                <RelativeLayout
                     android:layout_width="@dimen/img_piki_width"
-                    android:layout_height="@dimen/img_piki_width"
-                    android:background="@color/grisSeparate"/>
+                    android:layout_height="@dimen/img_piki_width">
+
+                    <com.pleek.app.views.BlockingImageView
+                        android:id="@+id/imgPiki"
+                        android:layout_width="@dimen/img_piki_width"
+                        android:layout_height="@dimen/img_piki_width"
+                        android:background="@color/grisSeparate"/>
+
+                    <ImageView
+                        android:id="@+id/imgPlay"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_centerInParent="true"
+                        android:src="@drawable/picto_play"
+                        android:visibility="gone" />
+
+                </RelativeLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -96,7 +110,7 @@
                     android:gravity="bottom"
                     android:paddingLeft="20dp"
                     android:paddingBottom="20dp"
-                    android:paddingRight="20dp">
+                    android:paddingRight="10dp">
 
 
                     <LinearLayout
@@ -187,10 +201,11 @@
                                 android:paddingLeft="7dp"
                                 android:paddingRight="7dp"
                                 android:gravity="center"
-                                android:textSize="16dp"
+                                android:textSize="13dp"
+                                android:singleLine="true"
                                 app:customFont="proximanova_sbold.otf"
                                 android:background="@drawable/gris_label_back"
-                                android:textColor="@color/blanc"/>
+                                android:textColor="@color/blanc" />
 
                             <com.goandup.lib.widget.TextViewFont
                                 android:id="@+id/txtUnread"
@@ -200,17 +215,15 @@
                                 android:paddingLeft="7dp"
                                 android:paddingRight="7dp"
                                 android:gravity="center"
-                                android:textSize="16dp"
+                                android:textSize="13dp"
+                                android:singleLine="true"
                                 app:customFont="proximanova_sbold.otf"
                                 android:background="@drawable/second_color_label_back"
                                 android:textColor="@color/blanc" />
 
                         </RelativeLayout>
-
                     </LinearLayout>
-
                 </LinearLayout>
-
             </LinearLayout>
 
             <RelativeLayout

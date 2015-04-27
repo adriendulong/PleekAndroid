@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -12,12 +11,13 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.TranslateAnimation;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -166,6 +166,16 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         });
 
         editSearch = (EditText)findViewById(R.id.editSearch);
+        editSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    editSearch.requestFocus();
+                }
+
+                return true;
+            }
+        });
         editSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
@@ -175,27 +185,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
 
             @Override
             public void afterTextChanged(Editable editable) {
-                String filtreSearch = editable.toString();
-
-                if (filtreSearch != null && filtreSearch.length() >= 3) {
-                    if (lastQueryRunnable != null) handler.removeCallbacks(lastQueryRunnable);
-                    lastQueryRunnable = new QueryRunnable(filtreSearch);
-                    handler.postDelayed(lastQueryRunnable, TIMER_QUERY);
-                    searchLayout.setVisibility(View.VISIBLE);
-                    searchOverlay.setBackgroundResource(R.color.blanc);
-                    txtName.setText("@" + filtreSearch);
-                    txtUsername.setText("");
-                    progressBar.setVisibility(View.VISIBLE);
-                    imgAction.setVisibility(View.GONE);
-                } else {
-                    txtUsername.setText("");
-                    txtName.setText("");
-                    imgAction.setImageDrawable(null);
-                    searchLayout.setVisibility(View.GONE);
-                    searchOverlay.setBackgroundResource(R.color.whiteOverlay);
-                    progressBar.setVisibility(View.INVISIBLE);
-                    imgAction.setVisibility(View.GONE);
-                }
+                launchSearch();
             }
         });
         tabIndicator = (UnderlinePageIndicator) findViewById(R.id.tabIndicator);
@@ -249,6 +239,30 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         viewPager.setOffscreenPageLimit(3);
         tabIndicator.setViewPager(viewPager);
         tabIndicator.setFades(false);
+    }
+
+    private void launchSearch() {
+        String filtreSearch = editSearch.getText().toString();
+
+        if (filtreSearch != null && filtreSearch.length() >= 3) {
+            if (lastQueryRunnable != null) handler.removeCallbacks(lastQueryRunnable);
+            lastQueryRunnable = new QueryRunnable(filtreSearch);
+            handler.postDelayed(lastQueryRunnable, TIMER_QUERY);
+            searchLayout.setVisibility(View.VISIBLE);
+            searchOverlay.setBackgroundResource(R.color.blanc);
+            txtName.setText("@" + filtreSearch);
+            txtUsername.setText("");
+            progressBar.setVisibility(View.VISIBLE);
+            imgAction.setVisibility(View.GONE);
+        } else {
+            txtUsername.setText("");
+            txtName.setText("");
+            imgAction.setImageDrawable(null);
+            searchLayout.setVisibility(View.GONE);
+            searchOverlay.setBackgroundResource(R.color.whiteOverlay);
+            progressBar.setVisibility(View.INVISIBLE);
+            imgAction.setVisibility(View.GONE);
+        }
     }
 
     private void updateNbYouAdded(int i) {
@@ -399,7 +413,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     }
 
     public void initPage2() {
-        page2.init(true);
+        page2.init(false);
     }
 
     public void reloadPage2() {

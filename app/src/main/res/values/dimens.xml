@@ -8,4 +8,5 @@
 
     <!-- KEYBOARD -->
     <dimen name="keyboard_height">250dp</dimen>
+    <dimen name="txt_new">16dp</dimen>
 </resources>
