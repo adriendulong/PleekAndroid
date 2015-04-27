@@ -33,7 +33,7 @@
     <color name="certifiedBlue">#2196F3</color>
     <color name="friendsHeaderYellow">#FFFCE0</color>
     <color name="friendsHeaderYellowTxt">#F9A825</color>
-    <color name="whiteOverlay">#B3FFFFFF</color>
+    <color name="whiteOverlay">#CCFFFFFF</color>
     <color name="subtitleTopBar">#1F2967</color>
     <color name="emojiFontBgNormal">#353637</color>
     <color name="emojiFontBgSelected">#2F2F30</color>

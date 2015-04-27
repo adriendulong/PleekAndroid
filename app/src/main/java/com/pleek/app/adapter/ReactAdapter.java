@@ -43,6 +43,7 @@ import com.squareup.picasso.Target;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -103,6 +104,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
 
         mFlipAnimator = ValueAnimator.ofFloat(0f, 1f);
         mFlipAnimator.setDuration(250);
+
+        likeReactSet = new HashSet<String>();
     }
 
     @Override

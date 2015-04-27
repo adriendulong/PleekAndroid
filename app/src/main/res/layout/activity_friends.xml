@@ -297,7 +297,9 @@
         android:layout_height="match_parent"
         android:background="@color/whiteOverlay"
         android:layout_below="@id/topBarLayout"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:focusableInTouchMode="true"
+        android:clickable="true">
 
         <RelativeLayout
            android:id="@+id/searchLayout"
