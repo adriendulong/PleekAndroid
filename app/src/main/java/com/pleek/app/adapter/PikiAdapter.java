@@ -119,7 +119,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
                 if (piki != null) { // If is not placeholder
                     PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
-                    vh.txtUserName.setText(context.getString(R.string.home_from) + " " + piki.getName());
+                    vh.txtUserName.setText(piki.getName());
                     vh.txtDeleteOn.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
                     vh.txtDeleteOff.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
 

@@ -18,12 +18,15 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
@@ -236,52 +239,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                     vh.layoutLike.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (!hasLikedReact(react)) {
-                                likeReactSet.add(react.getId());
-                                AnimatorSet animatorSet = new AnimatorSet();
-
-                                ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(vh.imgLike, "scaleX", 0.2f, 1f);
-                                bounceAnimX.setDuration(300);
-                                bounceAnimX.setInterpolator(OVERSHOOT_INTERPOLATOR);
-
-                                ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(vh.imgLike, "scaleY", 0.2f, 1f);
-                                bounceAnimY.setDuration(300);
-                                bounceAnimY.setInterpolator(OVERSHOOT_INTERPOLATOR);
-                                bounceAnimY.addListener(new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationStart(Animator animation) {
-                                        vh.imgLike.setImageResource(R.drawable.picto_like_done);
-                                        vh.txtLike.setTextColor(Color.BLACK);
-                                        react.incrementLike();
-                                        vh.txtLike.setText("" + react.getLikeCount());
-                                        vh.txtNBLikesFront.setText("" + react.getLikeCount());
-
-                                        if (listener != null) {
-                                            listener.onLikeReact(i);
-                                        }
-
-                                        notifyDataSetChanged();
-                                    }
-                                });
-
-                                animatorSet.play(bounceAnimX).with(bounceAnimY);
-                                animatorSet.start();
-                            } else {
-                                likeReactSet.remove(react.getId());
-                                vh.imgLike.setImageResource(R.drawable.picto_like_grey);
-                                vh.txtLike.setTextColor(context.getResources().getColor(R.color.grisTextDisable));
-                                react.decrementLike();
-                                react.setHasLiked(false);
-
-                                if (listener != null) {
-                                    listener.onDislikeReact(i);
-                                }
-
-                                notifyDataSetChanged();
-                            }
-
-                            vh.txtLike.setText("" + react.getLikeCount());
-                            vh.txtNBLikesFront.setText("" + react.getLikeCount());
+                            likeAnim(react, vh, i);
                         }
                     });
 
@@ -303,11 +261,65 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             if (!isPlaceHolder && i > 0) {
                 vh.itemView.setTag(new Integer(i - 1));
                 vh.itemView.setTag(R.string.tag_downpresse, new DownRunnable(vh.itemView));
+                vh.itemView.setTag(R.string.tag_longpresse, new LongpressRunnable(listReact.get(i - 1), vh, i));
                 vh.itemView.setOnTouchListener(this);
             }
         }
 
         return view;
+    }
+
+    private void likeAnim(final Reaction react, final ReactViewHolder vh, final int position) {
+        if (!hasLikedReact(react)) {
+            AnimatorSet animatorSet = new AnimatorSet();
+
+            ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(vh.imgLike, "scaleX", 0.2f, 1f);
+            bounceAnimX.setDuration(300);
+            bounceAnimX.setInterpolator(OVERSHOOT_INTERPOLATOR);
+
+            ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(vh.imgLike, "scaleY", 0.2f, 1f);
+            bounceAnimY.setDuration(300);
+            bounceAnimY.setInterpolator(OVERSHOOT_INTERPOLATOR);
+            bounceAnimY.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    like(true, react, vh, position);
+                }
+            });
+
+            animatorSet.play(bounceAnimX).with(bounceAnimY);
+            animatorSet.start();
+        } else {
+            like(false, react, vh, position);
+        }
+
+        vh.txtLike.setText("" + react.getLikeCount());
+        vh.txtNBLikesFront.setText("" + react.getLikeCount());
+    }
+
+    private void like(boolean isLike, final Reaction react, final ReactViewHolder vh, final int position) {
+        if (isLike) {
+            likeReactSet.add(react.getId());
+            react.incrementLike();
+            react.setHasLiked(true);
+            vh.txtNBLikesFront.setText("" + react.getLikeCount());
+
+            if (listener != null) {
+                listener.onLikeReact(position);
+            }
+
+            notifyDataSetChanged();
+        } else {
+            likeReactSet.remove(react.getId());
+            react.decrementLike();
+            react.setHasLiked(false);
+
+            if (listener != null) {
+                listener.onDislikeReact(position);
+            }
+
+            notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -319,10 +331,12 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             final Reaction react = listReact.get(position);
 
             DownRunnable down = (DownRunnable) view.getTag(R.string.tag_downpresse);
+            LongpressRunnable longpress = (LongpressRunnable)view.getTag(R.string.tag_longpresse);
 
             if (action == MotionEvent.ACTION_DOWN) {
                 //highlight with 90ms delay. Because I dont want highlight if user scroll
                 handler.postDelayed(down, DOWN_TIME);
+                handler.postDelayed(longpress, LOGNPRESS_TIME);
 
                 if (isLastTapForDoubleTap && listener != null) {
                     listener.doubleTapReaction(listReact.get(position));
@@ -332,7 +346,9 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 }
             } else if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
                 //finger move, cancel highlight
+                final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
                 handler.removeCallbacks(down);
+                handler.removeCallbacks(longpress);
 
                 itemMarkDown(view, false);
             }
@@ -341,24 +357,26 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                 // highlight just after clicked during 90ms
                 final ReactViewHolder vh = (ReactViewHolder) view.getTag(R.id.vh);
 
-                if (!isFlipping()) {
-                    flipLogic(vh, react);
-                }
-
-                if (!react.isVideo() || react.equals(currentReactPlay)) {
-                    itemMarkDown(view, true);
-                }
-
-                handler.postDelayed(down, DOWN_TIME);
-
-                //send to listener
-                if (position >= 0) {
-                    if (react.isVideo()) {
-                        if (react.equals(currentReactPlay)) stopCurrentVideo();
-                        else playVideo(react, view);
+                if (!longpress.wasPressedLong) {
+                    if (!isFlipping()) {
+                        flipLogic(vh, react);
                     }
 
-                    else if (listener != null) listener.clickOnReaction(react);
+                    if (!react.isVideo() || react.equals(currentReactPlay)) {
+                        itemMarkDown(view, true);
+                    }
+
+                    handler.postDelayed(down, DOWN_TIME);
+
+                    //send to listener
+                    if (position >= 0) {
+                        if (react.isVideo()) {
+                            if (react.equals(currentReactPlay)) stopCurrentVideo();
+                            else playVideo(react, view);
+                        } else if (listener != null) listener.clickOnReaction(react);
+                    }
+                } else {
+                    longpress.wasPressedLong = false;
                 }
             }
         }
@@ -476,6 +494,73 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             View layoutOverlay = view.findViewById(R.id.layoutOverlay);
             boolean isVisible = layoutOverlay != null && layoutOverlay.getVisibility() == View.VISIBLE;
             itemMarkDown(view, !isVisible);
+        }
+    }
+
+    private final int LOGNPRESS_TIME = 700;
+    class LongpressRunnable implements Runnable {
+
+        private Reaction react;
+        private ReactViewHolder vh;
+        private int position;
+        private AnimatorSet animatorSet1;
+        private AnimatorSet animatorSet2;
+        private boolean wasPressedLong;
+
+        public LongpressRunnable(Reaction react, ReactViewHolder vh, int position) {
+            this.react = react;
+            this.vh = vh;
+            this.position = position;
+            animatorSet1 = new AnimatorSet();
+            animatorSet2 = new AnimatorSet();
+        }
+
+        @Override
+        public void run() {
+            wasPressedLong = true;
+            animatorSet1.cancel();
+            animatorSet2.cancel();
+            animatorSet1 = new AnimatorSet();
+            animatorSet2 = new AnimatorSet();
+
+            ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(vh.imgLikeBig, "scaleX", 0.2f, 1f);
+            bounceAnimX.setDuration(700);
+            bounceAnimX.setInterpolator(OVERSHOOT_INTERPOLATOR);
+
+            ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(vh.imgLikeBig, "scaleY", 0.2f, 1f);
+            bounceAnimY.setDuration(700);
+            bounceAnimY.setInterpolator(OVERSHOOT_INTERPOLATOR);
+            bounceAnimY.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    if (!hasLikedReact(react)) {
+                        like(true, react, vh, position);
+                    }
+                }
+
+                public void onAnimationEnd(Animator animation) {
+                    ObjectAnimator bounceAnimX = ObjectAnimator.ofFloat(vh.imgLikeBig, "scaleX", 1f, 0.1f);
+                    bounceAnimX.setDuration(300);
+                    bounceAnimX.setInterpolator(new AccelerateInterpolator());
+
+                    ObjectAnimator bounceAnimY = ObjectAnimator.ofFloat(vh.imgLikeBig, "scaleY", 1f, 0.1f);
+                    bounceAnimY.setDuration(300);
+                    bounceAnimY.setInterpolator(new AccelerateInterpolator());
+                    bounceAnimY.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            vh.imgLikeBig.setVisibility(View.GONE);
+                        }
+                    });
+
+                    animatorSet2.play(bounceAnimX).with(bounceAnimY);
+                    animatorSet2.start();
+                }
+            });
+
+            vh.imgLikeBig.setVisibility(View.VISIBLE);
+            animatorSet1.play(bounceAnimX).with(bounceAnimY);
+            animatorSet1.start();
         }
     }
 
@@ -732,6 +817,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         RelativeLayout layoutLike;
         @InjectView(R.id.imgLike)
         ImageView imgLike;
+        @InjectView(R.id.imgLikeBig)
+        ImageView imgLikeBig;
         @InjectView(R.id.txtLike)
         TextViewFont txtLike;
         @InjectView(R.id.layoutReport)

@@ -101,7 +101,7 @@
                             android:id="@+id/edittexteReact"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:inputType="textNoSuggestions|textVisiblePassword|textCapCharacters"
+                            android:inputType="textNoSuggestions|textVisiblePassword"
                             android:textColor="@color/blanc"
                             android:textSize="30dp"
                             android:textCursorDrawable="@drawable/cursor_big"

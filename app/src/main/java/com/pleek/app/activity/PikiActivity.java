@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
+import android.text.InputType;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -32,6 +33,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -1811,8 +1813,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         edittexteReact.setTextColor(getResources().getColor(font.getColor()));
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
                         edittexteReact.setIncludeFontPadding(false);
+
+                        if (font.getName().equals("voltebold.otf") || font.getName().equals("story.otf")) {
+                            edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                        } else {
+                            edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                        }
+
                         edittexteReact.setSelection(edittexteReact.getText().length());
-                        edittexteReact.setAllCaps(true);
                     } else {
                         imgViewReact.setVisibility(View.GONE);
                         imgViewReact.setImageDrawable(null);

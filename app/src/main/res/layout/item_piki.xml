@@ -112,7 +112,6 @@
                     android:paddingBottom="20dp"
                     android:paddingRight="10dp">
 
-
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
@@ -120,22 +119,43 @@
                         android:layout_weight="1"
                         android:gravity="center_vertical">
 
-                        <com.goandup.lib.widget.TextViewFont
-                            android:id="@+id/txtUserName"
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:text="@string/phonenumber_title"
-                            android:gravity="center_vertical"
-                            android:textSize="20dp"
-                            app:customFont="proximanova_sbold.otf"
-                            android:textColor="@color/noir" />
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <com.goandup.lib.widget.TextViewFont
+                                android:id="@+id/txtFrom"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:gravity="bottom"
+                                android:textSize="18dp"
+                                app:customFont="proximanova_sbold.otf"
+                                android:textColor="@color/grisLabele"
+                                android:text="@string/home_from" />
+
+                            <com.goandup.lib.widget.TextViewFont
+                                android:id="@+id/txtUserName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:text="@string/phonenumber_title"
+                                android:textSize="20dp"
+                                app:customFont="proximanova_sbold.otf"
+                                android:textColor="@color/noir"
+                                android:layout_marginLeft="5dp"
+                                android:layout_toRightOf="@id/txtFrom" />
+
+                        </LinearLayout>
 
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="10dp"
                             android:layout_marginTop="1dp"
-                            android:src="@drawable/picto_arrow_right_black"/>
+                            android:src="@drawable/picto_arrow_right_black"
+                            android:layout_toRightOf="@id/txtUserName"
+                            android:layout_centerVertical="true" />
 
                     </LinearLayout>
 
@@ -175,7 +195,6 @@
                             android:text="@string/home_firstreply"
                             android:gravity="center"
                             android:textSize="14dp"
-                            android:layout_marginLeft="10dp"
                             app:customFont="proximanova_sbold.otf"
                             android:background="@drawable/gris_label_back"
                             android:textColor="@color/blanc"

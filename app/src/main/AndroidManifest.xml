@@ -144,7 +144,7 @@
                 <!--<action android:name="android.intent.action.USER_PRESENT" />-->
             <!--</intent-filter>-->
         <!--</receiver>-->
-        <receiver android:name="com.parse.ParsePushBroadcastReceiver"
+        <receiver android:name="com.pleek.app.receivers.PleekPushReceiver"
                   android:exported="false">
             <intent-filter>
                 <action android:name="com.parse.push.intent.RECEIVE" />
@@ -179,6 +179,7 @@
         <!-- MIXPANEL -->
         <activity android:name="com.mixpanel.android.surveys.SurveyActivity" />
 
+        <meta-data android:name="com.parse.push.notification_icon" android:resource="@drawable/icon_piki" />
     </application>
 
 </manifest>
