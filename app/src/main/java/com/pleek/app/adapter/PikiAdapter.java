@@ -21,12 +21,14 @@ import com.pleek.app.R;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ReadDateProvider;
 import com.pleek.app.utils.PicassoUtils;
+import com.pleek.app.utils.StringUtils;
 
 import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import me.grantland.widget.AutofitTextView;
 
 /**
  * Created by nicolas on 19/12/14.
@@ -119,7 +121,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
                 if (piki != null) { // If is not placeholder
                     PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
-                    vh.txtUserName.setText(piki.getName());
+                    vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
                     vh.txtDeleteOn.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
                     vh.txtDeleteOff.setText(piki.iamOwner() ? R.string.home_delete : R.string.home_hide);
 
@@ -303,7 +305,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         @InjectView(R.id.imgPlay)
         ImageView imgPlay;
         @InjectView(R.id.txtUserName)
-        TextViewFont txtUserName;
+        AutofitTextView txtUserName;
         @InjectView(R.id.imgPiki1)
         ImageView imgPiki1;
         @InjectView(R.id.imgPiki2)

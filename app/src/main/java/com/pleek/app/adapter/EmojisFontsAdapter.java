@@ -32,6 +32,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
     private int mType;
     private int mKeyboardHeight;
     private String mSelectedId;
+
     private int mSize;
     private EmojisFontsPopup.OnEmojiFontClickListener mOnEmojiFontClickListener;
     private TextViewFont txtTest;
@@ -152,8 +153,6 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                     }
                 }
 
-                System.out.println("Position : " + position + " HEIGHT : " + holderF.txtFont.getPaint().measureText("YO"));
-
                 ViewGroup.LayoutParams params = holderF.txtFont.getLayoutParams();
                 params.width = mSize;
                 params.height = mSize;
@@ -236,5 +235,14 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
 
     public void setSelectedId(String selectedId) {
         this.mSelectedId = selectedId;
+    }
+
+    public int getKeyboardHeight() {
+        return mKeyboardHeight;
+    }
+
+    public void setKeyboardHeight(int mKeyboardHeight) {
+        this.mKeyboardHeight = mKeyboardHeight;
+        this.mSize = this.mKeyboardHeight / 2;
     }
 }

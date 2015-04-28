@@ -14,6 +14,7 @@ import java.util.List;
 public class Piki extends VideoBean
 {
     private String name;
+    private String firstName;
     private int nbReact;
     private int nbRecipient;
     private String urlPiki;
@@ -31,6 +32,7 @@ public class Piki extends VideoBean
 
         id = parseObject.getObjectId();
         name = parseObject.containsKey("user") ? parseObject.getParseUser("user").getUsername() : "NULL";
+        firstName = parseObject.containsKey("user") ? parseObject.getParseUser("user").getString("name") : "";
         nbReact = parseObject.getInt("nbReaction");
         frinedsId = parseObject.getList("recipients");
         if(frinedsId == null) frinedsId = new ArrayList<String>();
@@ -162,5 +164,13 @@ public class Piki extends VideoBean
 
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 }

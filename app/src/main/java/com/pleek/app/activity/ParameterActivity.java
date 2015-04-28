@@ -17,7 +17,10 @@ import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.DownTouchListener;
 import com.parse.Parse;
 import com.parse.ParseInstallation;
+import com.parse.ParseUser;
 import com.pleek.app.R;
+import com.pleek.app.common.Constants;
+import com.pleek.app.utils.StringUtils;
 
 import java.util.List;
 import java.util.Timer;
@@ -27,12 +30,15 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by nicolas on 25/02/15.
  */
-public class ParameterActivity extends ParentActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
-{
+public class ParameterActivity extends ParentActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
     private TextView txtVersion;
     private View btnTopBar;
     private View btnUsername;
     private View btnNotification;
+    private View btnPopularAccounts;
+    private View btnName;
+    private TextView txtUsername;
+    private TextView txtName;
     private CheckBox chbxNotif;
     private View btnEmail;
     private View btnTwitter;
@@ -41,8 +47,7 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
     private View hand;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parameter);
 
@@ -50,8 +55,7 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
         init();
     }
 
-    private void setup()
-    {
+    private void setup() {
         int colorDown = getResources().getColor(R.color.overlay);
         txtVersion = (TextView) findViewById(R.id.txtVersion);
         txtVersion.setText("V "+ Utile.getVersionName(this));
@@ -61,6 +65,14 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
         btnUsername = findViewById(R.id.btnUsername);
         btnUsername.setOnTouchListener(new DownTouchListener(colorDown));
         btnUsername.setOnClickListener(this);
+        btnName = findViewById(R.id.btnName);
+        btnName.setOnTouchListener(new DownTouchListener(colorDown));
+        btnName.setOnClickListener(this);
+        btnPopularAccounts = findViewById(R.id.btnPopularAccounts);
+        btnPopularAccounts.setOnTouchListener(new DownTouchListener(colorDown));
+        btnPopularAccounts.setOnClickListener(this);
+        txtUsername = (TextView) findViewById(R.id.txtUserName);
+        txtName = (TextView) findViewById(R.id.txtName);
         btnNotification = findViewById(R.id.btnNotification);
         btnNotification.setOnTouchListener(new DownTouchListener(colorDown));
         btnNotification.setOnClickListener(this);
@@ -83,9 +95,9 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
 
     final Handler handHandler = new Handler();
     Runnable handRunnable = null;
-    private void init()
-    {
+    private void init() {
         chbxNotif.setChecked(ParseInstallation.getCurrentInstallation().getBoolean("notificationsEnabled"));
+        updateUser();
 
 //        handRunnable = new Runnable()
 //        {
@@ -99,26 +111,21 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
     }
 
     @Override
-    public void onClick(View view)
-    {
-        if(view == btnTopBar)
-        {
+    public void onClick(View view) {
+        if (view == btnTopBar) {
             finish();
-        }
-        else if(view == btnUsername)
-        {
-            startActivity(new Intent(this, ChangeUsernameActivity.class));
+        } else if (view == btnUsername) {
+            startActivityForResult(new Intent(this, ChangeUsernameActivity.class), 0);
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-        }
-        else if(view == btnNotification)
-        {
+        } else if (view == btnName) {
+            startActivityForResult(new Intent(this, ChangeNameActivity.class), 0);
+            overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        } else if (view == btnNotification) {
             chbxNotif.setChecked(!chbxNotif.isChecked());
             ParseInstallation installation = ParseInstallation.getCurrentInstallation();
             installation.put("notificationsEnabled", !chbxNotif.isChecked());
             installation.saveInBackground();
-        }
-        else if(view == btnEmail)
-        {
+        } else if (view == btnEmail) {
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("message/rfc822");
             i.putExtra(Intent.EXTRA_EMAIL, new String[]{getString(R.string.param_mail_to)});
@@ -126,9 +133,7 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
             i.putExtra(Intent.EXTRA_TEXT, getString(R.string.param_mail_texte));
 
             startActivity(Intent.createChooser(i, getString(R.string.param_mail)));
-        }
-        else if(view == btnTwitter)
-        {
+        } else if (view == btnTwitter) {
             String text = getString(R.string.param_twitter_texte);
 
             Intent tweetIntent = new Intent(Intent.ACTION_SEND);
@@ -139,62 +144,72 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
             List<ResolveInfo> resolvedInfoList = packManager.queryIntentActivities(tweetIntent,  PackageManager.MATCH_DEFAULT_ONLY);
 
             boolean resolved = false;
-            for(ResolveInfo resolveInfo: resolvedInfoList)
-            {
-                if(resolveInfo.activityInfo.packageName.startsWith("com.twitter.android"))
-                {
+            for (ResolveInfo resolveInfo: resolvedInfoList) {
+                if (resolveInfo.activityInfo.packageName.startsWith("com.twitter.android")) {
                     tweetIntent.setClassName( resolveInfo.activityInfo.packageName,  resolveInfo.activityInfo.name );
                     resolved = true;
                     break;
                 }
             }
-            if(resolved)
-            {
+
+            if (resolved) {
                 startActivity(tweetIntent);
-            }
-            else
-            {
+            } else {
                 Intent i = new Intent();
                 i.putExtra(Intent.EXTRA_TEXT, text);
                 i.setAction(Intent.ACTION_VIEW);
                 i.setData(Uri.parse("https://twitter.com/intent/tweet?text="+text));
                 startActivity(i);
             }
-        }
-        else if(view == btnSendapp)
-        {
+        } else if (view == btnSendapp) {
             Intent i = new Intent(Intent.ACTION_SEND);
             i.putExtra(Intent.EXTRA_TEXT, getString(R.string.param_sendapp_text));
             i.setType("text/plain");
             startActivity(Intent.createChooser(i, getString(R.string.param_sendapp)));
-        }
-        else if(view == txtGoandup)
-        {
+        } else if (view == txtGoandup) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://bit.ly/goandup_pleek")));
+        } else if (view == btnPopularAccounts) {
+            Intent intent = new Intent(this, AddUserActivity.class);
+            intent.putExtra(Constants.EXTRA_FROM_FRIENDS, true);
+            startActivity(intent);
         }
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton compoundButton, boolean b)
-    {
+    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
         ParseInstallation.getCurrentInstallation().put("notificationsEnabled", b);
         ParseInstallation.getCurrentInstallation().saveInBackground();
     }
 
     @Override
-    protected void onDestroy()
-    {
-//        try{
-//            handHandler.removeCallbacks(handRunnable);
-//        }catch (Exception e){}
-
+    protected void onDestroy() {
         super.onDestroy();
     }
 
     @Override
-    public void finish()
-    {
+    public void finish() {
         super.finish();
         overridePendingTransition(R.anim.slide_in_down, R.anim.slide_out_down);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        updateUser();
+    }
+
+    private void updateUser() {
+        ParseUser user = ParseUser.getCurrentUser();
+
+        if (user != null) {
+            txtUsername.setVisibility(View.VISIBLE);
+            txtUsername.setText(user.getUsername());
+
+            if (!StringUtils.isStringEmpty(user.getString("name"))) {
+                txtName.setVisibility(View.VISIBLE);
+                txtName.setText(user.getString("name"));
+            }
+        }
     }
 }

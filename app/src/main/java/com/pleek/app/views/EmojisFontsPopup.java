@@ -118,6 +118,7 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 	 */
 	public void showAtBottom(){
 		showAtLocation(mRootView, Gravity.BOTTOM, 0, 0);
+        mEmojisFontsRecycler.setAdapter(mEmojisFontsAdapter);
 	}
 
 	/**
@@ -178,6 +179,7 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 						if (mOnSoftKeyboardOpenCloseListener != null)
                             mOnSoftKeyboardOpenCloseListener.onKeyboardOpen(keyBoardHeight);
 					}
+                    updateAdapter(keyBoardHeight);
 
 					isOpened = true;
 
@@ -235,5 +237,19 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 
     public interface OnEmojiFontClickListener {
         void onEmojiFontClick(Overlay overlay, float size);
+    }
+
+    public void updateAdapter(int keyBoardHeight) {
+        this.keyBoardHeight = keyBoardHeight;
+
+        if (mEmojisFontsAdapter != null) {
+            mEmojisFontsAdapter.setKeyboardHeight(keyBoardHeight);
+            mEmojisFontsRecycler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mEmojisFontsAdapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 }

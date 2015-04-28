@@ -35,6 +35,7 @@
     <string name="username_check_no_network">Can\'t check your username for now. Try again ?</string>
     <string name="username_no_network">Can\'t create your account for now. Try again ?</string>
     <string name="username_is_sending">Your account is already being created</string>
+    <string name="name_no_network">Can\'t save your name for now. Try again ?</string>
 
     <!-- ADDUSER -->
     <string name="adduser_title">Surprise.</string>
@@ -119,6 +120,7 @@
     <!-- PARAMETER -->
     <string name="param_title">Settings</string>
     <string name="param_username">Change username</string>
+    <string name="param_name">Change my name</string>
     <string name="param_categ_notif">NOTIFICATIONS</string>
     <string name="param_notif">Notifications</string>
     <string name="param_categ_help">HELP / BUGS</string>
@@ -136,7 +138,12 @@
     <string name="param_mail_texte">I wanted to let you know that ...</string>
     <string name="param_twitter_texte">Hey @Pleekeapp</string>
     <string name="param_sendapp_text">Download Pleek! Communicate with your friends trough beautiful photos mozaics! http://pleekapp.com/getpleek</string>
+    <string name="param_popular">Popular accounts</string>
+    <string name="param_pleekid">Create my Pleek ID</string>
 
+    <string name="param_name_placeholder">\@name</string>
+    <string name="param_name_popup_title">ERROR</string>
+    <string name="param_name_saveok">Your new name has been saved</string>
 
     <!-- BEAN -->
     <string name="last_piki_ago">Last Pleek at _date_</string>

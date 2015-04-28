@@ -323,6 +323,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                 if (keyboardHeight > 100 && isKeyboardShow && popupEmoji != null && popupEmoji.isShowing()) {
                     popupEmoji.update(Screen.getInstance(PikiActivity.this).getWidth(), keyboardHeight);
+                    popupEmoji.updateAdapter(keyboardHeight);
+                }
+
+                if (keyboardHeight > 100 && isKeyboardShow && popupFont != null && popupFont.isShowing()) {
+                    popupFont.update(Screen.getInstance(PikiActivity.this).getWidth(), keyboardHeight);
+                    popupFont.updateAdapter(keyboardHeight);
                 }
 
                 if (keyboardHeight <= 100 && isKeyboardShow) { //keyboard HIDE
@@ -895,6 +901,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 hideEmojis();
                 imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
             }
+
+            popupEmoji.updateAdapter(keyboardHeight);
         } else if (view == imgFonts) {
             if (!popupFont.isShowing()) {
                 imgFonts.setImageResource(R.drawable.picto_fonts_selected_selector);
@@ -919,6 +927,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 hideFonts();
                 imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
             }
+
+            popupFont.updateAdapter(keyboardHeight);
         } else if (view == imgKeyboard) {
             imgFonts.setImageResource(R.drawable.picto_fonts_selector);
             imgStickers.setImageResource(R.drawable.picto_stickers_selector);
@@ -1815,9 +1825,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         edittexteReact.setIncludeFontPadding(false);
 
                         if (font.getName().equals("voltebold.otf") || font.getName().equals("story.otf")) {
-                            edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                            //edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE);
                         } else {
-                            edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                            //edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
                         }
 
                         edittexteReact.setSelection(edittexteReact.getText().length());

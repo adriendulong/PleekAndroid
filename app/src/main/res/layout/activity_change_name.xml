@@ -14,7 +14,7 @@
         <com.goandup.lib.widget.TextViewFont
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/param_username"
+            android:text="@string/param_name"
             android:textSize="20dp"
             app:customFont="proximanova_sbold.ttf"
             android:layout_weight="1"
@@ -51,20 +51,20 @@
     </RelativeLayout>
 
     <com.goandup.lib.widget.EditTextFont
-        android:id="@+id/editUsername"
+        android:id="@+id/editName"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textSize="25dp"
         android:textColor="@color/noir"
-        android:hint="@string/param_username_placeholder"
+        android:hint="@string/param_name_placeholder"
         android:background="@color/transparent"
         app:customFont="proximanova_sbold.otf"
         android:gravity="top"
         android:layout_margin="10dp"
         android:inputType="textFilter|textVisiblePassword"
         android:textCursorDrawable="@drawable/cursor"
-        android:maxLength="15"
-        android:digits="abcdefghijklmnopqrstuvwxyz0123456789"/>
+        android:maxLength="30"
+        android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ- "/>
 
 
 
