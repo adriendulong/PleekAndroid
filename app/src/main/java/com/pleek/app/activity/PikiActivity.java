@@ -308,9 +308,19 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     isKeyboardShow = true;
                     Utile.fadeIn(layoutActionBarKeyboard, 300);
 
-                    RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-                    p.topMargin =  - pikiHeader.getHeight() - gridViewPiki.getChildAt(0).getTop() + btnShare.getHeight();
-                    rootView.setLayoutParams(p);
+                    if (gridViewPiki.getFirstVisiblePosition() == 0 && adapter.getCount() <= 2) {
+                        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                        p.topMargin =  - pikiHeader.getHeight() + btnShare.getHeight();
+                        rootView.setLayoutParams(p);
+
+                        ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
+                        mlpCamera.topMargin = mlpCamera.topMargin - gridViewPiki.getChildAt(0).getTop();
+                        layoutCamera.setLayoutParams(mlpCamera);
+                    } else if (gridViewPiki.getFirstVisiblePosition() == 0) {
+                        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                        p.topMargin =  - pikiHeader.getHeight() - gridViewPiki.getChildAt(0).getTop() + btnShare.getHeight();
+                        rootView.setLayoutParams(p);
+                    }
 
                     if (popupEmoji == null) {
                         setUpPopupEmojis();
@@ -1480,6 +1490,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     private void startEditText() {
+        if (gridViewPiki.getFirstVisiblePosition() > 0) {
+            gridViewPiki.smoothScrollToPositionFromTop(0, -pikiHeader.getHeight(), 0);
+        }
+
         edittexteReact.setVisibility(View.VISIBLE);
         edittexteReact.requestFocus();
         layoutOverlayReply.setVisibility(View.VISIBLE);

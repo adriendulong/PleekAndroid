@@ -92,8 +92,8 @@
     <!-- FRIENDS -->
     <string name="friends_hint">Search a user</string>
     <string name="friends_tab1">FIND</string>
-    <string name="friends_tab2">YOU ADDED</string>
-    <string name="friends_tab3">ADDED YOU</string>
+    <string name="friends_tab2">YOU FOLLOW</string>
+    <string name="friends_tab3">FOLLOWS YOU</string>
     <string name="friends_title">Friends</string>
     <string name="friends_section_on">FRIENDS ON PLEEK</string>
     <string name="friends_section_out">FRIENDS NOT YET ON PLEEK</string>

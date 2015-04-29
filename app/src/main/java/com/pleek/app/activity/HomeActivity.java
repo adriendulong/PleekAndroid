@@ -49,6 +49,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 {
     public static boolean AUTO_RELOAD;
 
+    private View btnIcon;
     private View btnTopBar;
     private View btnSettings;
     private ListViewScrollingOff listViewPiki;
@@ -80,6 +81,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         btnTopBar = findViewById(R.id.btnTopBar);
         int colorDown = getResources().getColor(R.color.firstColorDark);
         int colorUp = getResources().getColor(R.color.firstColor);
+        btnIcon = findViewById(R.id.imgIcon);
+        btnIcon.setOnClickListener(this);
         btnTopBar.setOnTouchListener(new DownTouchListener(colorDown, colorUp));
         btnTopBar.setOnClickListener(this);
         btnSettings = findViewById(R.id.btnSettings);
@@ -341,6 +344,9 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
         } else if (view == btnSettings) {
             startActivity(new Intent(this, ParameterActivity.class));
+            overridePendingTransition( R.anim.slide_in_up, R.anim.slide_out_up);
+        } else if (view == btnIcon) {
+            startActivity(new Intent(this, VideoActivity.class));
             overridePendingTransition( R.anim.slide_in_up, R.anim.slide_out_up);
         }
     }
