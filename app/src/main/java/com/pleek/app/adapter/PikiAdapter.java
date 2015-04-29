@@ -22,6 +22,7 @@ import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ReadDateProvider;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.utils.StringUtils;
+import com.pleek.app.views.TextViewFontAutoResize;
 
 import java.util.Date;
 import java.util.List;
@@ -305,7 +306,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         @InjectView(R.id.imgPlay)
         ImageView imgPlay;
         @InjectView(R.id.txtUserName)
-        AutofitTextView txtUserName;
+        TextViewFont txtUserName;
         @InjectView(R.id.imgPiki1)
         ImageView imgPiki1;
         @InjectView(R.id.imgPiki2)

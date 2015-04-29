@@ -1,16 +1,24 @@
 package com.pleek.app.activity;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.FileProvider;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.OvershootInterpolator;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.goandup.lib.utile.Utile;
@@ -22,6 +30,10 @@ import com.pleek.app.R;
 import com.pleek.app.common.Constants;
 import com.pleek.app.utils.StringUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,6 +49,7 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
     private View btnNotification;
     private View btnPopularAccounts;
     private View btnName;
+    private View btnCreatePleekId;
     private TextView txtUsername;
     private TextView txtName;
     private CheckBox chbxNotif;
@@ -45,6 +58,10 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
     private View btnSendapp;
     private View txtGoandup;
     private View hand;
+    private RelativeLayout layoutShare;
+    private RelativeLayout layoutOverlayShare;
+    private View btnConfirmShare;
+    private TextView txtUsernamePleekId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +107,14 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
         txtGoandup = findViewById(R.id.txtGoandup);
         txtGoandup.setOnClickListener(this);
         hand = findViewById(R.id.hand);
+        btnConfirmShare = findViewById(R.id.btnConfirmShare);
+        btnConfirmShare.setOnClickListener(this);
+        layoutShare = (RelativeLayout) findViewById(R.id.layoutShare);
+        layoutOverlayShare = (RelativeLayout) findViewById(R.id.layoutOverlayShare);
+        layoutOverlayShare.setOnClickListener(this);
+        btnCreatePleekId = findViewById(R.id.btnCreatePleekID);
+        btnCreatePleekId.setOnClickListener(this);
+        txtUsernamePleekId = (TextView) findViewById(R.id.txtUserNameId);
         //hand.startAnimation(AnimationUtils.loadAnimation(this, R.anim.hand_point));
     }
 
@@ -172,6 +197,12 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
             Intent intent = new Intent(this, AddUserActivity.class);
             intent.putExtra(Constants.EXTRA_FROM_FRIENDS, true);
             startActivity(intent);
+        } else if (view == btnCreatePleekId) {
+            showShareLayout();
+        } else if (view == layoutOverlayShare) {
+            hideShareLayout();
+        } else if (view == btnConfirmShare) {
+            sharePleekId();
         }
     }
 
@@ -205,11 +236,131 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
         if (user != null) {
             txtUsername.setVisibility(View.VISIBLE);
             txtUsername.setText(user.getUsername());
+            txtUsernamePleekId.setText("@" + user.getUsername());
 
             if (!StringUtils.isStringEmpty(user.getString("name"))) {
                 txtName.setVisibility(View.VISIBLE);
                 txtName.setText(user.getString("name"));
             }
         }
+    }
+
+    private final int DURATION_SHOWSHARE_ANIM = 300;//ms
+
+    private boolean shareLayoutShow;
+    private void showShareLayout()  {
+        if (!shareLayoutShow) {
+            shareLayoutShow = true;
+
+            Animation anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.show_share);
+            anim.setFillAfter(true);
+            anim.setDuration(DURATION_SHOWSHARE_ANIM);
+            layoutShare.startAnimation(anim);
+            btnConfirmShare.setVisibility(View.GONE);
+
+            anim.setAnimationListener(new Animation.AnimationListener()
+            {
+                @Override
+                public void onAnimationStart(Animation animation) {}
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+                @Override
+                public void onAnimationEnd(Animation animation)
+                {
+                    Animation animBtn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.popin);
+                    animBtn.setDuration(400);
+                    animBtn.setInterpolator(new OvershootInterpolator(5));
+                    btnConfirmShare.startAnimation(animBtn);
+                    btnConfirmShare.setVisibility(View.VISIBLE);
+                }
+            });
+
+            Utile.fadeIn(layoutOverlayShare, DURATION_SHOWSHARE_ANIM);
+        }
+    }
+
+    private void hideShareLayout() {
+        if (shareLayoutShow) {
+            shareLayoutShow = false;
+
+            Animation anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.show_share_reverse);
+            anim.setFillAfter(true);
+            anim.setDuration(DURATION_SHOWSHARE_ANIM);
+            layoutShare.startAnimation(anim);
+            Utile.fadeOut(layoutOverlayShare, DURATION_SHOWSHARE_ANIM);
+        }
+    }
+
+    ///// SHARE PIKI //////
+    private File lastSharefile;
+    private void sharePleekId()  {
+        Dialog dialog = showLoader();
+
+        if (layoutShare.getChildCount() > 0) {
+            if (lastSharefile == null || !lastSharefile.exists() || layoutShare.findViewById(R.id.layoutReplies) == null) {
+                View view = layoutShare.getChildAt(0);
+                view.setDrawingCacheEnabled(true);
+                view.buildDrawingCache();
+                Bitmap bitmap = view.getDrawingCache();
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+
+                File imagesDir = new File(getFilesDir().getAbsolutePath() + "/images/");
+                if (!imagesDir.exists()) {
+                    imagesDir.mkdir();
+                }
+
+                lastSharefile = new File(imagesDir, "pleekid.jpg");
+                FileOutputStream fos = null;
+
+                try {
+                    fos = new FileOutputStream(lastSharefile);
+                    fos.write(bytes.toByteArray());
+                } catch (IOException e) {
+                    if (fos != null) {
+                        try {
+                            fos.close();
+                        } catch(Exception e1){}
+                    }
+                    e.printStackTrace();
+                }
+
+                if (lastSharefile != null) {
+                    lastSharefile.setReadable(true, false);
+                    lastSharefile.deleteOnExit();
+                }
+            }
+
+            if (lastSharefile != null || !lastSharefile.exists()) {
+                Uri uriOfImage = FileProvider.getUriForFile(this, "com.pleek.app.fileprovider", lastSharefile);
+
+                Intent share = new Intent(Intent.ACTION_SEND);
+                share.setType("image/jpeg");
+                share.putExtra(Intent.EXTRA_STREAM, uriOfImage);
+                share.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
+                share.putExtra(Intent.EXTRA_TEXT, getString(R.string.param_pleekid_iamonpleek));
+
+                startActivity(Intent.createChooser(share, getString(R.string.share_title)));
+
+                hideDialog(dialog);
+
+                if (layoutShare.findViewById(R.id.layoutReplies) == null)
+                    lastSharefile = null;
+            } else {
+                Utile.showToast(R.string.piki_share_impossible, this);
+            }
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (shareLayoutShow) {
+                hideShareLayout();
+                return false;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
     }
 }

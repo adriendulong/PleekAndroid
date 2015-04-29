@@ -140,6 +140,10 @@
     <string name="param_sendapp_text">Download Pleek! Communicate with your friends trough beautiful photos mozaics! http://pleekapp.com/getpleek</string>
     <string name="param_popular">Popular accounts</string>
     <string name="param_pleekid">Create my Pleek ID</string>
+    <string name="param_pleekid_send">SEND ME</string>
+    <string name="param_pleekid_send_pleeks">\u0020YOUR PICS ON PLEEK!</string>
+    <string name="param_pleekid_iamonpleek">#iamonpleek</string>
+    <string name="param_create_pleekid">Create my Pleek ID</string>
 
     <string name="param_name_placeholder">\@name</string>
     <string name="param_name_popup_title">ERROR</string>

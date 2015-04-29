@@ -103,40 +103,24 @@
 
                 </RelativeLayout>
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="bottom"
                     android:paddingLeft="20dp"
-                    android:paddingBottom="20dp"
                     android:paddingRight="10dp">
 
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:id="@+id/imgRightArrow"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="10dp"
-                            android:layout_marginTop="1dp"
-                            android:src="@drawable/picto_arrow_right_black"
-                            android:layout_alignParentRight="true"
-                            android:layout_centerVertical="true" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_centerVertical="true">
 
                         <LinearLayout
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="bottom"
-                            android:layout_toLeftOf="@id/imgRightArrow"
-                            android:layout_alignParentLeft="true"
-                            android:layout_centerVertical="true">
+                            android:layout_alignParentLeft="true">
 
                             <com.goandup.lib.widget.TextViewFont
                                 android:id="@+id/txtFrom"
@@ -148,7 +132,7 @@
                                 android:textColor="@color/grisLabele"
                                 android:text="@string/home_from" />
 
-                            <com.pleek.app.views.TextViewFontAutoResize
+                            <com.goandup.lib.widget.TextViewFont
                                 android:id="@+id/txtUserName"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -162,85 +146,93 @@
                                 android:text="@string/phonenumber_title" />
 
                         </LinearLayout>
-                    </RelativeLayout>
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <com.makeramen.RoundedImageView
-                            android:id="@+id/imgPiki1"
-                            android:layout_width="@dimen/img_piki_small_width"
-                            android:layout_height="@dimen/img_piki_small_height"
-                            android:background="@color/grisSeparate"
-                            app:riv_corner_radius="3dip"/>
-
-                        <com.makeramen.RoundedImageView
-                            android:id="@+id/imgPiki2"
-                            android:layout_width="@dimen/img_piki_small_width"
-                            android:layout_height="@dimen/img_piki_small_height"
-                            android:layout_marginLeft="10dp"
-                            android:background="@color/grisSeparate"
-                            app:riv_corner_radius="3dip"/>
-
-                        <com.makeramen.RoundedImageView
-                            android:id="@+id/imgPiki3"
-                            android:layout_width="@dimen/img_piki_small_width"
-                            android:layout_height="@dimen/img_piki_small_height"
-                            android:layout_marginLeft="10dp"
-                            android:background="@color/grisSeparate"
-                            app:riv_corner_radius="3dip"/>
-
-                        <com.goandup.lib.widget.TextViewFont
-                            android:id="@+id/txtFirst"
-                            android:layout_width="92dp"
-                            android:layout_height="24dp"
-                            android:text="@string/home_firstreply"
-                            android:gravity="center"
-                            android:textSize="14dp"
-                            app:customFont="proximanova_sbold.otf"
-                            android:background="@drawable/gris_label_back"
-                            android:textColor="@color/blanc"
-                            android:visibility="gone" />
-
-                        <RelativeLayout
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="10dp">
+                            android:orientation="horizontal"
+                            android:layout_marginTop="10dp">
+
+                            <com.makeramen.RoundedImageView
+                                android:id="@+id/imgPiki1"
+                                android:layout_width="@dimen/img_piki_small_width"
+                                android:layout_height="@dimen/img_piki_small_height"
+                                android:background="@color/grisSeparate"
+                                app:riv_corner_radius="3dip"/>
+
+                            <com.makeramen.RoundedImageView
+                                android:id="@+id/imgPiki2"
+                                android:layout_width="@dimen/img_piki_small_width"
+                                android:layout_height="@dimen/img_piki_small_height"
+                                android:layout_marginLeft="10dp"
+                                android:background="@color/grisSeparate"
+                                app:riv_corner_radius="3dip"/>
+
+                            <com.makeramen.RoundedImageView
+                                android:id="@+id/imgPiki3"
+                                android:layout_width="@dimen/img_piki_small_width"
+                                android:layout_height="@dimen/img_piki_small_height"
+                                android:layout_marginLeft="10dp"
+                                android:background="@color/grisSeparate"
+                                app:riv_corner_radius="3dip"/>
 
                             <com.goandup.lib.widget.TextViewFont
-                                android:id="@+id/txtRead"
-                                android:layout_width="wrap_content"
+                                android:id="@+id/txtFirst"
+                                android:layout_width="92dp"
                                 android:layout_height="24dp"
-                                android:text="+3"
-                                android:paddingLeft="7dp"
-                                android:paddingRight="7dp"
+                                android:text="@string/home_firstreply"
                                 android:gravity="center"
-                                android:textSize="13dp"
-                                android:singleLine="true"
+                                android:textSize="14dp"
                                 app:customFont="proximanova_sbold.otf"
                                 android:background="@drawable/gris_label_back"
-                                android:textColor="@color/blanc" />
+                                android:textColor="@color/blanc"
+                                android:visibility="gone" />
 
-                            <com.goandup.lib.widget.TextViewFont
-                                android:id="@+id/txtUnread"
+                            <RelativeLayout
                                 android:layout_width="wrap_content"
-                                android:layout_height="24dp"
-                                android:text="@string/home_new"
-                                android:paddingLeft="7dp"
-                                android:paddingRight="7dp"
-                                android:gravity="center"
-                                android:textSize="13dp"
-                                android:singleLine="true"
-                                app:customFont="proximanova_sbold.otf"
-                                android:background="@drawable/second_color_label_back"
-                                android:textColor="@color/blanc" />
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="10dp">
 
-                        </RelativeLayout>
+                                <com.goandup.lib.widget.TextViewFont
+                                    android:id="@+id/txtRead"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="24dp"
+                                    android:text="+3"
+                                    android:paddingLeft="7dp"
+                                    android:paddingRight="7dp"
+                                    android:gravity="center"
+                                    android:textSize="13dp"
+                                    android:singleLine="true"
+                                    app:customFont="proximanova_sbold.otf"
+                                    android:background="@drawable/gris_label_back"
+                                    android:textColor="@color/blanc" />
+
+                                <com.goandup.lib.widget.TextViewFont
+                                    android:id="@+id/txtUnread"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="24dp"
+                                    android:text="@string/home_new"
+                                    android:paddingLeft="7dp"
+                                    android:paddingRight="7dp"
+                                    android:gravity="center"
+                                    android:textSize="13dp"
+                                    android:singleLine="true"
+                                    app:customFont="proximanova_sbold.otf"
+                                    android:background="@drawable/second_color_label_back"
+                                    android:textColor="@color/blanc" />
+
+                            </RelativeLayout>
+                        </LinearLayout>
                     </LinearLayout>
-                </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/imgRightArrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/picto_arrow_right_black"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"/>
+                </RelativeLayout>
             </LinearLayout>
 
             <RelativeLayout

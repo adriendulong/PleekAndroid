@@ -18,6 +18,7 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 
@@ -134,6 +135,15 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
                             //create alias (Adrien)
                             mixpanel.identify(parseUser.getObjectId());
                             mixpanel.track("Log In", null);
+
+                            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+
+                            if (ParseUser.getCurrentUser() != null) {
+                                installation.put("notificationsEnabled", true);
+                                installation.put("user", ParseUser.getCurrentUser());
+                            }
+
+                            installation.saveInBackground();
 
                             //go home
                             Intent i = new Intent(DigitsCodeActivity.this, HomeActivity.class);
