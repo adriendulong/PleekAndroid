@@ -12,13 +12,18 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
 import android.text.InputType;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -40,6 +45,7 @@ import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AppEventsConstants;
 import com.goandup.lib.utile.L;
@@ -169,6 +175,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private HashSet<String> likeForReacts;
     boolean fromCacheLikes = true;
+
+    private long timeDown;
+    private int longClickDuration = 1000;
+    private MediaRecorder mediaRecorder;
+    private boolean isRecording;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -386,7 +397,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
         imgReply = (ImageView) findViewById(R.id.imgReply);
-        imgReply.setOnClickListener(this);
+        imgReply.setOnTouchListener(captureVideoListener);
 
         likeForReacts = new HashSet<String>();
     }
@@ -951,34 +962,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         } else if (view == imgSwitch) {
             toggleCamera();
-        } else if (view == imgReply) {
-            final Bitmap bitmapLayerReact = getBitmapLayerReact();
-            final Dialog dialogLoader = showLoader();
-            cameraView.captureCamera(new CameraView.CameraViewListener() {
-                @Override
-                public void repCaptureCamera(Drawable photo) {
-                    byte[] reactData = getReactData(photo, bitmapLayerReact);
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
-
-                    final Reaction tmpReact = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
-                    tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
-                    Reaction.Type type = Reaction.Type.PHOTO;
-                    if (layoutTextReact.getVisibility() == View.VISIBLE) type = Reaction.Type.TEXTE;
-                    else if (imgViewReact.getVisibility() == View.VISIBLE)
-                        type = Reaction.Type.EMOJI;
-                    tmpReact.setType(type);
-                    listReact = adapter.addReact(tmpReact);
-                    sendReact(tmpReact);
-
-                    hideDialog(dialogLoader);
-                    new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            endEditText();
-                        }
-                    }, 500);
-                }
-            });
         } else if (view == layoutOverlayShare) {
             if (shareLayoutShow) {
                 hideShareLayout();
@@ -1900,4 +1883,192 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             progressBar.setVisibility(View.GONE);
         }
     };
+
+    private View.OnTouchListener captureVideoListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                timeDown = System.currentTimeMillis();
+                imgReply.setImageResource(R.drawable.picto_reply_sel);
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                if ((System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording) {
+                    if (!prepareMediaRecorder()) {
+                        Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            try {
+                                mediaRecorder.start();
+                            } catch (final Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    });
+
+                    isRecording = true;
+                }
+
+                return false;
+
+            } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                imgReply.setImageResource(R.drawable.picto_reply);
+
+                if (event.getAction() == MotionEvent.ACTION_UP && (System.currentTimeMillis() - timeDown) < longClickDuration) {
+                    final Bitmap bitmapLayerReact = getBitmapLayerReact();
+                    final Dialog dialogLoader = showLoader();
+                    cameraView.captureCamera(new CameraView.CameraViewListener() {
+                        @Override
+                        public void repCaptureCamera(Drawable photo) {
+                            byte[] reactData = getReactData(photo, bitmapLayerReact);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
+
+                            final Reaction tmpReact = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
+                            tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
+                            Reaction.Type type = Reaction.Type.PHOTO;
+                            if (layoutTextReact.getVisibility() == View.VISIBLE)
+                                type = Reaction.Type.TEXTE;
+                            else if (imgViewReact.getVisibility() == View.VISIBLE)
+                                type = Reaction.Type.EMOJI;
+                            tmpReact.setType(type);
+                            listReact = adapter.addReact(tmpReact);
+                            sendReact(tmpReact);
+
+                            hideDialog(dialogLoader);
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    endEditText();
+                                }
+                            }, 500);
+                        }
+                    });
+
+                    return true;
+                } else if ((System.currentTimeMillis() - timeDown) > longClickDuration && isRecording) {
+                    stopMediaRecorder();
+                }
+            }
+
+            return true;
+        }
+    };
+
+    private void releaseMediaRecorder() {
+        if (mediaRecorder != null) {
+            mediaRecorder.reset();
+            mediaRecorder.release();
+            mediaRecorder = null;
+        }
+    }
+
+    private boolean prepareMediaRecorder() {
+        System.out.println("ON PRÉPARE GROS");
+        mediaRecorder = new MediaRecorder();
+
+        Camera.Size size = getCameraSizes();
+        android.hardware.Camera camera = cameraView.getCamera();
+        camera.unlock();
+        mediaRecorder.setCamera(camera);
+
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+
+        mediaRecorder.setOrientationHint(360 - cameraView.getCameraViewSurface().getDisplayOrientation());
+
+        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+        System.out.println("Height : " + size.height + " Width : " + size.width);
+        profile.videoFrameWidth = size.width;
+        profile.videoFrameHeight = size.height;
+        mediaRecorder.setProfile(profile);
+
+        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "myvideo.mp4");
+        //File videosDir = new File(getFilesDir().getAbsolutePath() + "/videos/");
+        //if (!videosDir.exists()) {
+        //    videosDir.mkdir();
+        //}
+
+        mediaRecorder.setOutputFile(videosDir.getAbsolutePath());
+        System.out.println(videosDir);
+        mediaRecorder.setMaxDuration(6000); // Set max duration 60 sec.
+
+        mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
+            @Override
+            public void onError(MediaRecorder mr, int what, int extra) {
+                System.out.println("ERROR - WHAT : " + what + " EXTRA : " + extra);
+            }
+        });
+
+        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mr, int what, int extra) {
+                if (what == 800) {
+                    stopMediaRecorder();
+                }
+            }
+        });
+
+        //mediaRecorder.setPreviewDisplay(cameraView.getCameraViewSurface().getHolder().getSurface());
+
+        try {
+            mediaRecorder.prepare();
+        } catch (IllegalStateException e) {
+            releaseMediaRecorder();
+            return false;
+        } catch (IOException e) {
+            releaseMediaRecorder();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void stopMediaRecorder() {
+        mediaRecorder.stop();
+        releaseMediaRecorder();
+        Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
+        isRecording = false;
+    }
+
+    private Camera.Size getCameraSizes() {
+        Camera.Parameters p = cameraView.getCamera().getParameters();
+        List<Camera.Size> videoSizes = p.getSupportedVideoSizes();
+
+        final double ASPECT_TOLERANCE = 0.2;
+        int sizeW = screen.getWidth() / 2;
+        double targetRatio = 1;
+        if (videoSizes == null)
+            return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = sizeW;
+
+        // Try to find an size match aspect ratio and size
+        for (Camera.Size size : videoSizes) {
+            Log.d("Camera", "Checking size " + size.width + "w " + size.height
+                    + "h");
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE)
+                continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : videoSizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+
+        return optimalSize;
+    }
 }

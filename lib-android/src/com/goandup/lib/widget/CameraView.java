@@ -34,6 +34,7 @@ import java.util.List;
 public class CameraView extends FrameLayout
 {
     private static Camera camera;
+    private CameraViewSurface cameraViewSurface;
 
     private ProgressBar loader;
     private boolean faceCamera;
@@ -80,7 +81,8 @@ public class CameraView extends FrameLayout
                     public void run()
                     {
                         removeAllViews();
-                        addView(new CameraViewSurface(getContext()));
+                        cameraViewSurface = new CameraViewSurface(getContext());
+                        addView(cameraViewSurface);
                     }
                 });
             }
@@ -102,6 +104,7 @@ public class CameraView extends FrameLayout
     public class CameraViewSurface extends SurfaceView implements SurfaceHolder.Callback
     {
         SurfaceHolder holder;
+        int displayOrientation;
 
         public CameraViewSurface(Context context)
         {
@@ -215,18 +218,24 @@ public class CameraView extends FrameLayout
                         int camHeight = bestSize.height;
                         if(rotation == Surface.ROTATION_0)
                         {
+                            displayOrientation = 90;
+                            System.out.println("ORIENTATION : " + displayOrientation);
                             camera.setDisplayOrientation(90);
                             camWidth = bestSize.height;
                             camHeight = bestSize.width;
                         }
                         if(rotation == Surface.ROTATION_180)
                         {
+                            displayOrientation = 270;
+                            System.out.println("ORIENTATION : " + displayOrientation);
                             camera.setDisplayOrientation(270);
                             camWidth = bestSize.height;
                             camHeight = bestSize.width;
                         }
                         if(rotation == Surface.ROTATION_270)
                         {
+                            displayOrientation = 180;
+                            System.out.println("ORIENTATION : " + displayOrientation);
                             camera.setDisplayOrientation(180);
                         }
 
@@ -314,6 +323,10 @@ public class CameraView extends FrameLayout
                     }
                 }
             }).start();
+        }
+
+        public int getDisplayOrientation() {
+            return displayOrientation;
         }
     }
 
@@ -660,5 +673,13 @@ public class CameraView extends FrameLayout
 
     public void setCycleListener(ListenerStarted cycleListener) {
         this.cycleListener = cycleListener;
+    }
+
+    public CameraViewSurface getCameraViewSurface() {
+        return cameraViewSurface;
+    }
+
+    public void setCameraViewSurface(CameraViewSurface cameraViewSurface) {
+        this.cameraViewSurface = cameraViewSurface;
     }
 }

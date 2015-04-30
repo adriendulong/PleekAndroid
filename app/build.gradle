@@ -51,5 +51,4 @@ dependencies {
     compile "com.jakewharton:butterknife:6.1.0"
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'fr.avianey.com.viewpagerindicator:library:2.4.1@aar'
-    compile 'me.grantland:autofittextview:0.2.+'
 }
