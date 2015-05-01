@@ -1517,9 +1517,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     ///////////////////////
 
 
-    private int SIZE_REACT = 360;
+    private int SIZE_REACT = 200;
     private byte[] getReactData(Drawable photo, Bitmap layerReact) {
         if(photo == null) return new byte[0];//fix : crash #17
+
+        int scaledReact = (int) (SIZE_REACT * screen.getDensity());
 
         ///////////
         // Bitmap de la photo
@@ -1527,22 +1529,22 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         int photoWidth = photoBitmap.getWidth();
         int photoHeight = photoBitmap.getHeight();
 
-        float xScale = (float) SIZE_REACT / photoWidth;
-        float yScale = (float) SIZE_REACT / photoHeight;
+        float xScale = (float) scaledReact / photoWidth;
+        float yScale = (float) scaledReact / photoHeight;
         float scale = Math.max(xScale, yScale);
 
         float scaledWidth = scale * photoWidth;
         float scaledHeight = scale * photoHeight;
 
-        float left = (SIZE_REACT - scaledWidth) / 2;
-        float top = (SIZE_REACT - scaledHeight) / 2;
+        float left = (scaledReact - scaledWidth) / 2;
+        float top = (scaledReact - scaledHeight) / 2;
 
         RectF targetRect = new RectF(left, top, left + scaledWidth, top + scaledHeight);
 
         ///////////
         // Bitmap du texte
         //resize and calcul position of textBitmap in final canvas
-        float ratio = (float)SIZE_REACT / Math.min(layoutCamera.getWidth(), layoutCamera.getHeight());
+        float ratio = (float)scaledReact / Math.min(layoutCamera.getWidth(), layoutCamera.getHeight());
 
         int texteWidth = (int) (layerReact.getWidth() * ratio);
         int texteHeight = (int) (layerReact.getHeight() * ratio);
@@ -1553,14 +1555,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         ///////////
         // Create canvas finale
-        Bitmap finalBitmap = Bitmap.createBitmap(SIZE_REACT, SIZE_REACT, photoBitmap.getConfig());
+        Bitmap finalBitmap = Bitmap.createBitmap(scaledReact, scaledReact, photoBitmap.getConfig());
         Canvas finalCanvas = new Canvas(finalBitmap);
         finalCanvas.drawBitmap(photoBitmap, null, targetRect, null);
         finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, null);
 
         //create jpeg data
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
         return stream.toByteArray();
     }
 
