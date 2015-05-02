@@ -98,40 +98,47 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         listFriend = new ArrayList<Friend>();
         listBeforreRequest = new ArrayList<Friend>();
 
-        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
-
-        if (type == TYPE_YOU_ADDED) {
-            innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
-            innerQuery.include("friend");
-        } else {
+        if (type == TYPE_ADDED_YOU) {
+            ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+            innerQuery.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
             innerQuery.whereEqualTo("friend", ParseUser.getCurrentUser());
             innerQuery.include("user");
-        }
+            innerQuery.setSkip(currentPage * NB_BY_PAGE);
+            innerQuery.setLimit(NB_BY_PAGE);
+            innerQuery.findInBackground(new FindCallback<ParseObject>() {
 
-        innerQuery.orderByAscending("username");
-        innerQuery.setSkip(currentPage * NB_BY_PAGE);
-        innerQuery.setLimit(NB_BY_PAGE);
-        innerQuery.findInBackground(new FindCallback<ParseObject>() {
-
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (list != null && list.size() > 0) {
-                    for (ParseObject obj : list) {
-                        listFriend.add(new Friend((ParseUser) obj.get(type == TYPE_YOU_ADDED ? "friend":"user")));
+                @Override
+                public void done(List<ParseObject> list, ParseException e) {
+                    if (list != null && list.size() > 0) {
+                        for (ParseObject obj : list) {
+                            listFriend.add(new Friend((ParseUser) obj.get("user")));
+                        }
+                        if (loadNext()) listView.addFooterView(footer);
+                        txtNoFriends.setVisibility(View.GONE);
+                    } else {
+                        if (type == TYPE_YOU_ADDED) txtNoFriends.setText(R.string.friends_nofriend);
+                        else txtNoFriends.setText(R.string.friends_nofriend_added_you);
+                        txtNoFriends.setVisibility(View.VISIBLE);
                     }
-                    if (loadNext()) listView.addFooterView(footer);
-                    txtNoFriends.setVisibility(View.GONE);
-                } else {
-                    if (type == TYPE_YOU_ADDED) txtNoFriends.setText(R.string.friends_nofriend);
-                    else txtNoFriends.setText(R.string.friends_nofriend_added_you);
-                    txtNoFriends.setVisibility(View.VISIBLE);
-                }
 
-                adapter = new FriendsAdapter(FriendsAllFragment.this, getActivity());
-                listView.setAdapter(adapter);
+                    adapter = new FriendsAdapter(FriendsAllFragment.this, getActivity());
+                    listView.setAdapter(adapter);
+                }
+            });
+        } else {
+            Set<String> friendsIds = getFriendsPrefs();
+            if (friendsIds != null && friendsIds.size() > 0) {
+                if (loadNext()) listView.addFooterView(footer);
+                txtNoFriends.setVisibility(View.GONE);
+            } else {
+                if (type == TYPE_YOU_ADDED) txtNoFriends.setText(R.string.friends_nofriend);
+                else txtNoFriends.setText(R.string.friends_nofriend_added_you);
+                txtNoFriends.setVisibility(View.VISIBLE);
             }
-        });
+
+            adapter = new FriendsAdapter(FriendsAllFragment.this, getActivity());
+            listView.setAdapter(adapter);
+        }
     }
 
     private boolean fromCache;
@@ -147,79 +154,128 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         //il n'y a plus rien a charger
         if (endOfLoading) return false;
 
-        if (listFriend == null || listFriend.isEmpty()) return false;
+        if (type == TYPE_ADDED_YOU) {
+            if (listFriend == null || listFriend.isEmpty()) return false;
 
-        // copie de la liste actuel des friends
-        listBeforreRequest = new ArrayList<Friend>(listFriend);
+            // copie de la liste actuel des friends
+            listBeforreRequest = new ArrayList<Friend>(listFriend);
 
-        isLoading = true;
-        fromCache = true;
+            isLoading = true;
+            fromCache = true;
 
-        innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
-
-        if (type == TYPE_YOU_ADDED) {
-            innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
-            innerQuery.include("friend");
-        } else {
+            innerQuery = ParseQuery.getQuery("Friend");
+            innerQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
             innerQuery.whereEqualTo("friend", ParseUser.getCurrentUser());
             innerQuery.include("user");
+            innerQuery.setSkip(currentPage * NB_BY_PAGE);
+            innerQuery.setLimit(NB_BY_PAGE);
+            innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+                @Override
+                public void done(List<ParseObject> list, ParseException e) {
+                    if (e == null && getActivity() != null) {
+                        if (currentPage > 0) {
+                            listFriend = new ArrayList<Friend>(listBeforreRequest);
+                        } else {
+                            listFriend = new ArrayList<Friend>();
+                        }
+
+                        if (!fromCache) currentPage++;
+
+                        for (ParseObject obj : list) {
+                            ParseUser user = (ParseUser) obj.get("user");
+                            int image;
+                            Set<String> friendsIds = ((ParentActivity) getActivity()).getFriendsPrefs();
+                            if (friendsIds != null && friendsIds.contains(user.getObjectId())) {
+                                image = R.drawable.picto_added;
+                            } else {
+                                image = R.drawable.picto_add_user;
+                            }
+                            Friend friend = new Friend(null, 0, image);
+                            friend.username = user.getString("username");
+                            friend.parseId = user.getObjectId();
+                            listFriend.add(friend);
+                        }
+
+                        //si moins de résultat que d'el par page alors c'est la dernière page
+                        endOfLoading = list.size() < NB_BY_PAGE;
+
+                        filtreSearchChange(currentFiltreSearch);
+                    } else if (e != null) {
+                        L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
+                        e.printStackTrace();
+                    }
+
+                    //si réponse network (2eme reponse)
+                    if (!fromCache) {
+                        listView.removeFooterView(footer);//fix : crash #30
+                        isLoading = false;
+                    }
+
+                    fromCache = false;
+                }
+            });
+        } else {
+            if (getFriendsPrefs() == null || getFriendsPrefs().isEmpty()) return false;
+
+            // copie de la liste actuel des friends
+            listBeforreRequest = new ArrayList<Friend>(listFriend);
+
+            isLoading = true;
+            fromCache = true;
+
+            ParseQuery<ParseUser> query = ParseUser.getQuery();
+            query.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
+            query.whereContainedIn("objectId", getFriendsPrefs()); //TODO : CRASH #9
+            query.orderByAscending("username");
+            query.setSkip(currentPage * NB_BY_PAGE);
+            query.setLimit(NB_BY_PAGE);
+            query.findInBackground(new FindCallback<ParseUser>() {
+
+                @Override
+                public void done(List<ParseUser> list, ParseException e) {
+                    if (e == null && getActivity() != null) {
+                        if (currentPage > 0) {
+                            listFriend = new ArrayList<Friend>(listBeforreRequest);
+                        } else {
+                            listFriend = new ArrayList<Friend>();
+                        }
+
+                        if (!fromCache) currentPage++;
+
+                        for (ParseUser obj : list) {
+                            int image;
+                            Set<String> friendsIds = ((ParentActivity) getActivity()).getFriendsPrefs();
+                            if (friendsIds != null && friendsIds.contains(obj.getObjectId())) {
+                                image = R.drawable.picto_added;
+                            } else {
+                                image = R.drawable.picto_add_user;
+                            }
+                            Friend friend = new Friend(null, 0, image);
+                            friend.username = obj.getString("username");
+                            friend.parseId = obj.getObjectId();
+                            listFriend.add(friend);
+                        }
+
+                        //si moins de résultat que d'el par page alors c'est la dernière page
+                        endOfLoading = list.size() < NB_BY_PAGE;
+
+                        filtreSearchChange(currentFiltreSearch);
+                    } else if (e != null) {
+                        L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
+                        e.printStackTrace();
+                    }
+
+                    //si réponse network (2eme reponse)
+                    if (!fromCache) {
+                        listView.removeFooterView(footer);//fix : crash #30
+                        isLoading = false;
+                    }
+
+                    fromCache = false;
+                }
+            });
         }
-        innerQuery.orderByAscending("username");
-        innerQuery.setSkip(currentPage * NB_BY_PAGE);
-        innerQuery.setLimit(NB_BY_PAGE);
-        innerQuery.findInBackground(new FindCallback<ParseObject>() {
-
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (e == null && getActivity() != null) {
-                    if (currentPage > 0) {
-                        listFriend = new ArrayList<Friend>(listBeforreRequest);
-                    } else {
-                        listFriend = new ArrayList<Friend>();
-                    }
-
-                    if (!fromCache) currentPage++;
-
-                    for (ParseObject obj : list) {
-                        ParseUser user;
-                        if (type == TYPE_YOU_ADDED) {
-                            user = (ParseUser) obj.get("friend");
-                        } else {
-                            user = (ParseUser) obj.get("user");
-                        }
-
-                        int image;
-                        Set<String> friendsIds = ((ParentActivity) getActivity()).getFriendsPrefs();
-                        if (friendsIds!= null && friendsIds.contains(user.getObjectId())) {
-                            image = R.drawable.picto_added;
-                        } else {
-                            image = R.drawable.picto_add_user;
-                        }
-                        Friend friend = new Friend(null, 0, image);
-                        friend.username = user.getString("username");
-                        friend.parseId = user.getObjectId();
-                        listFriend.add(friend);
-                    }
-
-                    //si moins de résultat que d'el par page alors c'est la dernière page
-                    endOfLoading = list.size() < NB_BY_PAGE;
-
-                    filtreSearchChange(currentFiltreSearch);
-                } else if (e != null){
-                    L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
-                    e.printStackTrace();
-                }
-
-                //si réponse network (2eme reponse)
-                if (!fromCache) {
-                    listView.removeFooterView(footer);//fix : crash #30
-                    isLoading = false;
-                }
-
-                fromCache = false;
-            }
-        });
 
         return true;
     }

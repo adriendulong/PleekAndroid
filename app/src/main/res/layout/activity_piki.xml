@@ -199,14 +199,14 @@
             android:layout_alignParentBottom="true"
             android:focusableInTouchMode="false"
             android:clickable="true"
-            android:visibility="visible">
+            android:visibility="gone">
 
             <com.goandup.lib.widget.FlipImageView
                 android:id="@+id/imgSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="38dp"
                 android:layout_marginLeft="10dp"
                 android:padding="20dp"
                 android:src="@drawable/picto_switch_back_selector"
@@ -221,7 +221,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/picto_keyboard_selected"
                 android:layout_alignParentLeft="true"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="38dp"
                 android:layout_marginLeft="60dp"
                 android:padding="20dp"
                 android:clickable="true" />
@@ -240,7 +240,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/picto_fonts_selector"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="25dp"
+                android:layout_marginTop="35dp"
                 android:layout_marginRight="60dp"
                 android:padding="20dp"
                 android:clickable="true" />
@@ -250,7 +250,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/picto_stickers_selector"
-                android:layout_marginTop="25dp"
+                android:layout_marginTop="35dp"
                 android:layout_marginRight="10dp"
                 android:padding="20dp"
                 android:layout_alignParentRight="true"
