@@ -271,12 +271,14 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         txtNbFriend2Disabled.setText(textLabelTab2);
         txtNbFriend2Enabled.setText(textLabelTab2);
         txtTab2Add.setText(textLabelTab2);
+        HomeActivity.AUTO_RELOAD = true;
     }
 
     private void updateNbAddedYou(int i) {
         String textLabelTab3 = "" + i;
         txtNbFriend3Disabled.setText(textLabelTab3);
         txtNbFriend3Enabled.setText(textLabelTab3);
+        HomeActivity.AUTO_RELOAD = true;
     }
 
     @Override

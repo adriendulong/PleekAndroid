@@ -337,7 +337,7 @@ public class CameraView extends FrameLayout
                         BitmapFactory.Options opt = new BitmapFactory.Options();
                         if (Screen.getInstance(getContext()).getDensity() < 2)
                             opt.inSampleSize = 2;
-                        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+                        opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
                         //convert
                         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);//TODO : crash #39 OutOfMemoryError
