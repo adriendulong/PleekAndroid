@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
@@ -15,8 +16,10 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -87,6 +90,7 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1522,6 +1526,28 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         ///////////
         // Bitmap de la photo
         Bitmap photoBitmap = ((BitmapDrawable) photo).getBitmap();
+
+//        OutputStream fOut = null;
+//        String strDirectory = Environment.getExternalStorageDirectory().toString();
+//
+//        File f = new File(strDirectory, "test2.jpg");
+//        try {
+//            fOut = new FileOutputStream(f);
+//
+//            /**Compress image**/
+//            photoBitmap.compress(Bitmap.CompressFormat.JPEG, 70, fOut);
+//            fOut.flush();
+//            fOut.close();
+//
+//            /**Update image to gallery**/
+//            MediaStore.Images.Media.insertImage(getContentResolver(),
+//                    f.getAbsolutePath(), f.getName(), f.getName());
+//
+//            L.e("Original dimensions", photoBitmap.getWidth()+ " " + photoBitmap.getHeight());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
         int photoWidth = photoBitmap.getWidth();
         int photoHeight = photoBitmap.getHeight();
 
@@ -1553,8 +1579,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         // Create canvas finale
         Bitmap finalBitmap = Bitmap.createBitmap(SIZE_REACT, SIZE_REACT, photoBitmap.getConfig());
         Canvas finalCanvas = new Canvas(finalBitmap);
-        finalCanvas.drawBitmap(photoBitmap, null, targetRect, null);
-        finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, null);
+        finalCanvas.drawBitmap(photoBitmap, null, targetRect, new Paint(Paint.FILTER_BITMAP_FLAG));
+        finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, new Paint(Paint.FILTER_BITMAP_FLAG));
 
         //create jpeg data
         ByteArrayOutputStream stream = new ByteArrayOutputStream();

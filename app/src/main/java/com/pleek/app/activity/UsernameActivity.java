@@ -236,9 +236,6 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
 
                                         }
                                     });
-
-                                    hideDialog(loader);
-                                    isSending = false;
                                 }
                                 else
                                 {
