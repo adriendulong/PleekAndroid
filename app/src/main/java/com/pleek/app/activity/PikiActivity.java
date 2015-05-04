@@ -737,6 +737,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void onLikeReact(int position) {
+        mixpanel.track("Like", null);
+
         Reaction react = adapter.getReaction(position);
 
         final ParseObject like = new ParseObject("Like");

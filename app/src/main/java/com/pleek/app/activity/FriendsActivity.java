@@ -271,14 +271,12 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         txtNbFriend2Disabled.setText(textLabelTab2);
         txtNbFriend2Enabled.setText(textLabelTab2);
         txtTab2Add.setText(textLabelTab2);
-        HomeActivity.AUTO_RELOAD = true;
     }
 
     private void updateNbAddedYou(int i) {
         String textLabelTab3 = "" + i;
         txtNbFriend3Disabled.setText(textLabelTab3);
         txtNbFriend3Enabled.setText(textLabelTab3);
-        HomeActivity.AUTO_RELOAD = true;
     }
 
     @Override
@@ -368,6 +366,8 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
 
     private final int DURATION_ANIM = 200;//ms
     public void startAddFriendAnimation() {
+        HomeActivity.AUTO_RELOAD = true;
+
         getFriends(false, new FunctionCallback<ArrayList<Friend>>() {
             @Override
             public void done(ArrayList<Friend> friends, ParseException e) {
