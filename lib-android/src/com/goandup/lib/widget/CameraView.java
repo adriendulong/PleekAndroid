@@ -335,8 +335,9 @@ public class CameraView extends FrameLayout
                     if (listener != null)
                     {
                         BitmapFactory.Options opt = new BitmapFactory.Options();
-                        if (Screen.getInstance(getContext()).getDensity() < 2)
+                        if (Screen.getInstance(getContext()).getDensity() < 2) {
                             opt.inSampleSize = 2;
+                        }
                         opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
                         //convert
