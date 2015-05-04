@@ -38,6 +38,12 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile files('libs/Parse-1.8.2.jar')
     compile files('libs/appsflyer.jar')
+//    compile files('libs/ffmpeg-android-arm.jar')
+//    compile files('libs/ffmpeg-android-x86.jar')
+//    compile files('libs/javacpp.jar')
+//    compile files('libs/javacv.jar')
+//    compile files('libs/opencv-android-arm.jar')
+//    compile files('libs/opencv-android-x86.jar')
     compile project(':lib-android')
     compile project(':facebook')
     compile 'com.googlecode.libphonenumber:libphonenumber:7.0.2'
@@ -45,12 +51,19 @@ dependencies {
     compile 'com.makeramen:roundedimageview:1.5.0'
     compile 'se.emilsjolander:stickylistheaders:2.5.2'
     compile 'com.crashlytics.android:crashlytics:1.+'
-    compile 'com.google.android.gms:play-services:6.1.11'
+    compile 'com.google.android.gms:play-services-base:7.0.0'
+    //compile 'com.google.android.gms:play-services-analytics:7.0.0'
+    compile 'com.google.android.gms:play-services-gcm:7.0.0'
+    //compile 'com.google.android.gms:play-services-ads:7.0.0'
+    //compile 'com.google.android.gms:play-services-appindexing:7.0.0'
     compile "com.mixpanel.android:mixpanel-android:4.5.3"
     compile "com.android.support:recyclerview-v7:21.0.0"
     compile "com.jakewharton:butterknife:6.1.0"
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'fr.avianey.com.viewpagerindicator:library:2.4.1@aar'
-    compile group: 'org.bytedeco', name: 'javacv', version: '0.11'
+    //compile group: 'org.bytedeco', name: 'javacv', version: '0.10'
     compile 'me.grantland:autofittextview:0.2.+'
+    compile "org.bytedeco:javacv:+"
+    compile group: "org.bytedeco.javacpp-presets", name: "opencv", version: "2.4.10–0.10", classifier: "android-arm"
+    compile group: "org.bytedeco.javacpp-presets", name: "ffmpeg", version: "2.5.1–0.10", classifier: "android-arm"
 }

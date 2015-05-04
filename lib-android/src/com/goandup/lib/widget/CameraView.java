@@ -45,6 +45,7 @@ public class CameraView extends FrameLayout
     private int height;
 
     private ListenerStarted cycleListener;
+    private OnPreviewListener onPreviewListener;
 
     public CameraView(Context context) {
         this(context, null);
@@ -473,6 +474,9 @@ public class CameraView extends FrameLayout
     public interface ListenerStarted {
         public void started();
     }
+    public interface OnPreviewListener {
+        public void onPreview(byte[] data, Camera camera);
+    }
 
     /** flash */
     public boolean toggleFlash()
@@ -681,5 +685,22 @@ public class CameraView extends FrameLayout
 
     public void setCameraViewSurface(CameraViewSurface cameraViewSurface) {
         this.cameraViewSurface = cameraViewSurface;
+    }
+
+    public OnPreviewListener getOnPreviewListener() {
+        return onPreviewListener;
+    }
+
+    public void setOnPreviewListener(OnPreviewListener onPreviewListener) {
+        this.onPreviewListener = onPreviewListener;
+
+        camera.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                if (CameraView.this.onPreviewListener != null) {
+                    CameraView.this.onPreviewListener.onPreview(data, camera);
+                }
+            }
+        });
     }
 }

@@ -8,8 +8,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.YuvImage;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
@@ -23,6 +25,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.text.InputType;
 import android.util.Log;
@@ -50,6 +53,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AppEventsConstants;
+import com.facebook.android.Util;
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
@@ -90,6 +94,7 @@ import com.squareup.picasso.Target;
 
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
+import org.bytedeco.javacv.Frame;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -99,6 +104,8 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -111,7 +118,7 @@ import java.util.Set;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted, CameraView.OnPreviewListener
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
     private final static String CLASS_LABEL = "Pleek - PikiActivity";
@@ -185,7 +192,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private long timeDown;
     private int longClickDuration = 1000;
-    private MediaRecorder mediaRecorder;
+    //private MediaRecorder mediaRecorder;
     private boolean isRecording;
     private String ffmpeg_link;
 
@@ -196,13 +203,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private boolean isPreviewOn = false;
 
     private int sampleAudioRateInHz = 44100;
-    private int imageWidth = 360;
-    private int imageHeight = 360;
+    private int imageWidth = 320;
+    private int imageHeight = 240;
 
     private int finalImageWidth = 360;
     private int finalImageHeight = 360;
 
     private int frameRate = 30;
+
+    final int RECORD_LENGTH = 10;
+    long[] timestamps;
 
     /* audio data getting thread */
     private AudioRecord audioRecord;
@@ -210,7 +220,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private Thread audioThread;
     volatile boolean runAudioThread = true;
 
-    private opencv_core.IplImage yuvIplimage = null;
+    private Frame yuvImage = null;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -1923,28 +1933,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 imgReply.setImageResource(R.drawable.picto_reply_sel);
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 if ((System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording) {
-                    if (!prepareMediaRecorder()) {
-                        Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            try {
-                                mediaRecorder.start();
-                            } catch (final Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    });
-
-                    isRecording = true;
+                    startRecording();
                 }
 
                 return false;
 
             } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                 imgReply.setImageResource(R.drawable.picto_reply);
+                stopRecording();
 
                 if (event.getAction() == MotionEvent.ACTION_UP && (System.currentTimeMillis() - timeDown) < longClickDuration) {
                     final Bitmap bitmapLayerReact = getBitmapLayerReact();
@@ -1977,90 +1973,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     });
 
                     return true;
-                } else if ((System.currentTimeMillis() - timeDown) > longClickDuration && isRecording) {
-                    stopMediaRecorder();
+                } else if ((System.currentTimeMillis() - timeDown) > 6000 && isRecording) {
+                    System.out.println("STOP RECORDING");
+                    stopRecording();
                 }
             }
 
             return true;
         }
     };
-
-    private void releaseMediaRecorder() {
-        if (mediaRecorder != null) {
-            mediaRecorder.reset();
-            mediaRecorder.release();
-            mediaRecorder = null;
-        }
-    }
-
-    private boolean prepareMediaRecorder() {
-        System.out.println("ON PRÉPARE GROS");
-        mediaRecorder = new MediaRecorder();
-
-        Camera.Size size = getCameraSizes();
-        android.hardware.Camera camera = cameraView.getCamera();
-        camera.unlock();
-        mediaRecorder.setCamera(camera);
-
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-
-        mediaRecorder.setOrientationHint(360 - cameraView.getCameraViewSurface().getDisplayOrientation());
-
-        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-        System.out.println("Height : " + size.height + " Width : " + size.width);
-        profile.videoFrameWidth = size.width;
-        profile.videoFrameHeight = size.height;
-        mediaRecorder.setProfile(profile);
-
-        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "myvideo.mp4");
-        //File videosDir = new File(getFilesDir().getAbsolutePath() + "/videos/");
-        //if (!videosDir.exists()) {
-        //    videosDir.mkdir();
-        //}
-
-        mediaRecorder.setOutputFile(videosDir.getAbsolutePath());
-        System.out.println(videosDir);
-        mediaRecorder.setMaxDuration(6000); // Set max duration 60 sec.
-
-        mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
-            @Override
-            public void onError(MediaRecorder mr, int what, int extra) {
-                System.out.println("ERROR - WHAT : " + what + " EXTRA : " + extra);
-            }
-        });
-
-        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-            @Override
-            public void onInfo(MediaRecorder mr, int what, int extra) {
-                if (what == 800) {
-                    stopMediaRecorder();
-                }
-            }
-        });
-
-        //mediaRecorder.setPreviewDisplay(cameraView.getCameraViewSurface().getHolder().getSurface());
-
-        try {
-            mediaRecorder.prepare();
-        } catch (IllegalStateException e) {
-            releaseMediaRecorder();
-            return false;
-        } catch (IOException e) {
-            releaseMediaRecorder();
-            return false;
-        }
-
-        return true;
-    }
-
-    private void stopMediaRecorder() {
-        mediaRecorder.stop();
-        releaseMediaRecorder();
-        Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
-        isRecording = false;
-    }
 
     private Camera.Size getCameraSizes() {
         Camera.Parameters p = cameraView.getCamera().getParameters();
@@ -2110,58 +2031,170 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         @Override
         public void run() {
-            android.os.Process
-                    .setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
             // Audio
             int bufferSize;
-            short[] audioData;
+            ShortBuffer audioData;
             int bufferReadResult;
 
-            bufferSize = AudioRecord
-                    .getMinBufferSize(sampleAudioRateInHz,
-                            AudioFormat.CHANNEL_IN_MONO,
-                            AudioFormat.ENCODING_PCM_16BIT);
-            audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                    sampleAudioRateInHz, AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+            bufferSize = AudioRecord.getMinBufferSize(sampleAudioRateInHz,
+                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleAudioRateInHz,
+                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 
-            audioData = new short[bufferSize];
+            audioData = ShortBuffer.allocate(bufferSize);
 
             Log.d(LOG_TAG, "audioRecord.startRecording()");
             audioRecord.startRecording();
 
             /* ffmpeg_audio encoding loop */
             while (runAudioThread) {
-                // Log.v(LOG_TAG,"recording? " + recording);
-                bufferReadResult = audioRecord.read(audioData, 0,
-                        audioData.length);
+
+                bufferReadResult = audioRecord.read(audioData.array(), 0, audioData.capacity());
+                audioData.limit(bufferReadResult);
                 if (bufferReadResult > 0) {
-                    Log.v(LOG_TAG, "bufferReadResult: " + bufferReadResult);
-                    // If "recording" isn't true when start this thread, it
-                    // never get's set according to this if statement...!!!
-                    // Why? Good question...
+                    Log.v(LOG_TAG,"bufferReadResult: " + bufferReadResult);
+                    // If "recording" isn't true when start this thread, it never get's set according to this if statement...!!!
+                    // Why?  Good question...
                     if (isRecording) {
-//                        try {
-//                            recorder.record(ShortBuffer.wrap(audioData, 0,
-//                                    bufferReadResult));
-//                            // Log.v(LOG_TAG,"recording " + 1024*i + " to " +
-//                            // 1024*i+1024);
-//                        } catch (FFmpegFrameRecorder.Exception e) {
-//                            Log.v(LOG_TAG, e.getMessage());
-//                            e.printStackTrace();
-//                        }
+                        if (RECORD_LENGTH <= 0) try {
+                            recorder.recordSamples(audioData);
+                            //Log.v(LOG_TAG,"recording " + 1024*i + " to " + 1024*i+1024);
+                        } catch (FFmpegFrameRecorder.Exception e) {
+                            Log.v(LOG_TAG,e.getMessage());
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
-            Log.v(LOG_TAG, "AudioThread Finished, release audioRecord");
+            Log.v(LOG_TAG,"AudioThread Finished, release audioRecord");
 
             /* encoding finish, release recorder */
             if (audioRecord != null) {
                 audioRecord.stop();
                 audioRecord.release();
                 audioRecord = null;
-                Log.v(LOG_TAG, "audioRecord released");
+                Log.v(LOG_TAG,"audioRecord released");
+            }
+        }
+    }
+
+    //---------------------------------------
+    // initialize ffmpeg_recorder
+    //---------------------------------------
+    private void initRecorder() {
+        cameraView.setOnPreviewListener(this);
+        Log.w(LOG_TAG,"init recorder");
+        ffmpeg_link = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "myvideo.mp4").getAbsolutePath();
+
+        Camera.Size previewSize = cameraView.getCamera().getParameters().getPreviewSize();
+
+        if (yuvImage == null) {
+            yuvImage = new Frame(previewSize.width, previewSize.height, Frame.DEPTH_UBYTE, 2);
+            Log.i(LOG_TAG, "create yuvImage");
+        }
+
+        Log.i(LOG_TAG, "ffmpeg_url: " + ffmpeg_link);
+        recorder = new FFmpegFrameRecorder(ffmpeg_link, previewSize.width, previewSize.height, 1);
+        recorder.setFormat("mp4");
+        recorder.setSampleRate(sampleAudioRateInHz);
+        // Set in the surface changed method
+        recorder.setFrameRate(frameRate);
+
+        Log.i(LOG_TAG, "recorder initialize success");
+
+        audioRecordRunnable = new AudioRecordRunnable();
+        audioThread = new Thread(audioRecordRunnable);
+        runAudioThread = true;
+    }
+
+    public void startRecording() {
+        initRecorder();
+
+        try {
+            recorder.start();
+            startTime = System.currentTimeMillis();
+            isRecording = true;
+            audioThread.start();
+
+        } catch (FFmpegFrameRecorder.Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopRecording() {
+
+        runAudioThread = false;
+        try {
+            audioThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        audioRecordRunnable = null;
+        audioThread = null;
+
+        if (recorder != null && isRecording) {
+            isRecording = false;
+            cameraView.setOnPreviewListener(null);
+            Log.v(LOG_TAG,"Finishing recording, calling stop and release on recorder");
+
+            try {
+                recorder.stop();
+                recorder.release();
+            } catch (FFmpegFrameRecorder.Exception e) {
+                e.printStackTrace();
+            }
+
+            recorder = null;
+        }
+    }
+
+    @Override
+    public void onPreview(byte[] data, Camera camera) {
+        if (yuvImage != null && isRecording && camera.getParameters().getPreviewFormat() == ImageFormat.NV21) {
+            OutputStream fOut = null;
+            String strDirectory = Environment.getExternalStorageDirectory().toString();
+            Camera.Size previewSize = camera.getParameters().getPreviewSize();
+            YuvImage yuvimage = new YuvImage(data, ImageFormat.NV21, previewSize.width, previewSize.height, null);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            yuvimage.compressToJpeg(new Rect(0, 0, previewSize.width, previewSize.height), 80, baos);
+            byte[] jdata = baos.toByteArray();
+
+            // Convert to Bitmap
+//            Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+//            File f = new File(strDirectory, "test2.jpg");
+//            if (!f.exists()) {
+//                try {
+//                    fOut = new FileOutputStream(f);
+//
+//                    /**Compress image**/
+//                    bmp.compress(Bitmap.CompressFormat.JPEG, 70, fOut);
+//                    fOut.flush();
+//                    fOut.close();
+//
+//                    /**Update image to gallery**/
+//                    MediaStore.Images.Media.insertImage(getContentResolver(),
+//                            f.getAbsolutePath(), f.getName(), f.getName());
+//
+//                    L.e("Original dimensions", bmp.getWidth() + " " + bmp.getHeight());
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+
+            ((ByteBuffer) yuvImage.image[0].position(0)).put(jdata);
+
+            Log.v(LOG_TAG,"Writing Frame");
+            try {
+                long t = 1000 * (System.currentTimeMillis() - startTime);
+                if (t > recorder.getTimestamp()) {
+                    recorder.setTimestamp(t);
+                }
+                recorder.record(yuvImage);
+            } catch (FFmpegFrameRecorder.Exception e) {
+                Log.v(LOG_TAG,e.getMessage());
+                e.printStackTrace();
             }
         }
     }
