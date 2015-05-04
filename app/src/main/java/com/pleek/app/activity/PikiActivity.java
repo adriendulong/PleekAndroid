@@ -13,6 +13,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
 import android.media.CamcorderProfile;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -86,6 +88,8 @@ import com.pleek.app.views.TextViewFontAutoResize;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -95,6 +99,7 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ShortBuffer;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -109,6 +114,8 @@ import java.util.Set;
 public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
+    private final static String CLASS_LABEL = "Pleek - PikiActivity";
+    private final static String LOG_TAG = CLASS_LABEL;
 
     private View rootView;
     private View btnBack;
@@ -180,6 +187,30 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private int longClickDuration = 1000;
     private MediaRecorder mediaRecorder;
     private boolean isRecording;
+    private String ffmpeg_link;
+
+    long startTime = 0;
+
+    private volatile FFmpegFrameRecorder recorder;
+
+    private boolean isPreviewOn = false;
+
+    private int sampleAudioRateInHz = 44100;
+    private int imageWidth = 360;
+    private int imageHeight = 360;
+
+    private int finalImageWidth = 360;
+    private int finalImageHeight = 360;
+
+    private int frameRate = 30;
+
+    /* audio data getting thread */
+    private AudioRecord audioRecord;
+    private AudioRecordRunnable audioRecordRunnable;
+    private Thread audioThread;
+    volatile boolean runAudioThread = true;
+
+    private opencv_core.IplImage yuvIplimage = null;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -2070,5 +2101,68 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
 
         return optimalSize;
+    }
+
+    // ---------------------------------------------
+    // audio thread, gets and encodes audio data
+    // ---------------------------------------------
+    class AudioRecordRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            android.os.Process
+                    .setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+
+            // Audio
+            int bufferSize;
+            short[] audioData;
+            int bufferReadResult;
+
+            bufferSize = AudioRecord
+                    .getMinBufferSize(sampleAudioRateInHz,
+                            AudioFormat.CHANNEL_IN_MONO,
+                            AudioFormat.ENCODING_PCM_16BIT);
+            audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                    sampleAudioRateInHz, AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+
+            audioData = new short[bufferSize];
+
+            Log.d(LOG_TAG, "audioRecord.startRecording()");
+            audioRecord.startRecording();
+
+            /* ffmpeg_audio encoding loop */
+            while (runAudioThread) {
+                // Log.v(LOG_TAG,"recording? " + recording);
+                bufferReadResult = audioRecord.read(audioData, 0,
+                        audioData.length);
+                if (bufferReadResult > 0) {
+                    Log.v(LOG_TAG, "bufferReadResult: " + bufferReadResult);
+                    // If "recording" isn't true when start this thread, it
+                    // never get's set according to this if statement...!!!
+                    // Why? Good question...
+                    if (isRecording) {
+//                        try {
+//                            recorder.record(ShortBuffer.wrap(audioData, 0,
+//                                    bufferReadResult));
+//                            // Log.v(LOG_TAG,"recording " + 1024*i + " to " +
+//                            // 1024*i+1024);
+//                        } catch (FFmpegFrameRecorder.Exception e) {
+//                            Log.v(LOG_TAG, e.getMessage());
+//                            e.printStackTrace();
+//                        }
+                    }
+                }
+            }
+            Log.v(LOG_TAG, "AudioThread Finished, release audioRecord");
+
+            /* encoding finish, release recorder */
+            if (audioRecord != null) {
+                audioRecord.stop();
+                audioRecord.release();
+                audioRecord = null;
+                Log.v(LOG_TAG, "audioRecord released");
+            }
+        }
     }
 }
