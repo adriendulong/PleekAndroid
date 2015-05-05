@@ -14,6 +14,7 @@ import com.crashlytics.android.Crashlytics;
 import com.goandup.lib.widget.ButtonRoundedMaterialDesign;
 import com.parse.ParseUser;
 import com.pleek.app.R;
+import io.fabric.sdk.android.Fabric;
 
 public class LauncherActivity extends ParentActivity
 {
@@ -23,7 +24,7 @@ public class LauncherActivity extends ParentActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        Crashlytics.start(this);
+        Fabric.with(this, new Crashlytics());
 
         fbAppEventsLogger.logEvent("ActivateApp");
         AppsFlyerLib.sendTracking(getApplicationContext());

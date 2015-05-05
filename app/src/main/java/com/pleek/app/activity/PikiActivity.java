@@ -48,6 +48,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AppEventsConstants;
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
@@ -106,7 +109,7 @@ import java.util.Set;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted, CameraView.OnPreviewListener
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -1699,35 +1702,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         isPlaying = false;
     }
 
-    private void showTuto()  {
-        if (layoutTutorialReact.getVisibility() == View.GONE) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            if (preferences.getBoolean("first_tuto_piki", true)) {
-                Utile.fadeIn(layoutTutorialReact, 300, new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        layoutTutorialReact.setAnimation(AnimationUtils.loadAnimation(PikiActivity.this, R.anim.floating));
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {
-
-                    }
-                });
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean("first_tuto_piki", false);
-                editor.commit();
-            } else {
-                layoutTutorialReact.setVisibility(View.GONE);
-            }
-        }
-    }
-
     private void setUpPopupEmojis() {
         // POPUP EMOJIS / FONTS ON TOP OF SHOWN KEYBOARD
         popupEmoji = new EmojisFontsPopup(rootView, this, emojis, EmojisFontsPopup.POPUP_STICKERS, keyboardHeight);
@@ -1891,10 +1865,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 timeDown = System.currentTimeMillis();
                 imgReply.setImageResource(R.drawable.picto_reply_sel);
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                if ((System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording) {
+                if ((System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording && layoutOverlayReply.getVisibility() == View.VISIBLE) {
+                    isRecording = true;
+
                     if (!prepareMediaRecorder()) {
                         Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
-                        finish();
+                        isRecording = false;
                     }
 
                     runOnUiThread(new Runnable() {
@@ -1907,7 +1883,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         }
                     });
 
-                    isRecording = true;
+                    cameraView.setOnPreviewListener(PikiActivity.this);
+                } else if (isRecording && (System.currentTimeMillis() - timeDown) >= 6000 && isRecording) {
+                    stopMediaRecorder();
+                    endEditText();
                 }
 
                 return false;
@@ -1946,7 +1925,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     });
 
                     return true;
-                } else if ((System.currentTimeMillis() - timeDown) > longClickDuration && isRecording) {
+                } else if (isRecording) {
                     stopMediaRecorder();
                 }
             }
@@ -1964,7 +1943,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     private boolean prepareMediaRecorder() {
-        System.out.println("ON PRÉPARE GROS");
         mediaRecorder = new MediaRecorder();
 
         Camera.Size size = getCameraSizes();
@@ -1978,19 +1956,21 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         mediaRecorder.setOrientationHint(360 - cameraView.getCameraViewSurface().getDisplayOrientation());
 
         CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-        System.out.println("Height : " + size.height + " Width : " + size.width);
         profile.videoFrameWidth = size.width;
         profile.videoFrameHeight = size.height;
         mediaRecorder.setProfile(profile);
 
-        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "myvideo.mp4");
-        //File videosDir = new File(getFilesDir().getAbsolutePath() + "/videos/");
-        //if (!videosDir.exists()) {
-        //    videosDir.mkdir();
-        //}
+        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+        if (!videosDir.exists()) videosDir.mkdir();
 
-        mediaRecorder.setOutputFile(videosDir.getAbsolutePath());
-        System.out.println(videosDir);
+        File tmpFile = new File(videosDir, "myvideo.mp4");
+
+        if (!tmpFile.exists()) {
+            tmpFile.deleteOnExit();
+        }
+
+        mediaRecorder.setOutputFile(tmpFile.getAbsolutePath());
+        System.out.println(tmpFile);
         mediaRecorder.setMaxDuration(6000); // Set max duration 60 sec.
 
         mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
@@ -2000,14 +1980,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         });
 
-        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-            @Override
-            public void onInfo(MediaRecorder mr, int what, int extra) {
-                if (what == 800) {
-                    stopMediaRecorder();
-                }
-            }
-        });
+//        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+//            @Override
+//            public void onInfo(MediaRecorder mr, int what, int extra) {
+//                if (what == 800) {
+//                    //System.out.println("STOP");
+//                    //stopMediaRecorder();
+//                }
+//            }
+//        });
 
         //mediaRecorder.setPreviewDisplay(cameraView.getCameraViewSurface().getHolder().getSurface());
 
@@ -2025,10 +2006,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     private void stopMediaRecorder() {
-        mediaRecorder.stop();
-        releaseMediaRecorder();
-        Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
-        isRecording = false;
+        try {
+            isRecording = false;
+            cameraView.setOnPreviewListener(null);
+            mediaRecorder.stop();
+            releaseMediaRecorder();
+            Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
+            processVideo();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     private Camera.Size getCameraSizes() {
@@ -2036,8 +2023,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         List<Camera.Size> videoSizes = p.getSupportedVideoSizes();
 
         final double ASPECT_TOLERANCE = 0.2;
-        int sizeW = screen.getWidth() / 2;
-        double targetRatio = 1;
+        double targetRatio = 16/9;
+        int sizeW = 360;
         if (videoSizes == null)
             return null;
 
@@ -2070,5 +2057,86 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
 
         return optimalSize;
+    }
+
+    @Override
+    public void onPreview(byte[] data, Camera camera) {
+        if (isRecording) {
+
+        }
+    }
+
+    public void processVideo() {
+        final Dialog loader = showLoader();
+        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+        try {
+            final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+            File tmpFile = new File(videosDir, "myvideo.mp4");
+
+            ffmpeg.execute("-y -i " + tmpFile + " -filter:v scale=-2:360 -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+
+                @Override
+                public void onStart() {
+                    System.out.println("FFMPEG START");
+                }
+
+                @Override
+                public void onProgress(String message) {
+                    System.out.println("FFMPEG PROGRESS : " + message);
+                }
+
+                @Override
+                public void onFailure(String message) {
+                    System.out.println("FFMPEG FAILURE : " + message);
+                }
+
+                @Override
+                public void onSuccess(String message) {
+                    System.out.println("FFMPEG SUCCESS : " + message);
+                }
+
+                @Override
+                public void onFinish() {
+                    System.out.println("FFMPEG FINISH");
+
+                    try {
+                        ffmpeg.execute("-y -i " + videosDir + " /out.mp4 -filter:v crop=360:360 -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out2.mp4", new ExecuteBinaryResponseHandler() {
+
+                            @Override
+                            public void onStart() {
+                                System.out.println("FFMPEG START");
+                            }
+
+                            @Override
+                            public void onProgress(String message) {
+                                System.out.println("FFMPEG PROGRESS : " + message);
+                            }
+
+                            @Override
+                            public void onFailure(String message) {
+                                System.out.println("FFMPEG FAILURE : " + message);
+                            }
+
+                            @Override
+                            public void onSuccess(String message) {
+                                System.out.println("FFMPEG SUCCESS : " + message);
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                System.out.println("FFMPEG FINISH");
+                                hideDialog(loader);
+                            }
+                        });
+                    } catch (FFmpegCommandAlreadyRunningException e) {
+                        e.printStackTrace();
+                        hideDialog(loader);
+                    }
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
+            hideDialog(loader);
+        }
     }
 }
