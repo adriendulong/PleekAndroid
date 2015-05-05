@@ -20,9 +20,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
-import android.text.InputType;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -38,7 +36,6 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -180,7 +177,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     boolean fromCacheLikes = true;
 
     private long timeDown;
-    private int longClickDuration = 1000;
+    private int longClickDuration = 700;
     private MediaRecorder mediaRecorder;
     private boolean isRecording;
 
@@ -1884,7 +1881,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     });
 
                     cameraView.setOnPreviewListener(PikiActivity.this);
-                } else if (isRecording && (System.currentTimeMillis() - timeDown) >= 6000 && isRecording) {
+                } else if (isRecording && (System.currentTimeMillis() - timeDown) >= 6000 + longClickDuration && isRecording) {
                     stopMediaRecorder();
                     endEditText();
                 }
@@ -2022,9 +2019,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         Camera.Parameters p = cameraView.getCamera().getParameters();
         List<Camera.Size> videoSizes = p.getSupportedVideoSizes();
 
+        p.set("cam_mode", 1);
+        p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+
+
         final double ASPECT_TOLERANCE = 0.2;
         double targetRatio = 16/9;
-        int sizeW = 360;
+        int sizeW = 480;
         if (videoSizes == null)
             return null;
 
@@ -2100,7 +2101,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     System.out.println("FFMPEG FINISH");
 
                     try {
-                        ffmpeg.execute("-y -i " + videosDir + " /out.mp4 -filter:v crop=360:360 -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out2.mp4", new ExecuteBinaryResponseHandler() {
+                        ffmpeg.execute("-y -i " + videosDir.getAbsolutePath() + " /out.mp4 -filter:v crop=360:360 -threads 5 -preset ultrafast -strict -2 " + videosDir.getAbsolutePath() + "/out2.mp4", new ExecuteBinaryResponseHandler() {
 
                             @Override
                             public void onStart() {
