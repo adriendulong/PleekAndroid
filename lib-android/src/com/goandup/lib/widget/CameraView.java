@@ -7,9 +7,8 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -623,11 +622,11 @@ public class CameraView extends FrameLayout
         return onPreviewListener;
     }
 
-    public void setOnPreviewListener(OnPreviewListener onPreviewListener) {
+    public void setOnPreviewListener(OnPreviewListener onPreviewListener, byte [] buffer) {
         if (onPreviewListener != null) {
             this.onPreviewListener = onPreviewListener;
 
-            camera.setPreviewCallback(new Camera.PreviewCallback() {
+            camera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
                     if (CameraView.this.onPreviewListener != null) {
@@ -635,8 +634,9 @@ public class CameraView extends FrameLayout
                     }
                 }
             });
+            camera.addCallbackBuffer(new byte [camera.getParameters().getPreviewSize().width * camera.getParameters().getPreviewSize().height * ImageFormat.getBitsPerPixel(camera.getParameters().getPreviewFormat())]);
         } else {
-            camera.setPreviewCallback(null);
+            camera.setPreviewCallbackWithBuffer(null);
         }
     }
 

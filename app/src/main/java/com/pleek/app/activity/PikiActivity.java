@@ -13,7 +13,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -39,7 +38,6 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -93,7 +91,6 @@ import com.squareup.picasso.Target;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
@@ -196,6 +193,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private Reaction tmpReactVideo;
 
+    private boolean busyProcessing = false;
+
     File jpegFile;
     int fileCount = 0;
 
@@ -204,6 +203,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     NumberFormat fileCountFormatter = new DecimalFormat("00000");
     String formattedFileCount;
+    byte [] callbackBuffer = new byte[460800];
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -1924,7 +1924,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                     return true;
                 } else if (isRecording) {
-                    cameraView.setOnPreviewListener(null);
+                    cameraView.setOnPreviewListener(null, callbackBuffer);
+                    isRecording = false;
                 }
             }
 
@@ -2170,7 +2171,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 //                    }
 //                });
 
-                cameraView.setOnPreviewListener(PikiActivity.this);
+                cameraView.setOnPreviewListener(PikiActivity.this, callbackBuffer);
             }
         }
     };
@@ -2178,43 +2179,51 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     @Override
     public void onPreview(final byte[] data, final Camera camera) {
         if (isRecording) {
-            //new Thread() {
+            if (!busyProcessing) {
+                //System.out.println("LOLOLOL");
+                busyProcessing = true;
+                processImage(data);
+                busyProcessing = false;
+            }
+        }
+    }
 
-                //@Override
-                //public void run() {
-                    formattedFileCount = fileCountFormatter.format(fileCount);
-                    fileCount++;
+    private void processImage(byte [] data) {
+        Camera camera = cameraView.getCamera();
+        try {
+            formattedFileCount = fileCountFormatter.format(fileCount);
+            fileCount++;
+            Camera.Size previewSize = cameraView.getCamera().getParameters().getPreviewSize();
+            //System.out.println("LOLOLOL2");
+            File videosDir = new File(Environment.getExternalStorageDirectory().getPath() + "/com.pleek.app.frames/");
+            if (!videosDir.exists()) videosDir.mkdir();
 
-                    File videosDir = new File(Environment.getExternalStorageDirectory().getPath() + "/com.pleek.app.frames/");
-                    if (!videosDir.exists()) videosDir.mkdir();
+            jpegFile = new File(videosDir, "frame_" + formattedFileCount + ".jpg");
 
-                    jpegFile = new File(videosDir, "frame_" + formattedFileCount + ".jpg");
+            try {
+                fos = new FileOutputStream(jpegFile);
+                //baos = new ByteArrayOutputStream();
 
-                    try {
-                        fos = new FileOutputStream(jpegFile);
-                        baos = new ByteArrayOutputStream();
+                YuvImage im = new YuvImage(data, ImageFormat.NV21, previewSize.width, previewSize.height, null);
+                im.compressToJpeg(new Rect(0, 0, previewSize.width, previewSize.height), 20, fos);
+                //fos.write(getReactData(cameraView.convertPicture(baos.toByteArray()), null));
 
-                        YuvImage im = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
-                        im.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 60, fos);
-                        //fos.write(getReactData(cameraView.convertPicture(baos.toByteArray()), null));
+                fos.close();
+                //baos.flush();
+                //baos.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-                        fos.close();
-                        baos.flush();
-                        baos.close();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                //}
-            //};
-
-//            try {
-//                fos = new FileOutputStream(jpegFile);
-//                bos = new BufferedOutputStream(fos);
-//                bos.write(reactData);
-//                bos.flush();
-//                bos.close();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } finally {
+            //baos.reset();
+            if (camera != null) {
+                camera.addCallbackBuffer(data);
+            }
         }
     }
 }
