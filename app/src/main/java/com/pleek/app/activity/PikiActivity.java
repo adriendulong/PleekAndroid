@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
@@ -106,7 +107,7 @@ import java.util.Set;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted, CameraView.OnPreviewListener
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -177,9 +178,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     boolean fromCacheLikes = true;
 
     private long timeDown;
+    private boolean isDown;
     private int longClickDuration = 700;
     private MediaRecorder mediaRecorder;
     private boolean isRecording;
+    private Handler handler;
+    private Camera.Size optimalSize = null;
+    private Dialog loader;
+    private boolean hasProcessedVideo = false;
+
+    private Reaction tmpReactVideo;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -400,6 +408,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgReply.setOnTouchListener(captureVideoListener);
 
         likeForReacts = new HashSet<String>();
+        handler = new Handler();
     }
 
 
@@ -1223,10 +1232,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     ///// SEND REACT //////
-    public void sendReact(final Reaction tmpReact)
-    {
-        if(tmpReact.getTmpPhotoByte() != null)
-        {
+    public void sendReact(final Reaction tmpReact) {
+        if (tmpReact.getTmpPhotoByte() != null) {
             mixpanel.timeEvent("Send React");
 
             ParseUser currentUser = ParseUser.getCurrentUser();
@@ -1234,34 +1241,50 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             //ACL
             List<String> listRecipients = piki.getParseObject().getList("recipients");
             ParseACL acl = new ParseACL();
-            if(piki.getParseObject().getBoolean("isPublic"))
-            {
+
+            if (piki.getParseObject().getBoolean("isPublic")) {
                 acl.setPublicReadAccess(true);
-            }
-            else if(listRecipients != null)
-            {
-                for(String recipientId : listRecipients)
-                {
-                    acl.setReadAccess(recipientId, true);//all recipients
+            } else if (listRecipients != null) {
+                for (String recipientId : listRecipients) {
+                    acl.setReadAccess(recipientId, true); // All Recipients
                 }
             }
             acl.setWriteAccess(currentUser, true);
             acl.setReadAccess(currentUser, true);
 
-            //create PIKI
+            // Create PIKI
             final ParseObject react = ParseObject.create("React");
             react.put("Piki", piki.getParseObject());
-            react.put("photo", new ParseFile("photo.jpg", tmpReact.getTmpPhotoByte()));
+
+            if (tmpReact.type == Reaction.Type.VIDEO) {
+                react.put("previewImage", new ParseFile("photo.jpg", tmpReact.getTmpPhotoByte()));
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+                try {
+                    File inputFile = new File(tmpReact.getTmpPathVideo());
+                    FileInputStream fis = new FileInputStream(inputFile);
+                    byte[] buf = new byte[(int)inputFile.length()];
+                    for (int readNum; (readNum=fis.read(buf)) != -1;){
+                        bos.write(buf,0,readNum);
+                    }
+                } catch (IOException ex) {
+                    //Toast.makeText(this, "Error converting into byte: " + ex.getMessage(), Toast.LENGTH_SHORT).show();
+                    ex.printStackTrace();
+                }
+
+                byte[] bytes = bos.toByteArray();
+                react.put("video", new ParseFile("video.mp4", bytes));
+            } else {
+                react.put("photo", new ParseFile("photo.jpg", tmpReact.getTmpPhotoByte()));
+            }
+
             react.put("user", currentUser);
             react.setACL(acl);
 
-            react.saveInBackground(new SaveCallback()
-            {
+            react.saveInBackground(new SaveCallback() {
                 @Override
-                public void done(ParseException e)
-                {
-                    if(e == null)
-                    {
+                public void done(ParseException e) {
+                    if (e == null) {
                         Reaction newReact = new Reaction(react);
                         newReact.setTmpPhoto(tmpReact.getTmpPhoto());
                         listReact = adapter.addReact(newReact, tmpReact);
@@ -1276,21 +1299,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         params.put("ownerId", pikiParse.getParseUser("user").getObjectId());
                         params.put("recipients", pikiParse.getList("recipients"));
 
-                        ParseCloud.callFunctionInBackground("sendPushNewComment", params, new FunctionCallback<Object>()
-                        {
+                        ParseCloud.callFunctionInBackground("sendPushNewComment", params, new FunctionCallback<Object>() {
                             @Override
-                            public void done(Object o, ParseException e)
-                            {
-                                if (e != null)
-                                {
+                            public void done(Object o, ParseException e) {
+                                if (e != null) {
                                     Utile.showToast(R.string.piki_savereact_nok, PikiActivity.this);
                                 }
                             }
                         });
 
                         //send track mixpanel
-                        try
-                        {
+                        try {
                             JSONObject props = new JSONObject();
                             props.put("React Type", tmpReact.getTypeStr());
                             mixpanel.track("Send React", props);
@@ -1304,22 +1323,16 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             Bundle parameters = new Bundle();
                             parameters.putString("React Type", tmpReact.getTypeStr());
                             fbAppEventsLogger.logEvent("Send React", parameters);
-                        }
-                        catch (JSONException ee)
-                        {
+                        } catch (JSONException ee) {
                             ee.printStackTrace();
                         }
-                    }
-                    else
-                    {
+                    } else {
                         adapter.markLoadError(tmpReact, true);
                         Utile.showToast(R.string.piki_savereact_nok, PikiActivity.this);
                     }
                 }
             });
-        }
-        else
-        {
+        } else {
             Utile.showToast(R.string.piki_savereact_nok, PikiActivity.this);
         }
 
@@ -1527,19 +1540,21 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         //resize and calcul position of textBitmap in final canvas
         float ratio = (float)SIZE_REACT / Math.min(layoutCamera.getWidth(), layoutCamera.getHeight());
 
-        int texteWidth = (int) (layerReact.getWidth() * ratio);
-        int texteHeight = (int) (layerReact.getHeight() * ratio);
-
-        //Create resize Rect
-        Rect srcTextRect = new Rect(0, 0, layerReact.getWidth(), layerReact.getHeight());
-        Rect dstTextRect = new Rect(0, 0, texteWidth, texteHeight);
-
         ///////////
         // Create canvas finale
         Bitmap finalBitmap = Bitmap.createBitmap(SIZE_REACT, SIZE_REACT, photoBitmap.getConfig());
         Canvas finalCanvas = new Canvas(finalBitmap);
-        finalCanvas.drawBitmap(photoBitmap, null, targetRect, null);
-        finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, null);
+        finalCanvas.drawBitmap(photoBitmap, null, targetRect, new Paint(Paint.FILTER_BITMAP_FLAG));
+
+        if (layerReact != null) {
+            int texteWidth = (int) (layerReact.getWidth() * ratio);
+            int texteHeight = (int) (layerReact.getHeight() * ratio);
+
+            //Create resize Rect
+            Rect srcTextRect = new Rect(0, 0, layerReact.getWidth(), layerReact.getHeight());
+            Rect dstTextRect = new Rect(0, 0, texteWidth, texteHeight);
+            finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, new Paint(Paint.FILTER_BITMAP_FLAG));
+        }
 
         //create jpeg data
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -1791,13 +1806,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         edittexteReact.setTextColor(getResources().getColor(font.getColor()));
                         edittexteReact.setCustomFont(PikiActivity.this, font.getName());
                         edittexteReact.setIncludeFontPadding(false);
-
-                        if (font.getName().equals("voltebold.otf") || font.getName().equals("story.otf")) {
-                            //edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE);
-                        } else {
-                            //edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-                        }
-
                         edittexteReact.setSelection(edittexteReact.getText().length());
                     } else {
                         imgViewReact.setVisibility(View.GONE);
@@ -1861,37 +1869,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 timeDown = System.currentTimeMillis();
                 imgReply.setImageResource(R.drawable.picto_reply_sel);
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                if ((System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording && layoutOverlayReply.getVisibility() == View.VISIBLE) {
-                    isRecording = true;
-
-                    if (!prepareMediaRecorder()) {
-                        Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
-                        isRecording = false;
-                    }
-
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            try {
-                                mediaRecorder.start();
-                            } catch (final Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    });
-
-                    cameraView.setOnPreviewListener(PikiActivity.this);
-                } else if (isRecording && (System.currentTimeMillis() - timeDown) >= 6000 + longClickDuration && isRecording) {
-                    stopMediaRecorder();
-                    endEditText();
-                }
-
-                return false;
+                isDown = true;
+                handler.postDelayed(recordVideoRunnable, longClickDuration);
 
             } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                 imgReply.setImageResource(R.drawable.picto_reply);
+                isDown = false;
 
-                if (event.getAction() == MotionEvent.ACTION_UP && (System.currentTimeMillis() - timeDown) < longClickDuration) {
+                if (event.getAction() == MotionEvent.ACTION_UP && !isRecording && (System.currentTimeMillis() - timeDown) < longClickDuration) {
                     final Bitmap bitmapLayerReact = getBitmapLayerReact();
                     final Dialog dialogLoader = showLoader();
                     cameraView.captureCamera(new CameraView.CameraViewListener() {
@@ -1968,7 +1953,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         mediaRecorder.setOutputFile(tmpFile.getAbsolutePath());
         System.out.println(tmpFile);
-        mediaRecorder.setMaxDuration(6000); // Set max duration 60 sec.
+        mediaRecorder.setMaxDuration(6000); // Set max duration 6 sec.
 
         mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
             @Override
@@ -1977,17 +1962,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         });
 
-//        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-//            @Override
-//            public void onInfo(MediaRecorder mr, int what, int extra) {
-//                if (what == 800) {
-//                    //System.out.println("STOP");
-//                    //stopMediaRecorder();
-//                }
-//            }
-//        });
-
-        //mediaRecorder.setPreviewDisplay(cameraView.getCameraViewSurface().getHolder().getSurface());
+        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mr, int what, int extra) {
+                System.out.println("INFO - WHAT : " + what + " EXTRA : " + extra);
+                if (what == 800) {
+                    stopMediaRecorder();
+                }
+            }
+        });
 
         try {
             mediaRecorder.prepare();
@@ -2005,11 +1988,29 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private void stopMediaRecorder() {
         try {
             isRecording = false;
-            cameraView.setOnPreviewListener(null);
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    endEditText();
+                }
+            }, 500);
+
+            //cameraView.setOnPreviewListener(null);
             mediaRecorder.stop();
             releaseMediaRecorder();
             Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
-            processVideo();
+
+            new Thread() {
+                @Override
+                public void run() {
+                    if (optimalSize.width > SIZE_REACT + 100) {
+                        processVideo();
+                    } else {
+                        processCrop();
+                    }
+                }
+            }.run();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -2022,17 +2023,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         p.set("cam_mode", 1);
         p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
 
-
         final double ASPECT_TOLERANCE = 0.2;
-        double targetRatio = 16/9;
-        int sizeW = 480;
+        double targetRatio = (double) 640 / 360;
+
         if (videoSizes == null)
             return null;
 
-        Camera.Size optimalSize = null;
         double minDiff = Double.MAX_VALUE;
-
-        int targetHeight = sizeW;
+        int targetWidth = 360;
 
         // Try to find an size match aspect ratio and size
         for (Camera.Size size : videoSizes) {
@@ -2041,91 +2039,73 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             double ratio = (double) size.width / size.height;
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE)
                 continue;
-            if (Math.abs(size.height - targetHeight) < minDiff) {
+            if (Math.abs(size.width - targetWidth) < minDiff) {
                 optimalSize = size;
-                minDiff = Math.abs(size.height - targetHeight);
+                minDiff = Math.abs(size.width - targetWidth);
             }
         }
 
+        // Cannot find the one match the aspect ratio, ignore the
+        // requirement
         if (optimalSize == null) {
             minDiff = Double.MAX_VALUE;
             for (Camera.Size size : videoSizes) {
-                if (Math.abs(size.height - targetHeight) < minDiff) {
+                if (Math.abs(size.width - targetWidth) < minDiff) {
                     optimalSize = size;
-                    minDiff = Math.abs(size.height - targetHeight);
+                    minDiff = Math.abs(size.width - targetWidth);
                 }
             }
         }
+
+        System.out.println("Size = w : " + optimalSize.width + " / h : " + optimalSize.height);
 
         return optimalSize;
     }
 
-    @Override
-    public void onPreview(byte[] data, Camera camera) {
-        if (isRecording) {
-
-        }
-    }
-
     public void processVideo() {
-        final Dialog loader = showLoader();
+        loader = showLoader();
         final FFmpeg ffmpeg = FFmpeg.getInstance(this);
         try {
             final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
             File tmpFile = new File(videosDir, "myvideo.mp4");
+            hasProcessedVideo = true;
 
             ffmpeg.execute("-y -i " + tmpFile + " -filter:v scale=-2:360 -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
-
-                @Override
-                public void onStart() {
-                    System.out.println("FFMPEG START");
-                }
-
-                @Override
-                public void onProgress(String message) {
-                    System.out.println("FFMPEG PROGRESS : " + message);
-                }
-
-                @Override
-                public void onFailure(String message) {
-                    System.out.println("FFMPEG FAILURE : " + message);
-                }
-
-                @Override
-                public void onSuccess(String message) {
-                    System.out.println("FFMPEG SUCCESS : " + message);
-                }
-
                 @Override
                 public void onFinish() {
-                    System.out.println("FFMPEG FINISH");
+                    processCrop();
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
+            hideDialog(loader);
+        }
+    }
 
+    public void processCrop() {
+        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+        File tmpFile = new File(videosDir, hasProcessedVideo ? "out.mp4" : "myvideo.mp4");
+        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+
+        try {
+            ffmpeg.execute("-y -i " + tmpFile + " -filter:v crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out2.mp4", new ExecuteBinaryResponseHandler() {
+                @Override
+                public void onFinish() {
                     try {
-                        ffmpeg.execute("-y -i " + videosDir.getAbsolutePath() + " /out.mp4 -filter:v crop=360:360 -threads 5 -preset ultrafast -strict -2 " + videosDir.getAbsolutePath() + "/out2.mp4", new ExecuteBinaryResponseHandler() {
-
-                            @Override
-                            public void onStart() {
-                                System.out.println("FFMPEG START");
-                            }
-
-                            @Override
-                            public void onProgress(String message) {
-                                System.out.println("FFMPEG PROGRESS : " + message);
-                            }
-
-                            @Override
-                            public void onFailure(String message) {
-                                System.out.println("FFMPEG FAILURE : " + message);
-                            }
-
-                            @Override
-                            public void onSuccess(String message) {
-                                System.out.println("FFMPEG SUCCESS : " + message);
-                            }
+                        final File tmpFile = new File(videosDir, "out2.mp4");
+                        //System.out.println("-ss 00:00:01 -i \" + tmpFile + \" -frames:v 1 \" + videosDir + \"/out1.jpg");
+                        ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
 
                             @Override
                             public void onFinish() {
-                                System.out.println("FFMPEG FINISH");
+                                File tmpFileImg = new File(videosDir, "out1.jpg");
+                                Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
+                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                                byte[] byteArray = stream.toByteArray();
+                                tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), cameraView.convertPicture(byteArray), tmpFile.getAbsolutePath());
+                                tmpReactVideo.setType(Reaction.Type.VIDEO);
+                                sendReact(tmpReactVideo);
                                 hideDialog(loader);
                             }
                         });
@@ -2140,4 +2120,42 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             hideDialog(loader);
         }
     }
+
+    private Runnable recordVideoRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isDown && (System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording && layoutOverlayReply.getVisibility() == View.VISIBLE) {
+                System.out.println("We recording");
+                isRecording = true;
+
+                if (!prepareMediaRecorder()) {
+                    Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                    isRecording = false;
+                }
+
+//                cameraView.captureCamera(new CameraView.CameraViewListener() {
+//                    @Override
+//                    public void repCaptureCamera(Drawable image) {
+//                        byte[] reactData = getReactData(image, null);
+//                        Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
+//
+//                        tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
+//                        tmpReactVideo.setType(Reaction.Type.VIDEO);
+//                    }
+//                });
+
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        try {
+                            mediaRecorder.start();
+                        } catch (final Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
+                //cameraView.setOnPreviewListener(PikiActivity.this);
+            }
+        }
+    };
 }

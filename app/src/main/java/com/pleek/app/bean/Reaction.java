@@ -33,6 +33,7 @@ public class Reaction extends VideoBean
     private String nameUser;
     private String userId;
     private Bitmap tmpPhoto;//use between create and save to Parse
+    private String tmpPathVideo;
     private boolean hasLiked = false;
     private int nbLikes = 0;
     public Type type = Type.UNKNOW;
@@ -42,6 +43,14 @@ public class Reaction extends VideoBean
         this.id = UUID.randomUUID().toString();//tmp random id
         this.nameUser = nameUser;
         this.tmpPhoto = tmpPhoto;
+    }
+
+    public Reaction(String nameUser, Bitmap tmpPhoto, String video)
+    {
+        this.id = UUID.randomUUID().toString();//tmp random id
+        this.nameUser = nameUser;
+        this.tmpPhoto = tmpPhoto;
+        this.tmpPathVideo = video;
     }
 
     public Reaction(ParseObject parseObject)
@@ -202,5 +211,13 @@ public class Reaction extends VideoBean
 
     public void setNbLikes(int nbLikes) {
         this.nbLikes = nbLikes;
+    }
+
+    public String getTmpPathVideo() {
+        return tmpPathVideo;
+    }
+
+    public void setTmpPathVideo(String tmpPathVideo) {
+        this.tmpPathVideo = tmpPathVideo;
     }
 }

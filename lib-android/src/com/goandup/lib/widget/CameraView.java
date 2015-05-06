@@ -346,70 +346,7 @@ public class CameraView extends FrameLayout
                 public void onPictureTaken(byte[] data, Camera camera)
                 {
                     if (listener != null) {
-                        BitmapFactory.Options opt = new BitmapFactory.Options();
-                        opt.inSampleSize = 2;
-                        opt.inPreferredConfig = Bitmap.Config.RGB_565;
-
-                        //convert
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);//TODO : crash #39 OutOfMemoryError
-                        Matrix matrix = new Matrix();
-
-                        //rotation
-                        int rotation = getRotationUniversal();
-                        int imgWidth = bitmap.getWidth();
-                        int imgHeight = bitmap.getHeight();
-
-                        if (rotation == Surface.ROTATION_0) {
-                            matrix.postRotate(90);
-                            imgWidth = bitmap.getHeight();
-                            imgHeight = bitmap.getWidth();
-                        }
-
-                        if (rotation == Surface.ROTATION_180) {
-                            matrix.postRotate(270);
-                            imgWidth = bitmap.getHeight();
-                            imgHeight = bitmap.getWidth();
-                        }
-
-                        if (rotation == Surface.ROTATION_270) {
-                            matrix.postRotate(180);
-                        }
-
-                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);//TODO : crash #35 OutOfMemoryError
-
-                        //resize
-                        int x = 0;
-                        int y = 0;
-                        int w = imgWidth;
-                        int h = imgHeight;
-                        float ratioView = (float) width / (float) height;
-                        float ratioImg = (float) imgWidth / (float) imgHeight;
-                        //if the view is larger than the picture
-                        if (ratioView > ratioImg) {
-                            h = (int) ((float) imgWidth / ratioView);
-                            y = (imgHeight - h) >> 1;
-                        }
-                        //if the view is narrower than the picture
-                        else {
-                            w = (int) (imgHeight * ratioView);
-                            x = (imgWidth - w) >> 1;
-                        }
-
-                        //create Bitmap
-                        Bitmap img;
-                        if (isFaceCamera() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-                            //if face camera, compensate for the mirror
-                            float[] mirrorY = {-1, 0, 0, 0, 1, 0, 0, 0, 1};
-                            Matrix miroir = new Matrix();
-                            miroir.setValues(mirrorY);
-                            if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180)
-                            {
-                                miroir.preRotate(180);
-                            }
-                            img = Bitmap.createBitmap(bitmap, x, y, w, h, miroir, true);
-                        } else {
-                            img = Bitmap.createBitmap(bitmap, x, y, w, h);//TODO crash : #47
-                        }
+                        Bitmap img = convertPicture(data);
 
                         if (listener != null)
                             listener.repCaptureCamera(new BitmapDrawable(getContext().getResources(), img));
@@ -701,5 +638,74 @@ public class CameraView extends FrameLayout
         } else {
             camera.setPreviewCallback(null);
         }
+    }
+
+    public Bitmap convertPicture(byte [] data) {
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        opt.inSampleSize = 2;
+        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+
+        //convert
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);//TODO : crash #39 OutOfMemoryError
+        Matrix matrix = new Matrix();
+
+        //rotation
+        int rotation = getRotationUniversal();
+        int imgWidth = bitmap.getWidth();
+        int imgHeight = bitmap.getHeight();
+
+        if (rotation == Surface.ROTATION_0) {
+            matrix.postRotate(90);
+            imgWidth = bitmap.getHeight();
+            imgHeight = bitmap.getWidth();
+        }
+
+        if (rotation == Surface.ROTATION_180) {
+            matrix.postRotate(270);
+            imgWidth = bitmap.getHeight();
+            imgHeight = bitmap.getWidth();
+        }
+
+        if (rotation == Surface.ROTATION_270) {
+            matrix.postRotate(180);
+        }
+
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);//TODO : crash #35 OutOfMemoryError
+
+        //resize
+        int x = 0;
+        int y = 0;
+        int w = imgWidth;
+        int h = imgHeight;
+        float ratioView = (float) width / (float) height;
+        float ratioImg = (float) imgWidth / (float) imgHeight;
+        //if the view is larger than the picture
+        if (ratioView > ratioImg) {
+            h = (int) ((float) imgWidth / ratioView);
+            y = (imgHeight - h) >> 1;
+        }
+        //if the view is narrower than the picture
+        else {
+            w = (int) (imgHeight * ratioView);
+            x = (imgWidth - w) >> 1;
+        }
+
+        //create Bitmap
+        Bitmap img;
+        if (isFaceCamera() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            //if face camera, compensate for the mirror
+            float[] mirrorY = {-1, 0, 0, 0, 1, 0, 0, 0, 1};
+            Matrix miroir = new Matrix();
+            miroir.setValues(mirrorY);
+            if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180)
+            {
+                miroir.preRotate(180);
+            }
+            img = Bitmap.createBitmap(bitmap, x, y, w, h, miroir, true);
+        } else {
+            img = Bitmap.createBitmap(bitmap, x, y, w, h);//TODO crash : #47
+        }
+
+        return img;
     }
 }
