@@ -8,9 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.YuvImage;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
@@ -37,6 +39,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -90,13 +93,17 @@ import com.squareup.picasso.Target;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -107,8 +114,7 @@ import java.util.Set;
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
-{
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted, CameraView.OnPreviewListener {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
     private View rootView;
@@ -180,6 +186,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private long timeDown;
     private boolean isDown;
     private int longClickDuration = 700;
+    private int videoDuration = 6000;
     private MediaRecorder mediaRecorder;
     private boolean isRecording;
     private Handler handler;
@@ -188,6 +195,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private boolean hasProcessedVideo = false;
 
     private Reaction tmpReactVideo;
+
+    File jpegFile;
+    int fileCount = 0;
+
+    FileOutputStream fos;
+    ByteArrayOutputStream baos;
+
+    NumberFormat fileCountFormatter = new DecimalFormat("00000");
+    String formattedFileCount;
 
     public static void initActivity(Piki piki) {
         _piki = piki;
@@ -1514,12 +1530,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
 
     private int SIZE_REACT = 360;
-    private byte[] getReactData(Drawable photo, Bitmap layerReact) {
+    private byte[] getReactData(Bitmap photo, Bitmap layerReact) {
         if(photo == null) return new byte[0];//fix : crash #17
 
         ///////////
         // Bitmap de la photo
-        Bitmap photoBitmap = ((BitmapDrawable) photo).getBitmap();
+        Bitmap photoBitmap = photo;
         int photoWidth = photoBitmap.getWidth();
         int photoHeight = photoBitmap.getHeight();
 
@@ -1881,7 +1897,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     final Dialog dialogLoader = showLoader();
                     cameraView.captureCamera(new CameraView.CameraViewListener() {
                         @Override
-                        public void repCaptureCamera(Drawable photo) {
+                        public void repCaptureCamera(Bitmap photo) {
                             byte[] reactData = getReactData(photo, bitmapLayerReact);
                             Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
 
@@ -1908,7 +1924,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                     return true;
                 } else if (isRecording) {
-                    stopMediaRecorder();
+                    cameraView.setOnPreviewListener(null);
                 }
             }
 
@@ -2128,10 +2144,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 System.out.println("We recording");
                 isRecording = true;
 
-                if (!prepareMediaRecorder()) {
-                    Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
-                    isRecording = false;
-                }
+                //if (!prepareMediaRecorder()) {
+                //    Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                //    isRecording = false;
+                //}
 
 //                cameraView.captureCamera(new CameraView.CameraViewListener() {
 //                    @Override
@@ -2144,18 +2160,61 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 //                    }
 //                });
 
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        try {
-                            mediaRecorder.start();
-                        } catch (final Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                });
+//                runOnUiThread(new Runnable() {
+//                    public void run() {
+//                        try {
+//                            mediaRecorder.start();
+//                        } catch (final Exception ex) {
+//                            ex.printStackTrace();
+//                        }
+//                    }
+//                });
 
-                //cameraView.setOnPreviewListener(PikiActivity.this);
+                cameraView.setOnPreviewListener(PikiActivity.this);
             }
         }
     };
+
+    @Override
+    public void onPreview(final byte[] data, final Camera camera) {
+        if (isRecording) {
+            //new Thread() {
+
+                //@Override
+                //public void run() {
+                    formattedFileCount = fileCountFormatter.format(fileCount);
+                    fileCount++;
+
+                    File videosDir = new File(Environment.getExternalStorageDirectory().getPath() + "/com.pleek.app.frames/");
+                    if (!videosDir.exists()) videosDir.mkdir();
+
+                    jpegFile = new File(videosDir, "frame_" + formattedFileCount + ".jpg");
+
+                    try {
+                        fos = new FileOutputStream(jpegFile);
+                        baos = new ByteArrayOutputStream();
+
+                        YuvImage im = new YuvImage(data, ImageFormat.NV21, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height, null);
+                        im.compressToJpeg(new Rect(0, 0, camera.getParameters().getPreviewSize().width, camera.getParameters().getPreviewSize().height), 60, fos);
+                        //fos.write(getReactData(cameraView.convertPicture(baos.toByteArray()), null));
+
+                        fos.close();
+                        baos.flush();
+                        baos.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                //}
+            //};
+
+//            try {
+//                fos = new FileOutputStream(jpegFile);
+//                bos = new BufferedOutputStream(fos);
+//                bos.write(reactData);
+//                bos.flush();
+//                bos.close();
+        }
+    }
 }

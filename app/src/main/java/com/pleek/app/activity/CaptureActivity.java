@@ -121,9 +121,9 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
             public void onClick(View v) {
                 camera.captureCamera(new CameraView.CameraViewListener() {
                     @Override
-                    public void repCaptureCamera(Drawable image)
+                    public void repCaptureCamera(Bitmap image)
                     {
-                        showPreview(image);
+                        showPreview(new BitmapDrawable(getResources(), image));
                     }
                 });
             }

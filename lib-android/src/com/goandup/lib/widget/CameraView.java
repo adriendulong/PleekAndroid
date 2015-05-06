@@ -349,7 +349,7 @@ public class CameraView extends FrameLayout
                         Bitmap img = convertPicture(data);
 
                         if (listener != null)
-                            listener.repCaptureCamera(new BitmapDrawable(getContext().getResources(), img));
+                            listener.repCaptureCamera(img);
 
                         camera.startPreview();
 
@@ -599,7 +599,7 @@ public class CameraView extends FrameLayout
 
     public interface CameraViewListener
     {
-        public void repCaptureCamera(Drawable image);
+        public void repCaptureCamera(Bitmap image);
     }
 
     public static Camera getCamera()
