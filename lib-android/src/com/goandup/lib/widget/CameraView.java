@@ -634,7 +634,15 @@ public class CameraView extends FrameLayout
                     }
                 }
             });
-            camera.addCallbackBuffer(new byte [camera.getParameters().getPreviewSize().width * camera.getParameters().getPreviewSize().height * ImageFormat.getBitsPerPixel(camera.getParameters().getPreviewFormat())]);
+
+            byte [] temp = new byte[(int) (140 * camera.getParameters().getPreviewSize().width * camera.getParameters().getPreviewSize().height * 1.5)];
+            temp[0] = 1;
+            temp = null;
+
+            for (int i = 0; i < 140; i++) {
+                temp = new byte [(int) (camera.getParameters().getPreviewSize().width * camera.getParameters().getPreviewSize().height * 1.5)];
+                camera.addCallbackBuffer(temp);
+            }
         } else {
             camera.setPreviewCallbackWithBuffer(null);
         }
@@ -642,8 +650,12 @@ public class CameraView extends FrameLayout
 
     public Bitmap convertPicture(byte [] data) {
         BitmapFactory.Options opt = new BitmapFactory.Options();
-        opt.inSampleSize = 2;
-        opt.inPreferredConfig = Bitmap.Config.RGB_565;
+        if (Screen.getInstance(getContext()).getDensity() < 2) {
+            opt.inSampleSize = 2;
+            opt.inPreferredConfig = Bitmap.Config.RGB_565;
+        } else {
+            opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        }
 
         //convert
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);//TODO : crash #39 OutOfMemoryError

@@ -19,6 +19,8 @@ import android.media.CamcorderProfile;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -826,7 +828,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 }
 
-                if (e != null) Utile.showToast(R.string.piki_react_remove_like_nok, PikiActivity.this);
+                if (e != null)
+                    Utile.showToast(R.string.piki_react_remove_like_nok, PikiActivity.this);
             }
         });
     }
@@ -1523,6 +1526,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgViewReact.setVisibility(View.GONE);
         imgViewReact.setImageDrawable(null);
         edittexteReact.setTranslationY(0);
+        imgReply.setImageResource(R.drawable.picto_reply);
     }
 
     ////// ANIMATION //////
@@ -1926,158 +1930,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 } else if (isRecording) {
                     cameraView.setOnPreviewListener(null, callbackBuffer);
                     isRecording = false;
+                    endEditText();
                 }
             }
 
             return true;
         }
     };
-
-    private void releaseMediaRecorder() {
-        if (mediaRecorder != null) {
-            mediaRecorder.reset();
-            mediaRecorder.release();
-            mediaRecorder = null;
-        }
-    }
-
-    private boolean prepareMediaRecorder() {
-        mediaRecorder = new MediaRecorder();
-
-        Camera.Size size = getCameraSizes();
-        android.hardware.Camera camera = cameraView.getCamera();
-        camera.unlock();
-        mediaRecorder.setCamera(camera);
-
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-
-        mediaRecorder.setOrientationHint(360 - cameraView.getCameraViewSurface().getDisplayOrientation());
-
-        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-        profile.videoFrameWidth = size.width;
-        profile.videoFrameHeight = size.height;
-        mediaRecorder.setProfile(profile);
-
-        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
-        if (!videosDir.exists()) videosDir.mkdir();
-
-        File tmpFile = new File(videosDir, "myvideo.mp4");
-
-        if (!tmpFile.exists()) {
-            tmpFile.deleteOnExit();
-        }
-
-        mediaRecorder.setOutputFile(tmpFile.getAbsolutePath());
-        System.out.println(tmpFile);
-        mediaRecorder.setMaxDuration(6000); // Set max duration 6 sec.
-
-        mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
-            @Override
-            public void onError(MediaRecorder mr, int what, int extra) {
-                System.out.println("ERROR - WHAT : " + what + " EXTRA : " + extra);
-            }
-        });
-
-        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-            @Override
-            public void onInfo(MediaRecorder mr, int what, int extra) {
-                System.out.println("INFO - WHAT : " + what + " EXTRA : " + extra);
-                if (what == 800) {
-                    stopMediaRecorder();
-                }
-            }
-        });
-
-        try {
-            mediaRecorder.prepare();
-        } catch (IllegalStateException e) {
-            releaseMediaRecorder();
-            return false;
-        } catch (IOException e) {
-            releaseMediaRecorder();
-            return false;
-        }
-
-        return true;
-    }
-
-    private void stopMediaRecorder() {
-        try {
-            isRecording = false;
-
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    endEditText();
-                }
-            }, 500);
-
-            //cameraView.setOnPreviewListener(null);
-            mediaRecorder.stop();
-            releaseMediaRecorder();
-            Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
-
-            new Thread() {
-                @Override
-                public void run() {
-                    if (optimalSize.width > SIZE_REACT + 100) {
-                        processVideo();
-                    } else {
-                        processCrop();
-                    }
-                }
-            }.run();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private Camera.Size getCameraSizes() {
-        Camera.Parameters p = cameraView.getCamera().getParameters();
-        List<Camera.Size> videoSizes = p.getSupportedVideoSizes();
-
-        p.set("cam_mode", 1);
-        p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-
-        final double ASPECT_TOLERANCE = 0.2;
-        double targetRatio = (double) 640 / 360;
-
-        if (videoSizes == null)
-            return null;
-
-        double minDiff = Double.MAX_VALUE;
-        int targetWidth = 360;
-
-        // Try to find an size match aspect ratio and size
-        for (Camera.Size size : videoSizes) {
-            Log.d("Camera", "Checking size " + size.width + "w " + size.height
-                    + "h");
-            double ratio = (double) size.width / size.height;
-            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE)
-                continue;
-            if (Math.abs(size.width - targetWidth) < minDiff) {
-                optimalSize = size;
-                minDiff = Math.abs(size.width - targetWidth);
-            }
-        }
-
-        // Cannot find the one match the aspect ratio, ignore the
-        // requirement
-        if (optimalSize == null) {
-            minDiff = Double.MAX_VALUE;
-            for (Camera.Size size : videoSizes) {
-                if (Math.abs(size.width - targetWidth) < minDiff) {
-                    optimalSize = size;
-                    minDiff = Math.abs(size.width - targetWidth);
-                }
-            }
-        }
-
-        System.out.println("Size = w : " + optimalSize.width + " / h : " + optimalSize.height);
-
-        return optimalSize;
-    }
 
     public void processVideo() {
         loader = showLoader();
@@ -2180,7 +2039,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     public void onPreview(final byte[] data, final Camera camera) {
         if (isRecording) {
             if (!busyProcessing) {
-                //System.out.println("LOLOLOL");
                 busyProcessing = true;
                 processImage(data);
                 busyProcessing = false;
@@ -2190,40 +2048,126 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private void processImage(byte [] data) {
         Camera camera = cameraView.getCamera();
-        try {
-            formattedFileCount = fileCountFormatter.format(fileCount);
-            fileCount++;
-            Camera.Size previewSize = cameraView.getCamera().getParameters().getPreviewSize();
-            //System.out.println("LOLOLOL2");
-            File videosDir = new File(Environment.getExternalStorageDirectory().getPath() + "/com.pleek.app.frames/");
-            if (!videosDir.exists()) videosDir.mkdir();
 
-            jpegFile = new File(videosDir, "frame_" + formattedFileCount + ".jpg");
+        if (camera.getParameters().getPreviewFormat() == ImageFormat.NV21) {
+            if (fileCount > 180) {
+                busyProcessing = false;
+                cameraView.setOnPreviewListener(null, callbackBuffer);
+                isRecording = false;
+                endEditText();
+            } else {
+                if (busyProcessing) {
+                    camera.addCallbackBuffer(data);
+                }
+
+                if (data == null) {
+                    return;
+                }
+
+                busyProcessing = true;
+                camera.addCallbackBuffer(data);
+                busyProcessing = true;
+
+                formattedFileCount = fileCountFormatter.format(fileCount);
+                fileCount++;
+
+                // call AsyncTask
+                new ProcessPreviewDataTask(camera.getParameters().getPreviewSize(), "frame_" + formattedFileCount + ".jpg").execute(data);
+                //async.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, data);
+            }
+        }
+    }
+
+    private class ProcessPreviewDataTask extends AsyncTask<byte[], Void, byte[]> {
+
+        private Camera.Size previewSize;
+        private String filename;
+
+        public ProcessPreviewDataTask(Camera.Size previewSize, String filename) {
+            this.previewSize = previewSize;
+            this.filename = filename;
+        }
+
+        @Override
+        protected byte[] doInBackground(byte[]... datas) {
+            Log.i("PLEEK", "background process started : " + filename);
+
+            byte[] data = datas[0];
 
             try {
-                fos = new FileOutputStream(jpegFile);
-                //baos = new ByteArrayOutputStream();
+                baos = new ByteArrayOutputStream();
 
                 YuvImage im = new YuvImage(data, ImageFormat.NV21, previewSize.width, previewSize.height, null);
-                im.compressToJpeg(new Rect(0, 0, previewSize.width, previewSize.height), 20, fos);
-                //fos.write(getReactData(cameraView.convertPicture(baos.toByteArray()), null));
+                im.compressToJpeg(new Rect(0, 0, previewSize.width, previewSize.height), 30, baos);
+                data = getReactData(cameraView.convertPicture(baos.toByteArray()), null);
 
-                fos.close();
-                //baos.flush();
-                //baos.close();
+                baos.flush();
+                baos.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } finally {
+                baos.reset();
+                if (cameraView != null && cameraView.getCamera() != null) {
+                    Camera camera = cameraView.getCamera();
+                    camera.addCallbackBuffer(data);
+                }
+
+                busyProcessing = false;
             }
 
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } finally {
-            //baos.reset();
-            if (camera != null) {
-                camera.addCallbackBuffer(data);
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(byte [] result) {
+            
+        }
+    }
+
+    private class SaveToDisk extends AsyncTask<byte[], Void, Boolean> {
+
+        private Camera.Size previewSize;
+        private String filename;
+
+        public SaveToDisk(Camera.Size previewSize, String filename) {
+            this.previewSize = previewSize;
+            this.filename = filename;
+        }
+
+        @Override
+        protected Boolean doInBackground(byte[]... datas) {
+            byte[] data = datas[0];
+
+            try {
+                File videosDir = new File(Environment.getExternalStorageDirectory().getPath() + "/com.pleek.app.frames/");
+                if (!videosDir.exists()) videosDir.mkdir();
+
+                jpegFile = new File(videosDir, filename);
+
+                try {
+                    fos = new FileOutputStream(jpegFile);
+                    fos.write(data);
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
             }
+
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+
         }
     }
 }
