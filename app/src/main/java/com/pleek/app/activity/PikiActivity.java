@@ -1935,7 +1935,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
-        mediaRecorder.setOrientationHint(360 - cameraView.getCameraViewSurface().getDisplayOrientation());
+        //mediaRecorder.setOrientationHint(360 - cameraView.getCameraViewSurface().getDisplayOrientation());
 
         CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
         profile.videoFrameWidth = size.width;
@@ -2004,11 +2004,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             new Thread() {
                 @Override
                 public void run() {
-                    if (optimalSize.width > SIZE_REACT + 100) {
+                    //if (optimalSize.width > SIZE_REACT + 100) {
                         processVideo();
-                    } else {
-                        processCrop();
-                    }
+                    //} else {
+                    //    processCrop();
+                    //}
                 }
             }.run();
         } catch (Exception ex) {
@@ -2023,7 +2023,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         p.set("cam_mode", 1);
         p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
 
-        final double ASPECT_TOLERANCE = 0.2;
+        final double ASPECT_TOLERANCE = 0.0;
         double targetRatio = (double) 640 / 360;
 
         if (videoSizes == null)
@@ -2070,41 +2070,31 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             File tmpFile = new File(videosDir, "myvideo.mp4");
             hasProcessedVideo = true;
 
-            ffmpeg.execute("-y -i " + tmpFile + " -filter:v scale=-2:360 -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+            ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360,crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ",transpose=" + (cameraView.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+
                 @Override
-                public void onFinish() {
-                    processCrop();
+                public void onProgress(String message) {
+                    System.out.println("PROGRESS : " + message);
                 }
-            });
-        } catch (FFmpegCommandAlreadyRunningException e) {
-            e.printStackTrace();
-            hideDialog(loader);
-        }
-    }
 
-    public void processCrop() {
-        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
-        File tmpFile = new File(videosDir, hasProcessedVideo ? "out.mp4" : "myvideo.mp4");
-        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+                @Override
+                public void onFailure(String message) {
+                    System.out.println("FAILURE : " + message);
+                }
 
-        try {
-            ffmpeg.execute("-y -i " + tmpFile + " -filter:v crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out2.mp4", new ExecuteBinaryResponseHandler() {
                 @Override
                 public void onFinish() {
                     try {
-                        final File tmpFile = new File(videosDir, "out2.mp4");
-                        //System.out.println("-ss 00:00:01 -i \" + tmpFile + \" -frames:v 1 \" + videosDir + \"/out1.jpg");
+                        final File tmpFile = new File(videosDir, "out.mp4");
                         ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
 
                             @Override
                             public void onFinish() {
                                 File tmpFileImg = new File(videosDir, "out1.jpg");
                                 Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
-                                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                                byte[] byteArray = stream.toByteArray();
-                                tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), cameraView.convertPicture(byteArray), tmpFile.getAbsolutePath());
+                                tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap, tmpFile.getAbsolutePath());
                                 tmpReactVideo.setType(Reaction.Type.VIDEO);
+                                listReact = adapter.addReact(tmpReactVideo);
                                 sendReact(tmpReactVideo);
                                 hideDialog(loader);
                             }
@@ -2121,6 +2111,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
     }
 
+
+
     private Runnable recordVideoRunnable = new Runnable() {
         @Override
         public void run() {
@@ -2133,17 +2125,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     isRecording = false;
                 }
 
-//                cameraView.captureCamera(new CameraView.CameraViewListener() {
-//                    @Override
-//                    public void repCaptureCamera(Drawable image) {
-//                        byte[] reactData = getReactData(image, null);
-//                        Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
-//
-//                        tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
-//                        tmpReactVideo.setType(Reaction.Type.VIDEO);
-//                    }
-//                });
-
                 runOnUiThread(new Runnable() {
                     public void run() {
                         try {
@@ -2153,8 +2134,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         }
                     }
                 });
-
-                //cameraView.setOnPreviewListener(PikiActivity.this);
             }
         }
     };
