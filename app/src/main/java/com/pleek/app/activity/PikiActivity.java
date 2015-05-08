@@ -103,6 +103,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by nicolas on 18/12/14.
@@ -2074,7 +2076,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                 @Override
                 public void onProgress(String message) {
-                    System.out.println("PROGRESS : " + message);
+                    if (message.contains("Duration")) {
+                        String temp = message.substring(message.indexOf("Duration"), message.indexOf(",", message.indexOf("Duration")));
+
+                        Pattern p = Pattern.compile("\\d+");
+                        Matcher m = p.matcher(temp);
+                        while(m.find()) {
+                            System.out.println(m.group());
+                        }
+                    }
                 }
 
                 @Override
@@ -2110,8 +2120,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             hideDialog(loader);
         }
     }
-
-
 
     private Runnable recordVideoRunnable = new Runnable() {
         @Override
