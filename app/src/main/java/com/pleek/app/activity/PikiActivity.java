@@ -2024,13 +2024,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
 
         final double ASPECT_TOLERANCE = 0.0;
-        double targetRatio = (double) 640 / 360;
+        double targetRatio = (double) p.getPreviewSize().width / p.getPreviewSize().height;
 
         if (videoSizes == null)
             return null;
 
         double minDiff = Double.MAX_VALUE;
-        int targetWidth = 360;
+        int targetWidth = 600;
 
         // Try to find an size match aspect ratio and size
         for (Camera.Size size : videoSizes) {
@@ -2070,7 +2070,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             File tmpFile = new File(videosDir, "myvideo.mp4");
             hasProcessedVideo = true;
 
-            ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360,crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ",transpose=" + (cameraView.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+            ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360" + (optimalSize.width > SIZE_REACT + 100 ? ",crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) : "") + ",transpose=" + (cameraView.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
 
                 @Override
                 public void onProgress(String message) {

@@ -213,6 +213,9 @@ public class CameraView extends FrameLayout
                         parameters.setPictureSize(imgSize.width, imgSize.height);
                         camera.setParameters(parameters);
 
+                        System.out.println("PREVIEW SIZE : " + bestSize.width + " / HEIGHT : " + bestSize.height);
+                        System.out.println("IMAGE SIZE : " + imgSize.width + " / HEIGHT : " + imgSize.height);
+
                         // rotation
                         int rotation = getRotationUniversal();
                         int camWidth = bestSize.width;

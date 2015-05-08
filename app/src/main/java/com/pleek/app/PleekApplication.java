@@ -45,26 +45,6 @@ public class PleekApplication extends Application {
         FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
         try {
             ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
-
-                @Override
-                public void onStart() {
-                    System.out.println("FFMPEG START");
-                }
-
-                @Override
-                public void onFailure() {
-                    System.out.println("FFMPEG FAILURE");
-                }
-
-                @Override
-                public void onSuccess() {
-                    System.out.println("FFMPEG SUCCESS");
-                }
-
-                @Override
-                public void onFinish() {
-                    System.out.println("FFMPEG FINISH");
-                }
             });
         } catch (FFmpegNotSupportedException e) {
             System.out.println("FFMPEG NOT SUPPORTED");
