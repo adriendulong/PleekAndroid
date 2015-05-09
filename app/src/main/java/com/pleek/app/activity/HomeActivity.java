@@ -18,7 +18,6 @@ import android.widget.ImageView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
-import com.goandup.lib.widget.ButtonRoundedMaterialDesign;
 import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.ListViewScrollingOff;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
@@ -26,7 +25,6 @@ import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
-import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -314,8 +312,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     }
 
     @Override
-    public void clickOnPiki(Piki piki)
-    {
+    public void clickOnPiki(Piki piki) {
         PikiActivity.initActivity(piki);
         startActivity(new Intent(this, PikiActivity.class));
         overridePendingTransition(R.anim.activity_in, R.anim.activity_out);

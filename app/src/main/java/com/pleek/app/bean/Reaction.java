@@ -1,19 +1,11 @@
 package com.pleek.app.bean;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 
-import com.goandup.lib.utile.L;
-import com.parse.GetDataCallback;
-import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
-import com.parse.ProgressCallback;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -37,6 +29,8 @@ public class Reaction extends VideoBean
     private boolean hasLiked = false;
     private int nbLikes = 0;
     public Type type = Type.UNKNOW;
+    private double totalProgress;
+    private double currentProgress;
 
     public Reaction(String nameUser, Bitmap tmpPhoto)
     {
@@ -219,5 +213,25 @@ public class Reaction extends VideoBean
 
     public void setTmpPathVideo(String tmpPathVideo) {
         this.tmpPathVideo = tmpPathVideo;
+    }
+
+    public double getCurrentProgress() {
+        return currentProgress;
+    }
+
+    public void setCurrentProgress(double currentProgress) {
+        this.currentProgress = currentProgress;
+    }
+
+    public double getTotalProgress() {
+        return totalProgress;
+    }
+
+    public void setTotalProgress(double totalProgress) {
+        this.totalProgress = totalProgress;
+    }
+
+    public boolean isVideo() {
+        return (urlVideo != null && urlVideo.length() > 0) || type == Type.VIDEO;
     }
 }

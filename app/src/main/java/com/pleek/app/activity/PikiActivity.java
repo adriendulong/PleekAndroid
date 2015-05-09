@@ -182,12 +182,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private long timeDown;
     private boolean isDown;
     private int longClickDuration = 700;
+    private int timeRecording = 6000;
     private MediaRecorder mediaRecorder;
     private boolean isRecording;
     private Handler handler;
     private Camera.Size optimalSize = null;
     private Dialog loader;
     private boolean hasProcessedVideo = false;
+    private double totalTimeProcessing = 0;
+    private double currentProgress = 0;
+    private View viewVideoProgress;
+    private long timerStart = 0L;
 
     private Reaction tmpReactVideo;
 
@@ -211,6 +216,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         if (_piki != null) {
             piki = _piki;
             _piki = null;
+        } else {
+            finish();
         }
 
         btnBack = findViewById(R.id.btnBack);
@@ -408,6 +415,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
         imgReply = (ImageView) findViewById(R.id.imgReply);
         imgReply.setOnTouchListener(captureVideoListener);
+
+        viewVideoProgress = findViewById(R.id.videoProgress);
 
         likeForReacts = new HashSet<String>();
         handler = new Handler();
@@ -1595,6 +1604,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(null);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (isPreviewVisible) startCamera();
@@ -1954,20 +1969,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
 
         mediaRecorder.setOutputFile(tmpFile.getAbsolutePath());
-        System.out.println(tmpFile);
-        mediaRecorder.setMaxDuration(6000); // Set max duration 6 sec.
+        mediaRecorder.setMaxDuration(timeRecording); // Set max duration 6 sec.
 
         mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
             @Override
             public void onError(MediaRecorder mr, int what, int extra) {
-                System.out.println("ERROR - WHAT : " + what + " EXTRA : " + extra);
             }
         });
 
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
             @Override
             public void onInfo(MediaRecorder mr, int what, int extra) {
-                System.out.println("INFO - WHAT : " + what + " EXTRA : " + extra);
                 if (what == 800) {
                     stopMediaRecorder();
                 }
@@ -1991,6 +2003,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         try {
             isRecording = false;
 
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewVideoProgress.getLayoutParams();
+            params.width = 0;
+            viewVideoProgress.setLayoutParams(params);
+            timerStart = 0;
+
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -2001,16 +2018,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             //cameraView.setOnPreviewListener(null);
             mediaRecorder.stop();
             releaseMediaRecorder();
-            Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
+            handler.removeCallbacks(runnableTimeRecording);
+            //Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
 
             new Thread() {
                 @Override
                 public void run() {
-                    //if (optimalSize.width > SIZE_REACT + 100) {
-                        processVideo();
-                    //} else {
-                    //    processCrop();
-                    //}
+                    generateTempReact();
                 }
             }.run();
         } catch (Exception ex) {
@@ -2059,17 +2073,14 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         }
 
-        System.out.println("Size = w : " + optimalSize.width + " / h : " + optimalSize.height);
-
         return optimalSize;
     }
 
     public void processVideo() {
-        loader = showLoader();
         final FFmpeg ffmpeg = FFmpeg.getInstance(this);
         try {
             final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
-            File tmpFile = new File(videosDir, "myvideo.mp4");
+            final File tmpFile = new File(videosDir, "myvideo.mp4");
             hasProcessedVideo = true;
 
             ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360" + (optimalSize.width > SIZE_REACT + 100 ? ",crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) : "") + ",transpose=" + (cameraView.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
@@ -2081,43 +2092,68 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                         Pattern p = Pattern.compile("\\d+");
                         Matcher m = p.matcher(temp);
+                        int i = 0;
                         while(m.find()) {
-                            System.out.println(m.group());
+                            if (i == 2) {
+                                totalTimeProcessing = Double.valueOf(m.group());
+                            } else if (i == 3) {
+                                totalTimeProcessing += Double.valueOf("0." + m.group());
+                            }
+                            i++;
+                        }
+                    } else if (message.contains("time=")) {
+                        String temp = message.substring(message.indexOf("time=") + "time=".length(), message.indexOf(" ", message.indexOf("time")));
+                        Pattern p = Pattern.compile("\\d+");
+                        Matcher m = p.matcher(temp);
+                        int i = 0;
+                        while(m.find()) {
+                            if (i == 2) {
+                                currentProgress = Double.valueOf(m.group());
+                            } else if (i == 3) {
+                                currentProgress += Double.valueOf("0." + m.group());
+                                adapter.updateProgressTempVideo(totalTimeProcessing, currentProgress);
+                            }
+
+                            i++;
                         }
                     }
                 }
 
                 @Override
-                public void onFailure(String message) {
-                    System.out.println("FAILURE : " + message);
-                }
-
-                @Override
                 public void onFinish() {
-                    try {
-                        final File tmpFile = new File(videosDir, "out.mp4");
-                        ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
-
-                            @Override
-                            public void onFinish() {
-                                File tmpFileImg = new File(videosDir, "out1.jpg");
-                                Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
-                                tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap, tmpFile.getAbsolutePath());
-                                tmpReactVideo.setType(Reaction.Type.VIDEO);
-                                listReact = adapter.addReact(tmpReactVideo);
-                                sendReact(tmpReactVideo);
-                                hideDialog(loader);
-                            }
-                        });
-                    } catch (FFmpegCommandAlreadyRunningException e) {
-                        e.printStackTrace();
-                        hideDialog(loader);
-                    }
+                    tmpReactVideo.setTmpPathVideo(videosDir + "/out.mp4");
+                    sendReact(tmpReactVideo);
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {
             e.printStackTrace();
-            hideDialog(loader);
+        }
+    }
+
+    private void generateTempReact() {
+        loader = showLoader();
+        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+        File tmpFile = new File(videosDir, "myvideo.mp4");
+        try {
+            ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
+
+                @Override
+                public void onFinish() {
+                    File tmpFileImg = new File(videosDir, "out1.jpg");
+                    Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), cameraView.convertPicture(byteArray), tmpFileImg.getAbsolutePath());
+                    tmpReactVideo.setType(Reaction.Type.VIDEO);
+                    listReact = adapter.addReact(tmpReactVideo);
+                    hideDialog(loader);
+                    processVideo();
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
         }
     }
 
@@ -2125,13 +2161,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         @Override
         public void run() {
             if (isDown && (System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording && layoutOverlayReply.getVisibility() == View.VISIBLE) {
-                System.out.println("We recording");
                 isRecording = true;
+                edittexteReact.setTranslationY(Screen.getInstance(PikiActivity.this).getWidth());
 
                 if (!prepareMediaRecorder()) {
                     Toast.makeText(PikiActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
                     isRecording = false;
                 }
+
+                handler.post(runnableTimeRecording);
 
                 runOnUiThread(new Runnable() {
                     public void run() {
@@ -2143,6 +2181,20 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 });
             }
+        }
+    };
+
+    private Runnable runnableTimeRecording = new Runnable() {
+        @Override
+        public void run() {
+            if (timerStart == 0) {
+                timerStart = System.currentTimeMillis();
+            }
+            
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewVideoProgress.getLayoutParams();
+            params.width = (int) (layoutCamera.getLayoutParams().width * (System.currentTimeMillis() - timerStart) / timeRecording);
+            viewVideoProgress.setLayoutParams(params);
+            handler.post(runnableTimeRecording);
         }
     };
 }

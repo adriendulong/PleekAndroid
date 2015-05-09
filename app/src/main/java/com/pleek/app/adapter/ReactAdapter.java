@@ -19,14 +19,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
-import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
@@ -39,6 +37,7 @@ import com.pleek.app.bean.VideoBean;
 import com.pleek.app.listeners.FlipListener;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.CircleProgressBar;
+import com.pleek.app.views.CircularProgressBar;
 import com.pleek.app.views.TextViewFontAutoResize;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -151,6 +150,7 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
             if (vh.imgReact != null) {
                 vh.imgReact.setVisibility(View.VISIBLE);
                 vh.progressBar.setVisibility(View.GONE);
+                vh.progressBarTempReact.setVisibility(View.GONE);
                 vh.imgError.setVisibility(View.GONE);
                 vh.imgMute.setVisibility(View.GONE);
                 vh.progressBar.setColorSchemeResources(R.color.progressBar);
@@ -171,9 +171,15 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
                         vh.imgPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
                         react.loadVideoToTempFile(context);
                     } else {
+                        if (react.isVideo()) {
+                            vh.progressBar.setVisibility(View.GONE);
+                            vh.progressBarTempReact.setVisibility(View.VISIBLE);
+                            vh.progressBarTempReact.setProgress((float) (react.getCurrentProgress() / react.getTotalProgress()));
+                        } else {
+                            vh.imgPlay.setVisibility(View.GONE);
+                        }
                         vh.imgReact.setImageBitmap(react.getTmpPhoto());
                         vh.imgPlay.setVisibility(View.GONE);
-                        vh.progressBar.setVisibility(react.isLoadError() ? View.GONE : View.VISIBLE);
                         if (react.isLoadError()) {
                             vh.imgError.setVisibility(View.VISIBLE);
                             vh.imgError.setImageResource(R.drawable.picto_reload);
@@ -734,6 +740,18 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         notifyDataSetChanged();
     }
 
+    public void updateProgressTempVideo(double totalProgress, double currentProgress) {
+        if (listReact != null && listReact.size() > 0) {
+            Reaction react = (Reaction) getItem(0);
+
+            if (react.getUrlPhoto() == null && currentProgress > react.getCurrentProgress()) {
+                react.setTotalProgress(totalProgress);
+                react.setCurrentProgress(currentProgress);
+                notifyDataSetChanged();
+            }
+        }
+    }
+
     class CustomTarget implements Target {
 
         private ReactViewHolder vh;
@@ -809,6 +827,8 @@ public class ReactAdapter extends BaseAdapter implements View.OnTouchListener, S
         RelativeLayout layoutAddFriend;
         @InjectView(R.id.progressBarAddFriend)
         ProgressBar friendsProgressBar;
+        @InjectView(R.id.progressBarTempReact)
+        CircularProgressBar progressBarTempReact;
         @InjectView(R.id.imgAddFriend)
         ImageView imgAddFriend;
         @InjectView(R.id.txtAddFriend)
