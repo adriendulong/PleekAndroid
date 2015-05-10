@@ -128,7 +128,7 @@
 
                     <View
                         android:id="@+id/videoProgress"
-                        android:layout_width="100dp"
+                        android:layout_width="0dp"
                         android:layout_height="10dp"
                         android:background="@color/secondColor"
                         android:layout_alignParentBottom="true" />

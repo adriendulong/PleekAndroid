@@ -188,7 +188,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private Handler handler;
     private Camera.Size optimalSize = null;
     private Dialog loader;
-    private boolean hasProcessedVideo = false;
     private double totalTimeProcessing = 0;
     private double currentProgress = 0;
     private View viewVideoProgress;
@@ -1310,6 +1309,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         params.put("ownerId", pikiParse.getParseUser("user").getObjectId());
                         params.put("recipients", pikiParse.getList("recipients"));
 
+                        if (newReact.isVideo()) {
+                            File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+                            if (videosDir.exists()) videosDir.delete();
+                        }
+
                         ParseCloud.callFunctionInBackground("sendPushNewComment", params, new FunctionCallback<Object>() {
                             @Override
                             public void done(Object o, ParseException e) {
@@ -2081,7 +2085,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         try {
             final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
             final File tmpFile = new File(videosDir, "myvideo.mp4");
-            hasProcessedVideo = true;
 
             ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360" + (optimalSize.width > SIZE_REACT + 100 ? ",crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) : "") + ",transpose=" + (cameraView.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
 
@@ -2190,7 +2193,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if (timerStart == 0) {
                 timerStart = System.currentTimeMillis();
             }
-            
+
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewVideoProgress.getLayoutParams();
             params.width = (int) (layoutCamera.getLayoutParams().width * (System.currentTimeMillis() - timerStart) / timeRecording);
             viewVideoProgress.setLayoutParams(params);

@@ -12,6 +12,14 @@
         app:autoStart="true"
         app:faceCamera="false"/>
 
+
+    <View
+        android:id="@+id/videoProgress"
+        android:layout_width="0dp"
+        android:layout_height="10dp"
+        android:background="@color/secondColor"
+        android:layout_centerVertical="true" />
+
     <ImageView
         android:id="@+id/imgPreview"
         android:layout_width="match_parent"
@@ -24,7 +32,7 @@
         android:id="@+id/layoutOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"/>
+        android:orientation="horizontal" />
 
     <!-- TEXTE VIEW -->
     <RelativeLayout
@@ -175,4 +183,13 @@
 
     <RelativeLayout android:id="@+id/removeFocus" android:focusableInTouchMode="true" android:focusable="true" android:layout_width="0px" android:layout_height="0px"/>
 
+
+    <RelativeLayout
+        android:id="@+id/layoutVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:background="@color/secondColor">
+    </RelativeLayout>
 </RelativeLayout>

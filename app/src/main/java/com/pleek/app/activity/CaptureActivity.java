@@ -2,6 +2,7 @@ package com.pleek.app.activity;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -15,25 +16,36 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.Camera;
+import android.media.CamcorderProfile;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
+import android.widget.Toast;
 
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
-import com.goandup.lib.widget.ButtonRoundedMaterialDesign;
 import com.goandup.lib.widget.CameraView;
 import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.EditTextFont;
@@ -44,18 +56,22 @@ import com.pleek.app.bean.AutoResizeFontTextWatcher;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 /**
  * Created by nicolas on 15/01/15.
  */
-public class CaptureActivity extends ParentActivity implements View.OnClickListener, SquareOverlay.Listener
+public class CaptureActivity extends ParentActivity implements View.OnClickListener, SquareOverlay.Listener, SurfaceHolder.Callback
 {
     public static boolean CLOSE_ME;
 
     private int SIZE_PIKI = 640;
+    private int SIZE_PIKI_VIDEO = 480;
     private int GALLERY_INTENT_CALLED = 1;
     private int GALLERY_KITKAT_INTENT_CALLED = 2;
     private int MAX_FONTSIZE = 60;//dp
@@ -77,6 +93,24 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     private View btnSave;
     private View removeFocus;
 
+    private int timeRecording = 12000;
+    private MediaRecorder mediaRecorder;
+    private boolean isRecording;
+    private Handler handler;
+    private Camera.Size optimalSize = null;
+    private Dialog loader;
+    private View viewVideoProgress;
+    private long timerStart = 0L;
+    private long timeDown;
+    private boolean isDown;
+    private int longClickDuration = 700;
+
+    private MediaPlayer mediaPlayer;
+    private RelativeLayout layoutVideo;
+    private boolean isPreparePlaying;
+    private boolean isPlaying = false;
+    private SurfaceView surfaceView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -92,6 +126,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
     private void setup()
     {
+        handler = new Handler();
         camera = (CameraView)findViewById(R.id.camera);
         camera.setFaceCamera(pref.getBoolean("selfie_camera", true));
         camera.setVisibility(View.VISIBLE);
@@ -121,13 +156,41 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
             public void onClick(View v) {
                 camera.captureCamera(new CameraView.CameraViewListener() {
                     @Override
-                    public void repCaptureCamera(Drawable image)
-                    {
+                    public void repCaptureCamera(Drawable image) {
                         showPreview(image);
                     }
                 });
             }
         });
+        btnCapture.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    timeDown = System.currentTimeMillis();
+                    isDown = true;
+                    handler.postDelayed(recordVideoRunnable, longClickDuration);
+
+                } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                    isDown = false;
+
+                    if (event.getAction() == MotionEvent.ACTION_UP && !isRecording && (System.currentTimeMillis() - timeDown) < longClickDuration) {
+                        camera.captureCamera(new CameraView.CameraViewListener() {
+                            @Override
+                            public void repCaptureCamera(Drawable image) {
+                                showPreview(image);
+                            }
+                        });
+
+                        return true;
+                    } else if (isRecording) {
+                        stopMediaRecorder();
+                    }
+                }
+
+                return true;
+            }
+        });
+
         imgGallerie = (ImageView)findViewById(R.id.imgGallerie);
         imgGallerie.setOnClickListener(this);
         layoutBottomControl2 = findViewById(R.id.layoutBottomControl2);
@@ -154,6 +217,13 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         btnSave = findViewById(R.id.btnSave);
         btnSave.setOnClickListener(this);
         removeFocus = findViewById(R.id.removeFocus);
+
+        layoutVideo = (RelativeLayout) findViewById(R.id.layoutVideo);
+        viewVideoProgress = findViewById(R.id.videoProgress);
+
+        surfaceView = new SurfaceView(this);
+        surfaceView.getHolder().addCallback(this);
+        surfaceView.setZOrderOnTop(false);
     }
 
     private void init()
@@ -302,6 +372,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     {
         imgPreview.setVisibility(View.GONE);
         imgPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        stopCurrentVideo();
         camera.setVisibility(View.VISIBLE);
         edittextePhoto.setVisibility(View.VISIBLE);
         showLayoutControl1();
@@ -602,7 +673,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == MotionEvent.ACTION_DOWN)
         {
-            if(imgPreview.getVisibility() == View.VISIBLE)
+            if(imgPreview.getVisibility() == View.VISIBLE || layoutVideo.getVisibility() == View.VISIBLE)
             {
                 showCapture();
                 return false;
@@ -616,6 +687,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     {
         super.onPause();
         CameraView.release();
+        stopCurrentVideo();
     }
 
     @Override
@@ -660,4 +732,321 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
         return bm;
     }
+
+    private void releaseMediaRecorder() {
+        if (mediaRecorder != null) {
+            mediaRecorder.reset();
+            mediaRecorder.release();
+            mediaRecorder = null;
+        }
+    }
+
+    private boolean prepareMediaRecorder() {
+        mediaRecorder = new MediaRecorder();
+
+        Camera.Size size = getCameraSizes();
+        android.hardware.Camera cameraObj = camera.getCamera();
+        cameraObj.unlock();
+        mediaRecorder.setCamera(cameraObj);
+
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+
+        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+        profile.videoFrameWidth = size.width;
+        profile.videoFrameHeight = size.height;
+        mediaRecorder.setProfile(profile);
+
+        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+        if (!videosDir.exists()) videosDir.mkdir();
+
+        File tmpFile = new File(videosDir, "myvideo.mp4");
+
+        if (!tmpFile.exists()) {
+            tmpFile.deleteOnExit();
+        }
+
+        mediaRecorder.setOutputFile(tmpFile.getAbsolutePath());
+        mediaRecorder.setMaxDuration(timeRecording); // Set max duration 6 sec.
+
+        mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
+            @Override
+            public void onError(MediaRecorder mr, int what, int extra) {
+            }
+        });
+
+        mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mr, int what, int extra) {
+                if (what == 800) {
+                    stopMediaRecorder();
+                }
+            }
+        });
+
+        try {
+            mediaRecorder.prepare();
+        } catch (IllegalStateException e) {
+            releaseMediaRecorder();
+            return false;
+        } catch (IOException e) {
+            releaseMediaRecorder();
+            return false;
+        }
+
+        return true;
+    }
+
+    private void stopMediaRecorder() {
+        try {
+            isRecording = false;
+
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewVideoProgress.getLayoutParams();
+            params.width = 0;
+            viewVideoProgress.setLayoutParams(params);
+            timerStart = 0;
+
+            mediaRecorder.stop();
+            releaseMediaRecorder();
+            handler.removeCallbacks(runnableTimeRecording);
+            //Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
+
+            new Thread() {
+                @Override
+                public void run() {
+                    generateTempPiki();
+                }
+            }.run();
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    camera.setVisibility(View.GONE);
+                    showLayoutControl2();
+                }
+            });
+
+            playVideo();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private Camera.Size getCameraSizes() {
+        Camera.Parameters p = camera.getCamera().getParameters();
+        List<Camera.Size> videoSizes = p.getSupportedVideoSizes();
+
+        p.set("cam_mode", 1);
+        p.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+
+        final double ASPECT_TOLERANCE = 0.0;
+        double targetRatio = (double) p.getPreviewSize().width / p.getPreviewSize().height;
+
+        if (videoSizes == null)
+            return null;
+
+        double minDiff = Double.MAX_VALUE;
+        int targetWidth = 700;
+
+        // Try to find an size match aspect ratio and size
+        for (Camera.Size size : videoSizes) {
+            Log.d("Camera", "Checking size " + size.width + "w " + size.height
+                    + "h");
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE)
+                continue;
+            if (Math.abs(size.width - targetWidth) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.width - targetWidth);
+            }
+        }
+
+        // Cannot find the one match the aspect ratio, ignore the
+        // requirement
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : videoSizes) {
+                if (Math.abs(size.width - targetWidth) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.width - targetWidth);
+                }
+            }
+        }
+
+        return optimalSize;
+    }
+
+    public void processVideo() {
+        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+        try {
+            final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+            final File tmpFile = new File(videosDir, "myvideo.mp4");
+
+            ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:480" + (optimalSize.width > SIZE_PIKI_VIDEO + 100 ? ",crop=" + (SIZE_PIKI_VIDEO > optimalSize.height ? optimalSize.height : SIZE_PIKI_VIDEO) + ":" + (SIZE_PIKI_VIDEO > optimalSize.height ? optimalSize.height : SIZE_PIKI_VIDEO) : "") + ",transpose=" + (camera.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+
+                @Override
+                public void onFinish() {
+                    //tmpReactVideo.setTmpPathVideo(videosDir + "/out.mp4");
+                    //sendReact(tmpReactVideo);
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Runnable runnableTimeRecording = new Runnable() {
+        @Override
+        public void run() {
+            if (timerStart == 0) {
+                timerStart = System.currentTimeMillis();
+            }
+
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewVideoProgress.getLayoutParams();
+            params.width = (int) (screen.getWidth() * (System.currentTimeMillis() - timerStart) / timeRecording);
+            viewVideoProgress.setLayoutParams(params);
+            handler.post(runnableTimeRecording);
+        }
+    };
+
+    private void generateTempPiki() {
+        loader = showLoader();
+        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+        File tmpFile = new File(videosDir, "myvideo.mp4");
+        try {
+            ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
+
+                @Override
+                public void onFinish() {
+                    File tmpFileImg = new File(videosDir, "out1.jpg");
+                    Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    //tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), cameraView.convertPicture(byteArray), tmpFileImg.getAbsolutePath());
+                    //tmpReactVideo.setType(Reaction.Type.VIDEO);
+                    //listReact = adapter.addReact(tmpReactVideo);
+                    hideDialog(loader);
+                    processVideo();
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playVideo() {
+        if (isPreparePlaying) return;
+        isPreparePlaying = true;
+
+        layoutVideo.setVisibility(View.VISIBLE);
+
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            stopCurrentVideo();
+        }
+
+        if (surfaceView.getParent() != null) {
+            ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
+        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        layoutVideo.addView(surfaceView, params);
+    }
+
+    public void stopCurrentVideo() {
+        layoutVideo.setVisibility(View.GONE);
+        layoutVideo.removeAllViews();
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+            isPlaying = false;
+        }
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+
+        // play video
+        layoutVideo.setVisibility(View.VISIBLE);
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                mediaPlayer.start();
+                isPreparePlaying = false;
+            }
+        });
+
+        mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
+                isPreparePlaying = false;
+                return false;
+            }
+        });
+
+        mediaPlayer.setVolume(1, 1);
+        mediaPlayer.setLooping(true);
+        mediaPlayer.setDisplay(surfaceView.getHolder());
+        try {
+            final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+            final File tmpFile = new File(videosDir, "myvideo.mp4");
+            FileInputStream fis = new FileInputStream(tmpFile.getAbsolutePath());
+            FileDescriptor fd = fis.getFD();
+            long size = fis.getChannel().size();
+
+            if (fd != null) {
+                mediaPlayer.setDataSource(fd, 0, size);
+                mediaPlayer.prepareAsync();
+                isPlaying = true;
+            } else {
+                L.e("ERROR WITH FILE DESCRIPTOR");
+                isPlaying = false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            isPlaying = false;
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    private Runnable recordVideoRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isDown && (System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording) {
+                isRecording = true;
+                edittextePhoto.setVisibility(View.GONE);
+
+                if (!prepareMediaRecorder()) {
+                    Toast.makeText(CaptureActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                    isRecording = false;
+                }
+
+                handler.post(runnableTimeRecording);
+
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        try {
+                            mediaRecorder.start();
+                        } catch (final Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }
+    };
 }
