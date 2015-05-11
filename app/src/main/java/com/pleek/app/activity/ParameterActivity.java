@@ -149,7 +149,7 @@ public class ParameterActivity extends ParentActivity implements View.OnClickLis
             chbxNotif.setChecked(!chbxNotif.isChecked());
             ParseInstallation installation = ParseInstallation.getCurrentInstallation();
             installation.put("notificationsEnabled", !chbxNotif.isChecked());
-            installation.saveInBackground();
+            installation.saveEventually();
         } else if (view == btnEmail) {
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType("message/rfc822");

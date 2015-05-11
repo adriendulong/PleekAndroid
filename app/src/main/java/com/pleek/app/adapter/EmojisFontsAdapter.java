@@ -71,13 +71,14 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
-        if (mViews.get(position) instanceof Emoji) {
+        if (mType == EmojisFontsPopup.POPUP_STICKERS) {
             EmojisViewHolder holderE = (EmojisViewHolder) holder;
             final Emoji emoji = (Emoji) mViews.get(position);
 
             if (emoji != null) {
+                holderE.imgEmoji.setVisibility(View.VISIBLE);
                 int halfOnePx = (int) (0.5 * Screen.getInstance(mContext).getDensity());
-                holder.itemView.setPadding(0, halfOnePx, halfOnePx, 0);
+                holder.itemView.setPadding(0, halfOnePx, halfOnePx, position == mViews.size() - 1 ? halfOnePx : 0);
 
                 ViewGroup.LayoutParams params = holderE.imgEmoji.getLayoutParams();
                 params.width = mSize;
@@ -91,7 +92,7 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
 
                 PicassoUtils.with(mContext)
                         .load(emoji.getUrlPhoto())
-                        .resize(mSize, mSize)
+                        .resize((int) (mSize * 0.75), (int) (mSize * 0.75))
                         .into(holderE.imgEmoji);
 
                 holderE.layoutEmoji.setBackgroundResource(emoji.getId().equals(mSelectedId) ? R.color.emojiFontBgSelected : R.color.emojiFontBgNormal);
@@ -117,8 +118,9 @@ public class EmojisFontsAdapter<T> extends RecyclerView.Adapter<RecyclerView.Vie
                 holderE.imgEmoji.setImageDrawable(null);
                 holderE.imgEmoji.setVisibility(View.GONE);
                 holderE.imgSelected.setVisibility(View.GONE);
+                holderE.itemView.setOnClickListener(null);
             }
-        } else if (mViews.get(position) instanceof Font) {
+        } else {
             final FontsViewHolder holderF = (FontsViewHolder) holder;
             final Font font = (Font) mViews.get(position);
 

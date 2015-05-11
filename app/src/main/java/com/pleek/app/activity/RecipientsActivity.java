@@ -96,8 +96,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipients);
 
@@ -105,16 +104,13 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
         init();
     }
 
-    private void setup()
-    {
-        if(_pikiData != null)
-        {
+    private void setup() {
+        if (_pikiData != null) {
             pikiData = _pikiData;
             _pikiData = null;
         }
@@ -260,17 +256,24 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         isLoading = true;
         fromCache = false;
 
-        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
-        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
-        innerQuery.include("friend");
-        innerQuery.orderByAscending("username");
-        innerQuery.setSkip(currentPage * NB_BY_PAGE);
-        innerQuery.setLimit(NB_BY_PAGE);
-        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+        if (getFriendsPrefs() == null || getFriendsPrefs().isEmpty()) return false;
+
+        // copie de la liste actuel des friends
+        listBeforreRequest = new ArrayList<Friend>(listFriend);
+
+        isLoading = true;
+        fromCache = true;
+
+        ParseQuery<ParseUser> query = ParseUser.getQuery();
+        query.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
+        query.whereContainedIn("objectId", getFriendsPrefs()); //TODO : CRASH #9
+        query.orderByAscending("username");
+        query.setSkip(currentPage * NB_BY_PAGE);
+        query.setLimit(NB_BY_PAGE);
+        query.findInBackground(new FindCallback<ParseUser>() {
 
             @Override
-            public void done(List<ParseObject> list, ParseException e) {
+            public void done(List<ParseUser> list, ParseException e) {
                 if (e == null) {
                     if (currentPage > 0) {
                         listFriend = new ArrayList<Friend>(listBeforreRequest);
@@ -281,10 +284,9 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
                     if (!fromCache) currentPage++;
 
                     for (ParseObject obj : list) {
-                        ParseUser user = (ParseUser) obj.get("friend");
                         Friend friend = new Friend(null, R.string.friends_section, R.drawable.picto_recipient_off);
-                        friend.username = user.getString("username");
-                        friend.parseId = user.getObjectId();
+                        friend.username = obj.getString("username");
+                        friend.parseId = obj.getObjectId();
                         listFriend.add(friend);
                     }
 
@@ -292,16 +294,13 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
                     endOfLoading = list.size() < NB_BY_PAGE;
 
                     updateFiltre();
-                }
-                else
-                {
+                } else {
                     L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
                     e.printStackTrace();
                 }
 
                 //si réponse network (2eme reponse)
-                if(!fromCache)
-                {
+                if (!fromCache) {
                     listView.removeFooterView(footer);
                     isLoading = false;
                 }

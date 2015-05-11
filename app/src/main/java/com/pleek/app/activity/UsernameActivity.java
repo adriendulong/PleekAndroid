@@ -33,7 +33,9 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 import com.pleek.app.R;
+import com.pleek.app.bean.Friend;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
@@ -222,20 +224,18 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                     ParseCloud.callFunctionInBackground("addToFirstUsePiki", new HashMap<String, Object>(), new FunctionCallback() {
                                         @Override
                                         public void done(Object o, ParseException e) {
-                                            if (e == null) {
-                                                startActivity(new Intent(UsernameActivity.this, AddUserActivity.class));
-                                                overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-                                            } else {
-                                                Utile.showToast(R.string.username_no_network, UsernameActivity.this);
-                                                e.printStackTrace();
-                                            }
-                                            hideDialog(loader);
-                                            isSending = false;
+                                            getFriendsBg(new FunctionCallback<ArrayList<Friend>>() {
+                                                @Override
+                                                public void done(ArrayList<Friend> friends, ParseException e) {
+                                                    startActivity(new Intent(UsernameActivity.this, AddUserActivity.class));
+                                                    overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+                                                    hideDialog(loader);
+                                                    isSending = false;
+                                                }
+                                            });
+
                                         }
                                     });
-
-                                    hideDialog(loader);
-                                    isSending = false;
                                 }
                                 else
                                 {

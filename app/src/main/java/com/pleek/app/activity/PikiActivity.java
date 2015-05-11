@@ -1573,7 +1573,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
         //create jpeg data
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
         return stream.toByteArray();
     }
 

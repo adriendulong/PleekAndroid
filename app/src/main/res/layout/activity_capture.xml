@@ -71,7 +71,7 @@
                 android:textSize="50dp"
                 android:minWidth="50dp"
                 android:textCursorDrawable="@drawable/cursor_big"
-                app:customFont="proximanova_sbold.otf"
+                app:customFont="banzaibros.otf"
                 android:background="@android:color/transparent"
                 android:gravity="center"
                 android:privateImeOptions="nm"

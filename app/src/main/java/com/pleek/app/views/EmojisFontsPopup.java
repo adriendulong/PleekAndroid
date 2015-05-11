@@ -97,9 +97,9 @@ public class EmojisFontsPopup<T> extends PopupWindow {
 		setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         setBackgroundDrawable(new ColorDrawable(context.getResources().getColor(R.color.secondColor)));
 
-        if (mData.size() % 2 == 1) {
-            mData.add(null);
-        }
+        //if (mData.size() % 2 == 1 && type == POPUP_STICKERS) {
+        //    mData.add(null);
+        //}
 	}
 
 	/**

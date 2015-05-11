@@ -214,13 +214,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:layout_marginTop="48dp"
-                android:layout_marginLeft="30dp"
+                android:layout_marginTop="38dp"
+                android:layout_marginLeft="10dp"
+                android:padding="20dp"
                 android:src="@drawable/picto_switch_back_selector"
                 app:flipDrawable="@drawable/picto_switch_selfie_selector"
                 app:flipDuration="600"
                 app:flipInterpolator="@android:anim/overshoot_interpolator"
-                app:flipRotations="y"/>
+                app:flipRotations="y" />
 
             <ImageView
                 android:id="@+id/imgKeyboard"
@@ -228,8 +229,9 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/picto_keyboard_selected"
                 android:layout_alignParentLeft="true"
-                android:layout_marginTop="48dp"
-                android:layout_marginLeft="80dp"
+                android:layout_marginTop="38dp"
+                android:layout_marginLeft="60dp"
+                android:padding="20dp"
                 android:clickable="true" />
 
             <ImageView
@@ -246,8 +248,9 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/picto_fonts_selector"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="45dp"
-                android:layout_marginRight="80dp"
+                android:layout_marginTop="35dp"
+                android:layout_marginRight="60dp"
+                android:padding="20dp"
                 android:clickable="true" />
 
             <ImageView
@@ -255,8 +258,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/picto_stickers_selector"
-                android:layout_marginTop="45dp"
-                android:layout_marginRight="30dp"
+                android:layout_marginTop="35dp"
+                android:layout_marginRight="10dp"
+                android:padding="20dp"
                 android:layout_alignParentRight="true"
                 android:clickable="true" />
 

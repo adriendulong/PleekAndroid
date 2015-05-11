@@ -18,7 +18,8 @@ import com.parse.SaveCallback;
  * Created by nicolas on 21/08/2014.
  */
 public class PleekApplication extends Application {
-    public static final String MIXPANEL_TOKEN = "4b77ab10bab4b1d18103525dd39a7630";//DEV (Nico Up)
+    public static final String MIXPANEL_TOKEN = "8ed35339994dd90dec6bda7d83c3d3eb";//DEV
+    //public static final String MIXPANEL_TOKEN = "4b77ab10bab4b1d18103525dd39a7630";//DEV (Nico Up)
     //public static final String MIXPANEL_TOKEN = "bdde62cd933f58205b7cb98da8a2bca8";//PROD (Piki team)
 
     @Override

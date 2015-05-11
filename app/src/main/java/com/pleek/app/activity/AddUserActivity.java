@@ -68,7 +68,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
         if (!isFromFriends) {
             txtBtnNext = (TextView) findViewById(R.id.txtBtnNext);
             String txt = getResources().getString(R.string.adduser_btn_next);
-            txt = txt.replace("_nbstay_", "" + NB_MUST_SELECT_USER);
+            txt = txt.replace("_nbstay_", "" + (NB_MUST_SELECT_USER - getFriendsPrefs().size() + 1));
             txtBtnNext.setText(txt);
         } else {
             btnNext.setVisibility(View.GONE);
@@ -135,28 +135,22 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     public void onClick(View view) {
         if (view == btnNext || view == btnDismiss) {
             final List<AddUserOnLoginAdapter.User> listUser = adapter.getListUserSelected();
-            if (view == btnDismiss || (listUser.size() >= NB_MUST_SELECT_USER || error)) {
+            if (view == btnDismiss || (listUser.size() >= (NB_MUST_SELECT_USER - getFriendsPrefs().size() + 1) || error)) {
                 if (listUser.size() > 0) {
                     final Dialog loader = showLoader();
 
                     final FunctionCallback functionCallback = new FunctionCallback<ParseUser>() {
                         @Override
                         public void done(ParseUser user, ParseException e) {
-                            if (e == null) {
-                                getFriendsBg(new FunctionCallback() {
-                                    @Override
-                                    public void done(Object o, ParseException e) {
-                                        nbFriendAdd++;
-                                        if (nbFriendAdd == listUser.size()) { //LAST > end
-                                            goHome();
-                                        }
+                            getFriendsBg(new FunctionCallback() {
+                                @Override
+                                public void done(Object o, ParseException e) {
+                                    nbFriendAdd++;
+                                    if (nbFriendAdd == listUser.size()) { //LAST > end
+                                        goHome();
                                     }
-                                });
-                            }
-                            else {
-                                Utile.showToast(R.string.pikifriends_action_nok, AddUserActivity.this);
-                                hideDialog(loader);//fix : crash #33
-                            }
+                                }
+                            });
                         }
                     };
 
@@ -199,7 +193,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     @Override
     public void clickOnUser(AddUserOnLoginAdapter.User user) {
         if (!isFromFriends) {
-            int nbUserSelected = NB_MUST_SELECT_USER - adapter.getListUserSelected().size();
+            int nbUserSelected = NB_MUST_SELECT_USER - adapter.getListUserSelected().size() - getFriendsPrefs().size() + 1;
             boolean isValid = nbUserSelected <= 0;
             if (isValid) {
                 txtBtnNext.setText(getResources().getString(R.string.adduser_btn_next_done));
