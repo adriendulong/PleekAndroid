@@ -2148,7 +2148,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                     byte[] byteArray = stream.toByteArray();
-                    tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), cameraView.convertPicture(byteArray), tmpFileImg.getAbsolutePath());
+                    byte[] decode = getReactData(new BitmapDrawable(cameraView.convertPicture(byteArray)), null);
+                    tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), BitmapFactory.decodeByteArray(decode, 0, decode.length), tmpFileImg.getAbsolutePath());
                     tmpReactVideo.setType(Reaction.Type.VIDEO);
                     listReact = adapter.addReact(tmpReactVideo);
                     hideDialog(loader);
