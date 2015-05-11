@@ -19,20 +19,13 @@
 
     </RelativeLayout>
 
-    <View
-        android:id="@+id/videoProgress"
-        android:layout_width="0dp"
-        android:layout_height="10dp"
-        android:background="@color/secondColor"
-        android:layout_centerVertical="true" />
-
     <ImageView
         android:id="@+id/imgPreview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:layout_centerInParent="true"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/layoutVideo"
@@ -41,6 +34,13 @@
         android:visibility="gone"
         android:layout_centerInParent="true">
     </RelativeLayout>
+
+    <View
+        android:id="@+id/videoProgress"
+        android:layout_width="0dp"
+        android:layout_height="10dp"
+        android:background="@color/secondColor"
+        android:layout_alignParentBottom="true" />
 
     <com.goandup.lib.widget.SquareOverlay
         android:id="@+id/layoutOverlay"

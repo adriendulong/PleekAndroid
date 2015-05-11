@@ -205,7 +205,6 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
                         final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
                         final File tmpFile = new File(videosDir, "out.mp4");
                         RecipientsActivity.initActivity(tmpFile.getAbsolutePath());
-                        stopCurrentVideo();
                     }
                     startActivity(new Intent(CaptureActivity.this, RecipientsActivity.class));
                     overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
@@ -440,6 +439,15 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
                 params.height = sizeSquare;
                 params.width = sizeSquare;
                 layoutVideo.requestLayout();
+            }
+        });
+
+        viewVideoProgress.post(new Runnable() {
+            @Override
+            public void run() {
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) viewVideoProgress.getLayoutParams();
+                params.bottomMargin = (layoutOverlay.getHeight() - sizeSquare) / 2;
+                viewVideoProgress.requestLayout();
             }
         });
     }
@@ -703,7 +711,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     {
         super.onPause();
         CameraView.release();
-        //stopCurrentVideo();
+        stopCurrentVideo();
     }
 
     @Override
@@ -1025,7 +1033,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     private Runnable recordVideoRunnable = new Runnable() {
         @Override
         public void run() {
-            if (isDown && (System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording) {
+            if (isDown && !isRecording) {
                 isRecording = true;
                 edittextePhoto.setVisibility(View.GONE);
 

@@ -39,7 +39,7 @@ public class CircleTimer extends ImageView
 			TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CircleTimer, defStyle, 0);
 
 			angle = a.getInt(R.styleable.CircleTimer_startAngle, 0);
-			color = a.getColor(R.styleable.CircleTimer_color, Color.WHITE);
+			color = a.getColor(R.styleable.CircleTimer_testLol, Color.WHITE);
 			colorBorder = a.getColor(R.styleable.CircleTimer_colorBorder, Color.BLACK);
 			widthBorder = a.getDimensionPixelSize(R.styleable.CircleTimer_widthBorder, 0);
 			a.recycle();

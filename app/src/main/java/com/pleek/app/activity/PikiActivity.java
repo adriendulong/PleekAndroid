@@ -2164,7 +2164,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private Runnable recordVideoRunnable = new Runnable() {
         @Override
         public void run() {
-            if (isDown && (System.currentTimeMillis() - timeDown) > longClickDuration && !isRecording && layoutOverlayReply.getVisibility() == View.VISIBLE) {
+            if (isDown && !isRecording && layoutOverlayReply.getVisibility() == View.VISIBLE) {
                 isRecording = true;
                 edittexteReact.setTranslationY(Screen.getInstance(PikiActivity.this).getWidth());
 

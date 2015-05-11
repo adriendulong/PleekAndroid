@@ -55,6 +55,9 @@
     <string name="home_tuto_friend">Find more friends to get more Pleeks</string>
     <string name="home_tuto_pleek">This is a PLEEK</string>
     <string name="home_from">From</string>
+    <string name="home_inbox">INBOX</string>
+    <string name="home_sent">SENT</string>
+    <string name="home_best">BEST</string>
 
     <!-- PIKI -->
     <string name="piki_friend">friend</string>

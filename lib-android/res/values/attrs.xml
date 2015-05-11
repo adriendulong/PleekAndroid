@@ -7,7 +7,7 @@
 
     <declare-styleable name="CircleTimer">
         <attr name="startAngle" format="integer" />
-        <attr name="color" format="color" />
+        <attr name="testLol" format="color" />
         <attr name="colorBorder" format="color" />
         <attr name="widthBorder" format="dimension" />
     </declare-styleable>
