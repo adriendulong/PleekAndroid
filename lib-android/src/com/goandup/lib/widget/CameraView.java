@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -41,6 +42,8 @@ public class CameraView extends FrameLayout
     private boolean autoStart;
     private int width;
     private int height;
+
+    private ListenerStarted cycleListener;
 
     public CameraView(Context context) {
         this(context, null);
@@ -108,6 +111,8 @@ public class CameraView extends FrameLayout
             holder.addCallback(this);
             // deprecated setting, but required on Android versions prior to 3.0
             holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+            setZOrderOnTop(false);
+            setBackgroundColor(Color.TRANSPARENT);
 
             //release();
         }
@@ -293,7 +298,12 @@ public class CameraView extends FrameLayout
                             @Override
                             public void run()
                             {
-                                if(loader != null) loader.setVisibility(View.GONE);//crash #5
+                                if (loader != null) {
+                                    loader.setVisibility(View.GONE);//crash #5
+
+                                    if (cycleListener != null) cycleListener.started();
+                                }
+
                             }
                         });
                     }
@@ -324,8 +334,14 @@ public class CameraView extends FrameLayout
                 {
                     if (listener != null)
                     {
+                        BitmapFactory.Options opt = new BitmapFactory.Options();
+                        if (Screen.getInstance(getContext()).getDensity() < 2) {
+                            opt.inSampleSize = 2;
+                        }
+                        opt.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
                         //convert
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);//TODO : crash #39 OutOfMemoryError
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opt);//TODO : crash #39 OutOfMemoryError
                         Matrix matrix = new Matrix();
 
                         //rotation
@@ -426,7 +442,7 @@ public class CameraView extends FrameLayout
                     }
                     catch (Exception e)
                     {
-                        L.e("ERROR >> release : "+e.getMessage());
+                        L.e("ERROR >> release : " + e.getMessage());
                         e.printStackTrace();
                     }
                     finally
@@ -442,6 +458,9 @@ public class CameraView extends FrameLayout
     }
     public interface ListenerRelease {
         public void end();
+    }
+    public interface ListenerStarted {
+        public void started();
     }
 
     /** flash */
@@ -639,5 +658,9 @@ public class CameraView extends FrameLayout
     public static Camera getCamera()
     {
         return camera;
+    }
+
+    public void setCycleListener(ListenerStarted cycleListener) {
+        this.cycleListener = cycleListener;
     }
 }

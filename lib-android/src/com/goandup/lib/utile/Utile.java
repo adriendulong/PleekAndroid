@@ -1,34 +1,5 @@
 package com.goandup.lib.utile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import net.minidev.json.JSONObject;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -63,6 +34,34 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Toast;
+
+import net.minidev.json.JSONObject;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 
@@ -763,6 +762,28 @@ public class Utile
         view.startAnimation(alpha);
         view.setVisibility(View.VISIBLE);
     }
+	public static void fadeOutWithoutGone(final View view, int duration, final Animation.AnimationListener listener)
+	{
+		AlphaAnimation alpha = new AlphaAnimation(1f, 0f);
+		alpha.setDuration(duration);
+		alpha.setAnimationListener(new Animation.AnimationListener()
+		{
+			@Override public void onAnimationEnd(Animation animation) {
+				view.setVisibility(View.INVISIBLE);
+				if(listener != null) listener.onAnimationEnd(animation);
+			}
+			@Override public void onAnimationStart(Animation animation) {
+				view.setVisibility(View.VISIBLE);
+				if(listener != null) listener.onAnimationStart(animation);
+			}
+			@Override public void onAnimationRepeat(Animation animation) {
+				if(listener != null) listener.onAnimationRepeat(animation);
+			}
+		});
+
+		view.startAnimation(alpha);
+		view.setVisibility(View.VISIBLE);
+	}
 	
 	@SuppressLint("NewApi")
 	public static int getBgColor(View view)

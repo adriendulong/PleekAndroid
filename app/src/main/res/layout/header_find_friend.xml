@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@color/blanc"
+    android:clickable="true">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/certif_right_account"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="15dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/certif_left_account"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true" />
+
+    <com.goandup.lib.widget.TextViewFont
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/friends_certified"
+        android:layout_centerInParent="true"
+        android:textSize="15dp"
+        app:customFont="proximanova_sbold.otf"
+        android:textColor="@color/certifiedBlue"
+        android:paddingTop="5dp" />
+
+</RelativeLayout>

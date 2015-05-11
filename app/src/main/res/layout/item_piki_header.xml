@@ -4,27 +4,80 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/noir">
+    android:background="@color/fondBackReact"
+    android:focusableInTouchMode="true">
 
-    <ImageView
+    <com.pleek.app.views.BlockingImageView
         android:id="@+id/imgPiki"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:background="@color/fondBackReact" />
 
-    <com.goandup.lib.widget.TextViewFont
-        android:id="@+id/txtNbFriend"
+    <RelativeLayout
+        android:id="@+id/layoutVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+    </RelativeLayout>
+
+    <com.pleek.app.views.CircleProgressBar
+        android:id="@+id/progressBar"
+        app:mlpb_show_arrow="false"
+        app:mlpb_enable_circle_background="false"
+        app:mlpb_progress_stoke_width="2dp"
+        app:mlpb_progress_text_visibility="invisible"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_centerInParent="true" />
+
+    <ImageView
+        android:id="@+id/imgPlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="123"
-        android:textSize="20dp"
-        app:customFont="proximanova_sbold.otf"
+        android:layout_centerInParent="true"
+        android:src="@drawable/picto_play_big"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/imgError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@drawable/picto_loaderror"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginLeft="15dp"
+        android:paddingBottom="15dp"
         android:layout_alignParentBottom="true"
-        android:textColor="@color/blanc"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:shadowColor="@color/noir"
-        android:padding="15dp"/>
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/imgPublic"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/emoji_earth"
+            android:visibility="gone" />
+
+        <com.goandup.lib.widget.TextViewFont
+            android:id="@+id/txtNbReplies"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="123"
+            android:textSize="18dp"
+            app:customFont="proximanova_sbold.otf"
+            android:textColor="@color/blanc"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:shadowColor="@color/noirOverlay"
+            android:paddingLeft="5dp"
+            android:textAllCaps="true" />
+
+    </LinearLayout>
 
     <com.goandup.lib.widget.TextViewFont
         android:id="@+id/txtTroisPoints"
@@ -35,7 +88,7 @@
         app:customFont="proximanova_sbold.otf"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:shadowDx="1"
+        android:shadowDx="0"
         android:shadowDy="1"
         android:shadowRadius="2"
         android:shadowColor="@color/noir"

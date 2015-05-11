@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:minHeight="60dp"
+    android:background="@color/friendsHeaderYellow">
+
+    <ImageView
+        android:id="@+id/left_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/added_you"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="10dp"
+        android:layout_centerVertical="true" />
+
+    <com.goandup.lib.widget.TextViewFont
+        android:id="@+id/txtHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/friends_you_added"
+        android:layout_centerVertical="true"
+        android:textSize="15dp"
+        app:customFont="proximanova_sbold.otf"
+        android:textColor="@color/friendsHeaderYellowTxt"
+        android:layout_toRightOf="@id/left_img" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/friendsHeaderYellowTxt"
+        android:layout_alignParentBottom="true"/>
+
+</RelativeLayout>

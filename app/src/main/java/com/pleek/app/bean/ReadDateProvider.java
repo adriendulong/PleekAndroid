@@ -112,6 +112,7 @@ public class ReadDateProvider
         FileInputStream fis = null;
         ObjectInputStream ois = null;
         HashMap<String, Date> mapData = null;
+        // TODO test if file exists
         try
         {
             fis = context.openFileInput(DATA_FILENAME);

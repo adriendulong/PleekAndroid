@@ -19,7 +19,7 @@ import java.util.UUID;
 /**
  * Created by nicolas on 31/12/14.
  */
-public class Reaction implements Serializable
+public class Reaction extends VideoBean
 {
     public enum Type {
         PHOTO,
@@ -29,20 +29,13 @@ public class Reaction implements Serializable
         UNKNOW
     }
 
-    private String id;
     private String urlPhoto;
-    private String urlVideo;
     private String nameUser;
-    private ParseObject parseObject;
+    private String userId;
     private Bitmap tmpPhoto;//use between create and save to Parse
+    private boolean hasLiked = false;
+    private int nbLikes = 0;
     public Type type = Type.UNKNOW;
-
-    private LoadVideoEndListener loadVideoEndListener;
-    private LoadVideoProgressListener loadVideoProgressListener;
-    private boolean isLoading;
-    private boolean isLoaded;
-    private boolean isLoadError;
-
 
     public Reaction(String nameUser, Bitmap tmpPhoto)
     {
@@ -68,121 +61,15 @@ public class Reaction implements Serializable
 
         ParseObject user = parseObject.containsKey("user") ? parseObject.getParseObject("user") : null;
         if(user != null) nameUser = user.containsKey("username") ? user.getString("username") : null;
+        if(user != null) userId = user.getObjectId();
         if(nameUser == null) nameUser = "@none";
+
+        nbLikes = parseObject.getInt("nbLikes");
 
         this.parseObject = parseObject;
     }
 
-    public void loadVideoToTempFile(final Context context)
-    {
-        if(!isVideo()) return;
 
-        isLoading = true;
-        if(loadVideoProgressListener != null) loadVideoProgressListener.progress(0, Reaction.this);
-
-        File tmpDir = new File(context.getFilesDir() + "/tmp/");
-        File tmpFile = new File(tmpDir, getTmpVideoFilename());
-        if(tmpFile.exists() && tmpFile.length() > 0)
-        {
-            if(loadVideoProgressListener != null) loadVideoProgressListener.progress(1, Reaction.this);
-
-            isLoading = false;
-            isLoaded = true;
-            isLoadError = false;
-
-            if(loadVideoEndListener != null) loadVideoEndListener.done(true, Reaction.this);
-        }
-        else
-        {
-            parseObject.getParseFile("video").getDataInBackground(new GetDataCallback()
-            {
-                @Override
-                public void done(byte[] bytes, ParseException pe)
-                {
-                    boolean ok = false;
-                    if(pe == null)
-                    {
-                        FileOutputStream fos = null;
-                        try
-                        {
-                            File tmpDir = new File(context.getFilesDir() + "/tmp/");
-                            if(!tmpDir.exists()) tmpDir.mkdir();
-
-                            File tmpFile = new File(tmpDir, getTmpVideoFilename());
-                            if(!tmpFile.exists())
-                            {
-                                tmpFile.deleteOnExit();
-                                fos = new FileOutputStream(tmpFile);
-                                fos.write(bytes);
-                            }
-
-                            ok = true;
-                        }
-                        catch (Exception e)
-                        {
-                            L.e(">> ERROR : loadVideoToTempFile e="+e.getMessage());
-                            e.printStackTrace();
-                        }
-                        finally
-                        {
-                            try {
-                                fos.close();
-                            } catch (Exception e) {}
-                        }
-                    }
-                    else
-                    {
-                        L.e(">> ERROR PARSE : loadVideoToTempFile");
-                    }
-
-                    isLoading = false;
-                    isLoaded = ok;
-                    isLoadError = !ok;
-
-                    if(loadVideoEndListener != null) loadVideoEndListener.done(ok, Reaction.this);
-                }
-            }, new ProgressCallback()
-            {
-                @Override
-                public void done(Integer integer)
-                {
-                    if(loadVideoProgressListener != null) loadVideoProgressListener.progress(integer, Reaction.this);
-                }
-            });
-        }
-    }
-
-    public String getTempFilePath(Context context)
-    {
-        return new File(context.getFilesDir() + "/tmp/", getTmpVideoFilename()).getAbsolutePath();
-    }
-
-    public static boolean deleteAllTempFileVideo(Context context)
-    {
-        boolean ok = false;
-        File tmpDir = new File(context.getFilesDir() + "/tmp/");
-        if (tmpDir.isDirectory())
-        {
-            String[] tabTmpFile = tmpDir.list();
-            ok = tabTmpFile.length > 0;
-            for (int i = 0; i < tabTmpFile.length; i++)
-            {
-                ok &= new File(tmpDir, tabTmpFile[i]).delete();
-            }
-        }
-
-        return ok;
-    }
-
-    public interface LoadVideoEndListener
-    {
-        public void done(boolean ok, Reaction react);
-    }
-
-    public interface LoadVideoProgressListener
-    {
-        public void progress(int progress, Reaction react);
-    }
 
     public String getId() {
         return id;
@@ -194,10 +81,6 @@ public class Reaction implements Serializable
 
     public String getUrlPhoto() {
         return urlPhoto;
-    }
-
-    public String getTmpVideoFilename() {
-        return id + ".mp4";
     }
 
     public void setUrlPhoto(String urlPhoto) {
@@ -218,58 +101,6 @@ public class Reaction implements Serializable
 
     public void setParseObject(ParseObject parseObject) {
         this.parseObject = parseObject;
-    }
-
-    public boolean isVideo() {
-        return urlVideo != null && urlVideo.length() > 0;
-    }
-
-    public String getUrlVideo() {
-        return urlVideo;
-    }
-
-    public void setUrlVideo(String urlVideo) {
-        this.urlVideo = urlVideo;
-    }
-
-    public LoadVideoEndListener getLoadVideoEndListener()
-    {
-        return loadVideoEndListener;
-    }
-
-    public void setLoadVideoEndListener(LoadVideoEndListener loadVideoEndListener)
-    {
-        this.loadVideoEndListener = loadVideoEndListener;
-    }
-
-    public LoadVideoProgressListener getLoadVideoProgressListener()
-    {
-        return loadVideoProgressListener;
-    }
-
-    public void setLoadVideoProgressListener(LoadVideoProgressListener loadVideoProgressListener)
-    {
-        this.loadVideoProgressListener = loadVideoProgressListener;
-    }
-
-    public boolean isLoading()
-    {
-        return isLoading;
-    }
-
-    public boolean isLoaded()
-    {
-        return isLoaded;
-    }
-
-    public boolean isLoadError()
-    {
-        return isLoadError;
-    }
-
-    public void setLoadError(boolean isLoadError)
-    {
-        this.isLoadError = isLoadError;
     }
 
     public Type getType()
@@ -315,10 +146,9 @@ public class Reaction implements Serializable
         return urlPhoto == null || urlPhoto.trim().isEmpty();
     }
 
-    public boolean iamOwner()
-    {
+    public boolean iamOwner() {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        if(currentUser == null || parseObject == null || parseObject.getParseUser("user") == null) return false;//fix : crash #18
+        if (currentUser == null || parseObject == null || parseObject.getParseUser("user") == null) return false;//fix : crash #18
         return currentUser.getObjectId().equals(parseObject.getParseUser("user").getObjectId());
     }
 
@@ -332,5 +162,45 @@ public class Reaction implements Serializable
     public String toString()
     {
         return "Reaction("+id+")";
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public boolean isHasLiked() {
+        return hasLiked;
+    }
+
+    public void setHasLiked(boolean hasLiked) {
+        this.hasLiked = hasLiked;
+    }
+
+    public int getLikeCount() {
+        return nbLikes > 0 ? nbLikes : 0;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.nbLikes = likeCount;
+    }
+
+    public void incrementLike () {
+        this.nbLikes++;
+    }
+
+    public void decrementLike () {
+        this.nbLikes--;
+    }
+
+    public int getNbLikes() {
+        return nbLikes;
+    }
+
+    public void setNbLikes(int nbLikes) {
+        this.nbLikes = nbLikes;
     }
 }

@@ -68,7 +68,7 @@
             android:id="@+id/pictoAddUser"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/picto_adduser"/>
+            android:src="@drawable/picto_add_user"/>
 
     </LinearLayout>
 

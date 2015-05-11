@@ -23,15 +23,19 @@ import com.goandup.lib.widget.DownTouchListener;
 import com.goandup.lib.widget.EditTextFont;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.ParseACL;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 import com.pleek.app.R;
+import com.pleek.app.bean.Friend;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
@@ -199,26 +203,37 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                         mixpanel.alias(currentUser.getObjectId(), mixpanel.getDistinctId());
                                     }
 
+                                    ParseACL acl = new ParseACL();
+                                    acl.setWriteAccess(currentUser, true);
+                                    acl.setReadAccess(currentUser, true);
+                                    userInfos.setACL(acl);
+                                    userInfos.saveEventually();
+
+                                    ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+
+                                    if (currentUser != null) {
+                                        installation.put("notificationsEnabled", true);
+
+                                        installation.put("user", currentUser);
+                                    }
+                                    installation.saveInBackground();
+
                                     mixpanel.track("Sign Up", null);
                                     fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_REGISTRATION);
 
-                                    ParseCloud.callFunctionInBackground("addToFirstUsePiki", new HashMap<String, Object>(), new FunctionCallback()
-                                    {
+                                    ParseCloud.callFunctionInBackground("addToFirstUsePiki", new HashMap<String, Object>(), new FunctionCallback() {
                                         @Override
-                                        public void done(Object o, ParseException e)
-                                        {
-                                            if(e == null)
-                                            {
-                                                startActivity(new Intent(UsernameActivity.this, AddUserActivity.class));
-                                                overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-                                            }
-                                            else
-                                            {
-                                                Utile.showToast(R.string.username_no_network, UsernameActivity.this);
-                                                e.printStackTrace();
-                                            }
-                                            hideDialog(loader);
-                                            isSending = false;
+                                        public void done(Object o, ParseException e) {
+                                            getFriendsBg(new FunctionCallback<ArrayList<Friend>>() {
+                                                @Override
+                                                public void done(ArrayList<Friend> friends, ParseException e) {
+                                                    startActivity(new Intent(UsernameActivity.this, AddUserActivity.class));
+                                                    overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+                                                    hideDialog(loader);
+                                                    isSending = false;
+                                                }
+                                            });
+
                                         }
                                     });
                                 }

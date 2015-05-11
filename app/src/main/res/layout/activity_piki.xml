@@ -7,82 +7,13 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/rootView">
+        android:id="@+id/rootView"
+        android:layout_marginTop="60dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="60dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:gravity="center_vertical"
-                    android:background="@color/firstColorLight">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp"
-                        android:gravity="center_vertical"
-                        android:layout_weight="1">
-
-                        <LinearLayout
-                            android:id="@+id/btnBack"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_vertical">
-
-                            <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginLeft="10dp"
-                                android:src="@drawable/picto_arrow_left_light"/>
-
-                            <com.goandup.lib.widget.TextViewFont
-                                android:id="@+id/txtNamePiki"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/app_name"
-                                android:minWidth="60dp"
-                                android:textSize="20dp"
-                                app:customFont="proximanova_sbold.otf"
-                                android:layout_marginRight="5dp"
-                                android:layout_marginLeft="10dp"
-                                android:textColor="@color/blanc"/>
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-
-                    <LinearLayout
-                        android:id="@+id/btnShare"
-                        android:layout_width="85dp"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:clickable="true"
-                        android:background="@color/firstColor">
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/picto_share"/>
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/layoutOverlayReplyTop"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    android:background="@color/noirOverlay"/>
-            </RelativeLayout>
-
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -92,14 +23,15 @@
                     android:id="@+id/refreshSwipe"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                    <com.goandup.lib.widget.ListViewScrollingOff
-                        android:id="@+id/listViewPiki"
+                    <com.pleek.app.views.CustomGridView
+                        android:id="@+id/gridViewPiki"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:fadingEdge="none"
-                        android:divider="@color/grisSeparate"
-                        android:dividerHeight="1dp"
-                        android:fadingEdgeLength="0px"/>
+                        android:horizontalSpacing="3dp"
+                        android:verticalSpacing="1dp"
+                        android:numColumns="2"
+                        android:listSelector="@null"
+                        android:background="@color/blanc" />
                 </com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff>
 
                 <LinearLayout
@@ -112,9 +44,9 @@
 
                 <RelativeLayout
                     android:id="@+id/layoutCamera"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:background="@color/noir"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:background="@color/fondPiki"
                     android:visibility="gone">
 
                     <com.goandup.lib.widget.CameraView
@@ -124,20 +56,42 @@
                         app:autoStart="false"
                         app:faceCamera="false"/>
 
-                    <com.goandup.lib.widget.FlipImageView
-                        android:id="@+id/imgSwitch"
+                    <ImageView
+                        android:id="@+id/imgAddReact"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentRight="true"
-                        android:layout_margin="10dp"
-                        android:src="@drawable/picto_switch"
-                        app:flipDrawable="@drawable/picto_switch2"
-                        app:flipDuration="600"
-                        app:flipInterpolator="@android:anim/overshoot_interpolator"
-                        app:flipRotations="y"/>
+                        android:src="@drawable/picto_add"
+                        android:scaleType="centerInside"
+                        android:layout_centerInParent="true"
+                        android:visibility="gone"
+                        android:clickable="false" />
 
                     <LinearLayout
+                        android:id="@+id/layoutTutorialReact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:orientation="vertical"
+                        android:layout_below="@id/imgAddReact"
+                        android:layout_marginTop="30dp"
+                        android:gravity="center"
+                        android:visibility="gone">
+
+                        <com.goandup.lib.widget.TextViewFont
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/piki_tutorial_add_react"
+                            android:textSize="11dp"
+                            app:customFont="montserrat-regular.ttf"
+                            android:textColor="@color/blanc"
+                            android:shadowDx="2"
+                            android:shadowDy="2"
+                            android:shadowColor="@color/noir"
+                            android:gravity="center" />
+
+                    </LinearLayout>
+
+                    <RelativeLayout
                         android:id="@+id/layoutTextReact"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -147,247 +101,44 @@
                             android:id="@+id/edittexteReact"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:inputType="textShortMessage|textMultiLine|textNoSuggestions"
+                            android:inputType="textNoSuggestions|textShortMessage"
                             android:textColor="@color/blanc"
                             android:textSize="30dp"
                             android:textCursorDrawable="@drawable/cursor_big"
-                            app:customFont="proximanova_sbold.otf"
-                            android:background="@color/noirOverlayLight"
-                            android:gravity="center"
+                            app:customFont="banzaibros.otf"
+                            android:background="@null"
+                            android:gravity="bottom|left"
                             android:visibility="gone"
-                            android:privateImeOptions="nm"/>
+                            android:privateImeOptions="nm"
+                            android:shadowColor="@color/noir"
+                            android:shadowDx="2.5"
+                            android:shadowDy="2.5"
+                            android:shadowRadius="8"
+                            android:maxLines="10"
+                            android:includeFontPadding="false"
+                            android:textAllCaps="true" />
 
                         <ImageView
-                            android:id="@+id/imgviewReact"
+                            android:id="@+id/imgViewReact"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:background="@color/noirOverlayLight"
-                            android:visibility="gone"/>
+                            android:visibility="gone" />
 
-                    </LinearLayout>
-
+                    </RelativeLayout>
                 </RelativeLayout>
-
-
 
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/shadow_bot"/>
+                    android:background="@drawable/shadow_bot" />
 
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/shadow_top"
-                    android:layout_alignParentBottom="true"/>
-
-                <LinearLayout
-                    android:id="@+id/layoutTopInfo"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:background="@color/grisTransparetn"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtNbReply"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="123"
-                        android:textSize="20dp"
-                        app:customFont="proximanova_sbold.otf"
-                        android:layout_marginRight="5dp"
-                        android:layout_marginLeft="20dp"
-                        android:textColor="@color/blanc"/>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/picto_reply_little"/>
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtNbFriendTopbar"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="18"
-                        android:textSize="20dp"
-                        app:customFont="proximanova_sbold.otf"
-                        android:layout_marginRight="5dp"
-                        android:layout_marginLeft="15dp"
-                        android:textColor="@color/blanc"/>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/picto_friends_little"/>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"/>
-
-                    <com.makeramen.RoundedImageView
-                        android:id="@+id/imgPikiMini"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_margin="5dp"
-                        app:riv_corner_radius="3dip"/>
-
-                </LinearLayout>
-
+                    android:layout_alignParentBottom="true" />
             </RelativeLayout>
-
         </LinearLayout>
-
-        <RelativeLayout
-            android:id="@+id/layoutReply"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
-            <RelativeLayout
-                android:id="@+id/layoutBtnRoundedReply"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="30dp"
-                android:layout_marginBottom="30dp"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true">
-
-                <com.goandup.lib.widget.ButtonRoundedMaterialDesign
-                    android:id="@+id/btnReply"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    app:buttonColor="@color/secondColor"
-                    app:buttonPicto="@drawable/picto_reply_arrow"/>
-
-                <com.goandup.lib.widget.ButtonRoundedMaterialDesign
-                    android:id="@+id/btnCapture"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    app:buttonColor="@color/secondColor"
-                    app:buttonPicto="@drawable/picto_reply"
-                    android:visibility="gone"/>
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:id="@+id/layoutBtnReply"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="30dp"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="30dp"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
-                    android:visibility="gone">
-                    <ImageView
-                        android:id="@+id/btnReplyHearth"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/btn_ronded"/>
-                    <ImageView
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:src="@drawable/emoji_heart"
-                        android:layout_centerInParent="true"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
-                    android:visibility="gone">
-                    <ImageView
-                        android:id="@+id/btnReplyOk"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/btn_ronded"/>
-                    <ImageView
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:src="@drawable/emoji_ok"
-                        android:layout_centerInParent="true"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
-                    android:visibility="gone">
-                    <ImageView
-                        android:id="@+id/btnReplyStuck"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/btn_ronded"/>
-                    <ImageView
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:src="@drawable/emoji_stuck"
-                        android:layout_centerInParent="true"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
-                    android:paddingTop="5dp"
-                    android:visibility="gone">
-                    <ImageView
-                        android:id="@+id/btnReplyTexte"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/btn_ronded"/>
-                    <ImageView
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:src="@drawable/reply_text"
-                        android:layout_centerInParent="true"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
-                    android:visibility="gone">
-                    <ImageView
-                        android:id="@+id/btnReplyClose"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_centerInParent="true"/>
-                    <ImageView
-                        android:layout_width="35dp"
-                        android:layout_height="35dp"
-                        android:src="@drawable/picto_cross"
-                        android:layout_centerInParent="true"
-                        android:paddingTop="5dp"/>
-                </RelativeLayout>
-
-            </LinearLayout>
-
-        </RelativeLayout>
-
-
-
-
-
-
 
         <RelativeLayout
             android:id="@+id/layoutOverlayShare"
@@ -408,7 +159,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:orientation="vertical"/>
+                    android:orientation="vertical" />
 
                 <LinearLayout
                     android:id="@+id/layoutActionShare"
@@ -422,173 +173,177 @@
 
             </LinearLayout>
 
-            <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+            <ImageView
                 android:id="@+id/btnConfrimShare"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                app:buttonColor="@color/secondColor"
-                app:buttonPicto="@drawable/picto_share"
-                android:layout_marginRight="30dp"
-                android:layout_marginBottom="30dp"
+                android:src="@drawable/picto_share"
+                android:layout_marginRight="15dp"
+                android:layout_marginBottom="15dp"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
-                android:visibility="gone"/>
+                android:background="@drawable/btn_rounded_selector_alt"
+                android:visibility="gone"
+                android:scaleType="centerInside"
+                android:paddingBottom="5dp" />
 
         </RelativeLayout>
 
         <RelativeLayout android:id="@+id/removeFocus" android:focusableInTouchMode="true" android:focusable="true" android:layout_width="0px" android:layout_height="0px"/>
 
         <RelativeLayout
-            android:id="@+id/layoutTuto"
+            android:id="@+id/layoutActionBarKeyboard"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_reply_tabs"
+            android:layout_alignParentBottom="true"
+            android:focusableInTouchMode="false"
+            android:clickable="true"
+            android:visibility="gone">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <RelativeLayout
-                    android:id="@+id/layoutTutoTop"
-                    android:layout_width="match_parent"
-                    android:layout_height="380dp"
-                    android:background="@color/noirOverlay"/>
-
-                <LinearLayout
-                    android:id="@+id/layoutTutoCenter"
-                    android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:orientation="horizontal">
-                    <RelativeLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:background="@color/noirOverlay"
-                        android:layout_weight="1"/>
-                    <RelativeLayout
-                        android:layout_width="2dp"
-                        android:layout_height="match_parent"
-                        android:background="@color/noirOverlay"/>
-                    <RelativeLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"/>
-                    <RelativeLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:background="@color/noirOverlay"
-                        android:layout_weight="1"/>
-
-                </LinearLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/noirOverlay"/>
-
-            </LinearLayout>
-
-            <com.goandup.lib.widget.ButtonRoundedMaterialDesign
-                android:id="@+id/btnReplyTuto"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentBottom="true"
-                android:layout_marginRight="30dp"
-                android:layout_marginBottom="30dp"
-                app:buttonColor="@color/secondColor"
-                app:buttonPicto="@drawable/picto_reply_arrow"/>
-
-            <LinearLayout
+            <com.goandup.lib.widget.FlipImageView
+                android:id="@+id/imgSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="10dp"
-                android:layout_marginBottom="85dp"
-                android:gravity="right">
+                android:layout_alignParentLeft="true"
+                android:layout_marginTop="38dp"
+                android:layout_marginLeft="10dp"
+                android:padding="20dp"
+                android:src="@drawable/picto_switch_back_selector"
+                app:flipDrawable="@drawable/picto_switch_selfie_selector"
+                app:flipDuration="600"
+                app:flipInterpolator="@android:anim/overshoot_interpolator"
+                app:flipRotations="y" />
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginRight="20dp">
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:text="@string/piki_tuto_add"
-                        android:textSize="20dp"
-                        android:gravity="right"
-                        app:customFont="gotham-rounded-bold.ttf"
-                        android:textColor="@color/blanc"/>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:src="@drawable/emoji_biere"/>
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/img_lineaddreact"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginRight="52dp"/>
-            </LinearLayout>
-
-
-
-            <LinearLayout
-                android:id="@+id/layoutTutoReact"
-                android:layout_width="match_parent"
+            <ImageView
+                android:id="@+id/imgKeyboard"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:src="@drawable/picto_keyboard_selected"
+                android:layout_alignParentLeft="true"
+                android:layout_marginTop="38dp"
+                android:layout_marginLeft="60dp"
+                android:padding="20dp"
+                android:clickable="true" />
+
+            <ImageView
+                android:id="@+id/imgReply"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/picto_reply_selector"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="290dp"
-                android:gravity="center">
+                android:clickable="true" />
 
-                <LinearLayout
-                    android:layout_width="230dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginLeft="-60dp">
+            <ImageView
+                android:id="@+id/imgFonts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_fonts_selector"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="35dp"
+                android:layout_marginRight="60dp"
+                android:padding="20dp"
+                android:clickable="true" />
 
-                    <com.goandup.lib.widget.TextViewFont
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/piki_tuto_react"
-                        android:textSize="20dp"
-                        android:layout_weight="1"
-                        android:gravity="right"
-                        app:customFont="gotham-rounded-bold.ttf"
-                        android:textColor="@color/blanc"/>
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:src="@drawable/emoji_fete"/>
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/img_linereact"
-                    android:layout_marginLeft="-30dp"
-                    android:layout_marginTop="5dp"/>
-            </LinearLayout>
+            <ImageView
+                android:id="@+id/imgStickers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_stickers_selector"
+                android:layout_marginTop="35dp"
+                android:layout_marginRight="10dp"
+                android:padding="20dp"
+                android:layout_alignParentRight="true"
+                android:clickable="true" />
 
         </RelativeLayout>
-
-
     </RelativeLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/firstColorLight">
+        <LinearLayout
+            android:id="@+id/btnBack"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:layout_alignParentLeft="true">
 
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_arrow_left_light"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/titleLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtNamePiki"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:minWidth="60dp"
+                android:textSize="20dp"
+                app:customFont="proximanova_sbold.otf"
+                android:textColor="@color/blanc"
+                android:gravity="center" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtNbFriends"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="60dp"
+                android:textSize="12dp"
+                app:customFont="proximanova_sbold.otf"
+                android:layout_marginTop="3dp"
+                android:textColor="@color/subtitleTopBar"
+                android:gravity="center"
+                android:textAllCaps="true" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/btnShare"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:clickable="true"
+            android:background="@color/firstColor"
+            android:layout_alignParentRight="true">
+
+            <LinearLayout
+                android:id="@+id/smallLayoutShare"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:orientation="vertical" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/overlayShare" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_share"
+                android:layout_centerInParent="true" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutOverlayReplyTop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@color/noirOverlay"/>
+    </RelativeLayout>
 </RelativeLayout>

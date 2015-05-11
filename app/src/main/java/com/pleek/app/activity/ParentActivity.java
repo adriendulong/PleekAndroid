@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.ColorDrawable;
@@ -12,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
@@ -22,9 +24,22 @@ import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.SessionManager;
 import com.goandup.lib.widget.DownTouchListener;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.pleek.app.R;
+import com.parse.FindCallback;
+import com.parse.FunctionCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 import com.pleek.app.PleekApplication;
+import com.pleek.app.R;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ReadDateProvider;
+import com.pleek.app.common.Constants;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by nicolas on 18/12/14.
@@ -183,6 +198,19 @@ public class ParentActivity extends FragmentActivity
             }
         });
 
+        dialog.setOnKeyListener(new Dialog.OnKeyListener() {
+
+            @Override
+            public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    hideDialog(dialog);
+                    if (listener != null) listener.closed(false);
+                }
+
+                return true;
+            }
+        });
+
         if(!isFinishing() && (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1 || !isDestroyed()))
         {
             dialog.show();
@@ -282,7 +310,7 @@ public class ParentActivity extends FragmentActivity
     /**********
      MY LOADER*/
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    protected Dialog showLoader()
+    public Dialog showLoader()
     {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -300,7 +328,7 @@ public class ParentActivity extends FragmentActivity
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    protected boolean hideDialog(Dialog dialog)
+    public boolean hideDialog(Dialog dialog)
     {
         boolean ok = false;
         if(dialog != null)
@@ -325,5 +353,66 @@ public class ParentActivity extends FragmentActivity
             }
         }
         return ok;
+    }
+
+    public void getFriends(boolean fromCache, final FunctionCallback<ArrayList<Friend>> callback) {
+        final ArrayList<Friend> friends = new ArrayList<Friend>();
+
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(fromCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
+        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+        innerQuery.include("friend");
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null && list != null) {
+                    for (ParseObject obj : list) {
+                        friends.add(new Friend((ParseUser) obj.get("friend")));
+                    }
+
+                    callback.done(friends, e);
+                }
+            }
+        });
+    }
+
+    public void getFriendsBg(final FunctionCallback callback) {
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
+        innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+        innerQuery.include("friend");
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null && list != null) {
+                    HashSet<String> friendsIds = new HashSet<String>();
+
+                    for (ParseObject obj : list) {
+                        ParseUser user = (ParseUser) obj.get("friend");
+                        friendsIds.add(user.getObjectId());
+                    }
+
+                    setFriendsPrefs(friendsIds);
+
+                    if (callback != null) {
+                        callback.done(list, e);
+                    }
+                }
+            }
+        });
+    }
+
+    public Set<String> getFriendsPrefs() {
+        if (pref.contains(Constants.PREF_FRIENDS)) {
+            return pref.getStringSet(Constants.PREF_FRIENDS, new HashSet<String>());
+        } else {
+            return new HashSet<String>();
+        }
+    }
+
+    public void setFriendsPrefs(HashSet<String> friends) {
+        pref.edit().putStringSet(Constants.PREF_FRIENDS, new HashSet<String>(friends)).commit();
     }
 }

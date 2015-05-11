@@ -6,6 +6,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 
@@ -72,6 +74,14 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
         editCode2.addTextChangedListener(new CodeTextWatcher(editCode2));
         editCode3.addTextChangedListener(new CodeTextWatcher(editCode3));
         editCode4.addTextChangedListener(new CodeTextWatcher(editCode4));
+        editCode1.setOnFocusChangeListener(new CodeOnFocusListener(editCode1));
+        editCode2.setOnFocusChangeListener(new CodeOnFocusListener(editCode2));
+        editCode3.setOnFocusChangeListener(new CodeOnFocusListener(editCode3));
+        editCode4.setOnFocusChangeListener(new CodeOnFocusListener(editCode4));
+        editCode1.setOnKeyListener(new CodeOnKeyListener(editCode1));
+        editCode2.setOnKeyListener(new CodeOnKeyListener(editCode2));
+        editCode3.setOnKeyListener(new CodeOnKeyListener(editCode3));
+        editCode4.setOnKeyListener(new CodeOnKeyListener(editCode4));
         //TODO : KEY_DEL event
 
         txtBadCode = findViewById(R.id.txtBadCode);
@@ -82,19 +92,19 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
     {
         //Toast.makeText(this, "Code : " + goodCode, Toast.LENGTH_SHORT).show();//TODO : remove
 
-        try
-        {
-            Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, "");
-            String phoneNumberFormated = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
-            txtPhoneNumber.setText(phoneNumberFormated);
-        }
-        catch (Exception e)
-        {
-            L.e("NumberParseException was thrown: " + e.toString());
-            e.printStackTrace();
-            finish();
-            return;
-        }
+//        try
+//        {
+//            Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, "");
+//            String phoneNumberFormated = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+//            txtPhoneNumber.setText(phoneNumberFormated);
+//        }
+//        catch (Exception e)
+//        {
+//            L.e("NumberParseException was thrown: " + e.toString());
+//            e.printStackTrace();
+//            finish();
+//            return;
+//        }
     }
 
     @Override
@@ -126,7 +136,14 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
                             mixpanel.identify(parseUser.getObjectId());
                             mixpanel.track("Log In", null);
 
-                            //TODO : CHECK GOOD PHONE NUMBER !!!!!!!!!!!!!!!!!
+                            ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+
+                            if (ParseUser.getCurrentUser() != null) {
+                                installation.put("notificationsEnabled", true);
+                                installation.put("user", ParseUser.getCurrentUser());
+                            }
+
+                            installation.saveInBackground();
 
                             //go home
                             Intent i = new Intent(DigitsCodeActivity.this, HomeActivity.class);
@@ -207,12 +224,8 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
             {
                 EditText et = tabEditText[i];
 
-                //if erase and last char, set focus at before EditText
-                if(i > 0 && et == currentEditText && stayOneChar && emptyNow)
-                {
-                    EditText beforeEditCode = tabEditText[i-1];
-                    beforeEditCode.requestFocus();
-                    beforeEditCode.setSelection(beforeEditCode.length());
+                // if erase and last char, set focus at before EditText
+                if (i > 0 && et == currentEditText && stayOneChar && emptyNow) {
                     allAreFull = false;
                     break;
                 }
@@ -231,6 +244,52 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
             {
                 valideCode();
             }
+        }
+    }
+
+    private class CodeOnFocusListener implements View.OnFocusChangeListener {
+
+        private EditText currentEditText;
+
+        public CodeOnFocusListener(EditText currentEditText) {
+            this.currentEditText = currentEditText;
+        }
+
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            if (hasFocus) {
+                currentEditText.setSelection(currentEditText.getText().length());
+            }
+        }
+    }
+
+    private class CodeOnKeyListener implements View.OnKeyListener {
+
+        private EditText currentEditText;
+
+        public CodeOnKeyListener(EditText currentEditText) {
+            this.currentEditText = currentEditText;
+        }
+
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && (event.getKeyCode() == KeyEvent.KEYCODE_DEL || event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
+                EditText[] tabEditText = {editCode1, editCode2, editCode3, editCode4};
+
+                for (int i = 0; i < tabEditText.length; i++) {
+                    EditText et = tabEditText[i];
+
+                    //if erase and last char, set focus at before EditText
+                    if (i > 0 && et == currentEditText && currentEditText.getEditableText().toString().isEmpty()) {
+                        EditText beforeEditCode = tabEditText[i-1];
+                        beforeEditCode.requestFocus();
+                        beforeEditCode.setSelection(beforeEditCode.length());
+                        break;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 

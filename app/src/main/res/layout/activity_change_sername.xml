@@ -61,9 +61,9 @@
         app:customFont="proximanova_sbold.otf"
         android:gravity="top"
         android:layout_margin="10dp"
-        android:inputType="textFilter"
+        android:inputType="textFilter|textVisiblePassword"
         android:textCursorDrawable="@drawable/cursor"
-        android:maxLength="30"
+        android:maxLength="15"
         android:digits="abcdefghijklmnopqrstuvwxyz0123456789"/>
 
 

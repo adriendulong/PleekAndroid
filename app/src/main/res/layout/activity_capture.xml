@@ -44,16 +44,21 @@
                 android:id="@+id/edittextePhoto"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="textShortMessage|textMultiLine|textNoSuggestions"
+                android:inputType="textNoSuggestions|textShortMessage|textMultiLine"
                 android:textColor="@color/blanc"
                 android:textSize="50dp"
                 android:minWidth="50dp"
                 android:textCursorDrawable="@drawable/cursor_big"
-                app:customFont="proximanova_sbold.otf"
+                app:customFont="banzaibros.otf"
                 android:background="@android:color/transparent"
                 android:gravity="center"
-                android:privateImeOptions="nm"/>
-
+                android:privateImeOptions="nm"
+                android:shadowDx="2.5"
+                android:shadowDy="2.5"
+                android:shadowRadius="8"
+                android:shadowColor="@color/noir"
+                android:maxLines="10"
+                android:singleLine="false" />
         </LinearLayout>
 
         <RelativeLayout
@@ -94,13 +99,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"/>
 
-        <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+        <ImageView
             android:id="@+id/btnCapture"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            app:buttonColor="@color/secondColor"
-            app:buttonPicto="@drawable/picto_capture"
-            android:layout_centerInParent="true"/>
+            android:background="@drawable/btn_rounded_selector_alt"
+            android:src="@drawable/picto_capture"
+            android:scaleType="centerInside"
+            android:layout_centerInParent="true"
+            android:paddingBottom="5dp" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -141,13 +148,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"/>
 
-        <com.goandup.lib.widget.ButtonRoundedMaterialDesign
+        <ImageView
             android:id="@+id/btnNext"
             android:layout_width="70dp"
             android:layout_height="70dp"
-            app:buttonColor="@color/secondColor"
-            app:buttonPicto="@drawable/picto_arrow_right"
-            android:layout_centerInParent="true"/>
+            android:background="@drawable/btn_rounded_selector_alt"
+            android:src="@drawable/picto_arrow_right"
+            android:layout_centerInParent="true"
+            android:paddingBottom="5dp"
+            android:scaleType="centerInside" />
 
         <RelativeLayout
             android:layout_width="match_parent"

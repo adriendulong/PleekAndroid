@@ -53,6 +53,7 @@
     <string name="home_piki_nok">Impossible de récuppérer ton Pleek pour l\'instant.</string>
     <string name="home_tuto_friend">Cherche plus d\'amis pour plus de Pleek</string>
     <string name="home_tuto_pleek">Ceci est un PLEEK</string>
+    <string name="home_from">De</string>
 
     <!-- PIKI -->
     <string name="piki_friend">destinataire</string>
@@ -74,6 +75,13 @@
     <string name="piki_share_impossible">Impossible de partager ce Pleek pour l\'instant</string>
     <string name="piki_tuto_add">Ajoute ta propre réaction</string>
     <string name="piki_tuto_react">Ceci est une réaction</string>
+    <string name="piki_react_report_nok">Impossible de signaler cette réponse pour l\'instant.</string>
+    <string name="piki_public">Public</string>
+    <string name="piki_tutorial_add_react">REPONDRE</string>
+    <string name="piki_react_preview">APERCU</string>
+    <string name="piki_react_delete">SUPPRIMER</string>
+    <string name="piki_react_remove_like_nok">Impossible de dé-liker pour l\'instant</string>
+    <string name="piki_replies">REPONSES</string>
 
     <!-- PIKIFRIENDS -->
     <string name="pikifriends_text_topbar"> _nb_ destinataires</string>
@@ -82,7 +90,6 @@
     <!-- FRIENDS -->
     <string name="friends_hint">Recherche un ami</string>
     <string name="friends_tab1">CONTACTS</string>
-    <string name="friends_tab2">AMIS</string>
     <string name="friends_section_on">AMIS SUR PLEEK</string>
     <string name="friends_section_out">AMIS PAS ENCORE SUR PLEEK</string>
     <string name="friends_section">AMIS</string>
@@ -91,6 +98,15 @@
     <string name="friends_nocontact">Tu n\'as aucun contact sur ton téléphone ?!</string>
     <string name="friends_noresult">Aucun résultat !</string>
     <string name="sms_invit">Télécharge Pleek ici ! http://pleekapp.com/getpleek/</string>
+    <string name="friends_tab2">VOUS SUIVEZ</string>
+    <string name="friends_tab3">VOUS SUIVENT</string>
+    <string name="friends_title">Amis</string>
+    <string name="friends_nofriend_added_you">Personnes ne vous suit pour l\'instant :(</string>
+    <string name="friends_certified">VOIR LES COMPTES POPULAIRES</string>
+    <string name="friends_you_added">Vous recevrez leurs photos et vidéos</string>
+    <string name="friends_added_you">Ils recevront vos photos et vos vidéos public</string>
+    <string name="friends_send_sms">Impossible d\'envoyer un SMS </string>
+
 
     <!-- RECIPIENTS -->
     <string name="recipients_title">Envoyer à ...</string>

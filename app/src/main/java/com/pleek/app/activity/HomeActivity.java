@@ -14,6 +14,7 @@ import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
+import android.widget.ImageView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
@@ -33,9 +34,12 @@ import com.pleek.app.R;
 import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.common.Constants;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -45,15 +49,21 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 {
     public static boolean AUTO_RELOAD;
 
+    private View btnIcon;
+    private View btnTitle;
     private View btnTopBar;
+    private View btnSettings;
     private ListViewScrollingOff listViewPiki;
-    private ButtonRoundedMaterialDesign btnPlus;
+    private ImageView btnPlus;
     private SwipeRefreshLayoutScrollingOff refreshSwipe;
     private View layoutTuto;
     private ViewLoadingFooter footer;
 
     private PikiAdapter adapter;
     private List<Piki> listPiki;
+    private List<ParseUser> friends;
+
+    private boolean shouldReinit = false;
 
     private int initialX;
 
@@ -69,21 +79,17 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
     private void setup()
     {
-        //initiale set user to installation
-        ParseInstallation installation = ParseInstallation.getCurrentInstallation();
-        ParseUser user = ParseUser.getCurrentUser();
-        if(user != null)
-        {
-            installation.put("notificationsEnabled", true);
-            installation.put("user", user);
-        }
-        installation.saveInBackground();
-
         btnTopBar = findViewById(R.id.btnTopBar);
         int colorDown = getResources().getColor(R.color.firstColorDark);
         int colorUp = getResources().getColor(R.color.firstColor);
+        btnIcon = findViewById(R.id.imgIcon);
+        btnIcon.setOnClickListener(this);
+        btnTitle = findViewById(R.id.txtTitle);
+        btnTitle.setOnClickListener(this);
         btnTopBar.setOnTouchListener(new DownTouchListener(colorDown, colorUp));
         btnTopBar.setOnClickListener(this);
+        btnSettings = findViewById(R.id.btnSettings);
+        btnSettings.setOnClickListener(this);
         listViewPiki = (ListViewScrollingOff)findViewById(R.id.listViewPiki);
         listViewPiki.setOnTouchListener(new MyListTouchListener());
         listViewPiki.setOnScrollListener(new MyOnScrollListener());
@@ -91,23 +97,23 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
         refreshSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
-            public void onRefresh()
-            {
-                init();
+            public void onRefresh() {
+                shouldReinit = true;
+                init(false);
             }
         });
-        Utile.changeSwipeDownDistance(refreshSwipe);
-        btnPlus = (ButtonRoundedMaterialDesign)findViewById(R.id.btnPlus);
-        btnPlus.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
+
+        btnPlus = (ImageView) findViewById(R.id.btnPlus);
+        btnPlus.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
+            public void onClick(View v) {
                 startActivity(new Intent(HomeActivity.this, CaptureActivity.class));
                 overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
             }
         });
 
+        footer = new ViewLoadingFooter(this);
+        listViewPiki.addFooterView(footer);
         adapter = new PikiAdapter(new ArrayList<Piki>(), HomeActivity.this);
         //wait listViewPiki is created for get height
         listViewPiki.post(new Runnable()
@@ -131,27 +137,28 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                 return true;
             }
         });
-
-        footer = new ViewLoadingFooter(this);
     }
 
     private void init() {
         init(true);
     }
-    private void init(boolean withCache)
-    {
+    private void init(final boolean withCache) {
+        currentPage = 0;
+        lastItemShow = 0;
+
         ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return;
 
-        //mixpanel update nbFriend
-        List<Object> usersFriend = currentUser.getList("usersFriend");
-        mixpanel.getPeople().set("Nb Friends", usersFriend != null ? usersFriend.size() : 0);
         ParseObject userInfos = currentUser.getParseObject("UserInfos");
         if(userInfos != null) mixpanel.getPeople().set("$phone", userInfos.getString("phoneNumber"));
         mixpanel.flush();
 
         endOfLoading = false;
-        refreshSwipe.setRefreshing(loadNext(withCache));
+        refreshSwipe.post(new Runnable() {
+            @Override public void run() {
+                refreshSwipe.setRefreshing(loadNext(withCache));
+            }
+        });
     }
 
 
@@ -161,7 +168,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
     private List<Piki> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
-    private boolean loadNext(boolean withCache)
+    private boolean shouldRefreshFriends = true;
+    private boolean loadNext(final boolean withCache)
     {
         //si déjà en train de loader, on fait rien
         if(isLoading) return false;
@@ -170,41 +178,96 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         if(endOfLoading) return false;
 
         //on récupère le currentUser, si il n'existe pas, on fait rien
-        ParseUser currentUser = ParseUser.getCurrentUser();
+        final ParseUser currentUser = ParseUser.getCurrentUser();
         if(currentUser == null) return false;
 
         //copie de la liste actuel des piki
-        if(listPiki == null) listPiki = new ArrayList<Piki>();
+        if (listPiki == null) listPiki = new ArrayList<Piki>();
+        if (friends == null) friends = new ArrayList<ParseUser>();
         listBeforreRequest = new ArrayList<Piki>(listPiki);
 
         //flag pour reconnaitre réponse Parse du cache et réponse Parse network
         fromCache = withCache;
 
         //mark loading and add footer
-        listViewPiki.addFooterView(footer);
+        footer.setVisibility(View.VISIBLE);
         isLoading = true;
+        Date date = currentUser.getDate("lastFriendsModification");
 
-        //Parse Query
+        if (pref.contains(Constants.PREF_LAST_FRIENDS_UPDATE) && date != null) {
+            if (date.getTime() > pref.getLong(Constants.PREF_LAST_FRIENDS_UPDATE, 0)) {
+                shouldRefreshFriends = true;
+                pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date.getTime()).commit();
+            } else shouldRefreshFriends = false;
+        } else {
+            shouldRefreshFriends = true;
+            pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date == null ? System.currentTimeMillis() : date.getTime()).commit();
+        }
+
+        shouldRefreshFriends = true;
+        // Parse Query Friends
+        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+        innerQuery.setCachePolicy(shouldRefreshFriends ? ParseQuery.CachePolicy.NETWORK_ONLY : ParseQuery.CachePolicy.CACHE_ONLY);
+        innerQuery.whereEqualTo("user", currentUser);
+        innerQuery.include("friend");
+        innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null && list != null) {
+                    if (friends != null) friends.clear();
+                    HashSet<String> friendsIds = new HashSet<String>();
+
+                    for (ParseObject obj : list) {
+                        ParseUser user = (ParseUser) obj.get("friend");
+                        friends.add(user);
+                        friendsIds.add(user.getObjectId());
+                    }
+
+                    // mixpanel update nbFriend;
+                    mixpanel.getPeople().set("Nb Friends", friendsIds.size());
+
+                    setFriendsPrefs(friendsIds);
+                }
+
+                loadPikis(withCache);
+            }
+        });
+
+        return true;
+    }
+
+    private void loadPikis(boolean withCache) {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null) return;
+
+        friends.add(currentUser);
+
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-        query.whereEqualTo("recipients", currentUser.getObjectId());
+        query.whereContainedIn("user", friends);
+        if (ParseUser.getCurrentUser().get("pleeksHide") != null) {
+            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHide"));
+        }
         query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
         query.include("user");
         query.orderByDescending("lastUpdate");
         query.setSkip(currentPage * NB_BY_PAGE);
         query.setLimit(NB_BY_PAGE);
-        query.findInBackground(new FindCallback<ParseObject>()
-        {
+        query.findInBackground(new FindCallback<ParseObject>() {
             @Override
-            public void done(List<ParseObject> parseObjects, ParseException e)
-            {
-                if(e == null && parseObjects != null)
-                {
-                    if(!fromCache) currentPage++;
+            public void done(List<ParseObject> parseObjects, ParseException e) {
+                if (e == null && parseObjects != null) {
+                    if (!fromCache) currentPage++;
 
                     //copie de la liste d'avant la request
-                    listPiki = new ArrayList<Piki>(listBeforreRequest);
-                    for (ParseObject parsePiki : parseObjects)
-                    {
+                    if (shouldReinit) {
+                        listPiki.clear();
+                        shouldReinit = false;
+                    } else {
+                        listPiki = new ArrayList<Piki>(listBeforreRequest);
+                    }
+
+                    for (ParseObject parsePiki : parseObjects) {
                         listPiki.add(new Piki(parsePiki));
                     }
                     adapter.setListPiki(listPiki);
@@ -214,26 +277,21 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
                     //affichage du tuto si necessaire
                     showTuto();
-                }
-                else if(e != null)
-                {
-                    if(!fromCache) Utile.showToast(R.string.home_piki_nok, HomeActivity.this);
+                } else if (e != null) {
+                    if (!fromCache) Utile.showToast(R.string.home_piki_nok, HomeActivity.this);
                     e.printStackTrace();
                 }
 
                 //si réponse network (2eme reponse)
-                if(!fromCache)
-                {
+                if (!fromCache) {
                     refreshSwipe.setRefreshing(false);
-                    listViewPiki.removeFooterView(footer);
+                    footer.setVisibility(View.GONE);
                     isLoading = false;
                 }
 
                 fromCache = false;
             }
         });
-
-        return true;
     }
 
     private void showTuto()
@@ -276,18 +334,23 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
         if(AUTO_RELOAD)
         {
             AUTO_RELOAD = false;
-            init();
+            shouldReinit = true;
+            init(false);
         }
         super.onResume();
     }
 
     @Override
-    public void onClick(View view)
-    {
-        if(view == btnTopBar)
-        {
+    public void onClick(View view) {
+        if (view == btnTopBar) {
             startActivity(new Intent(this, FriendsActivity.class));
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        } else if (view == btnSettings) {
+            startActivity(new Intent(this, ParameterActivity.class));
+            overridePendingTransition( R.anim.slide_in_up, R.anim.slide_out_up);
+        } else if (view == btnIcon || view == btnTitle) {
+            startActivity(new Intent(this, VideoActivity.class));
+            overridePendingTransition( R.anim.slide_in_up, R.anim.slide_out_up);
         }
     }
 
@@ -451,18 +514,28 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
                                                     Piki removedPiki = adapter.removePiki(position);
 
-                                                    //Parse remove Piki
-                                                    HashMap<String, String> params = new HashMap<String, String>();
-                                                    params.put("pikiId", removedPiki.getId());
-                                                    ParseCloud.callFunctionInBackground("hideOrRemovePiki", params, new FunctionCallback<Object>()
-                                                    {
-                                                        @Override
-                                                        public void done(Object o, ParseException e)
-                                                        {
-                                                            if(e != null) Utile.showToast(R.string.home_piki_remove_nok, HomeActivity.this);
-                                                            else init(false);
-                                                        }
-                                                    });
+                                                    if (!removedPiki.isPublic()) {
+                                                        //Parse remove Piki
+                                                        HashMap<String, String> params = new HashMap<String, String>();
+                                                        params.put("pikiId", removedPiki.getId());
+                                                        ParseCloud.callFunctionInBackground("hideOrRemovePikiV2", params, new FunctionCallback<Object>() {
+                                                            @Override
+                                                            public void done(Object o, ParseException e) {
+                                                                if (e != null)
+                                                                    Utile.showToast(R.string.home_piki_remove_nok, HomeActivity.this);
+                                                                else {
+                                                                    shouldReinit = true;
+                                                                    init(false);
+                                                                }
+                                                            }
+                                                        });
+                                                    } else {
+                                                        ParseUser user = ParseUser.getCurrentUser();
+                                                        user.add("pleeksHide", removedPiki.getId());
+                                                        user.saveEventually();
+                                                        shouldReinit = true;
+                                                        init(false);
+                                                    }
                                                 }
                                                 @Override public void onAnimationRepeat(Animation animation) {}
                                                 @Override public void onAnimationStart(Animation animation) {}

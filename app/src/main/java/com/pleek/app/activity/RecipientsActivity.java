@@ -38,6 +38,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.pleek.app.R;
 import com.pleek.app.adapter.FriendsAdapter;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ViewLoadingFooter;
 
 import org.json.JSONException;
@@ -76,7 +77,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     private byte[] pikiData;
     private int initialWidthMarginLeftBtnSearch;
     private FriendsAdapter adapter;
-    private ArrayList<FriendsAdapter.Friend> listFriend;
+    private ArrayList<Friend> listFriend;
 
     public static void initActivity(byte[] pikiData)
     {
@@ -84,8 +85,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipients);
 
@@ -93,16 +93,13 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
         init();
     }
 
-    private void setup()
-    {
-        if(_pikiData != null)
-        {
+    private void setup() {
+        if (_pikiData != null) {
             pikiData = _pikiData;
             _pikiData = null;
         }
@@ -176,22 +173,43 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     {
         if(pikiData != null && pikiData.length != 0)
         {
+            currentPage = 0;
+            lastItemShow = 0;
+            isLoading = false;
+            endOfLoading = false;
+            listFriend = new ArrayList<Friend>();
+            listBeforreRequest = new ArrayList<Friend>();
             //crash #25 BOB : retour depuis FriendsActivity
             imgPiki.setImageBitmap(BitmapFactory.decodeByteArray(pikiData, 0, pikiData.length));
 
-            List<String> listFriends = ParseUser.getCurrentUser().getList("usersFriend");
+            ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
+            innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
 
-            if (listFriends != null && listFriends.size() > 0)
-            {
-                if(loadNext()) listView.addFooterView(footer);
-                txtNoFriends.setVisibility(View.GONE);
-            }
-            else
-            {
-                txtNoFriends.setVisibility(View.VISIBLE);
-            }
-            adapter = new FriendsAdapter(this);//fix : CRASH #8 > http://stackoverflow.com/questions/24700588/i-am-using-the-listview-add-remove-footer-for-listview-cross-app-in-android-vers
-            listView.setAdapter(adapter);
+            innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
+            innerQuery.include("friend");
+
+            innerQuery.orderByAscending("username");
+            innerQuery.setSkip(currentPage * NB_BY_PAGE);
+            innerQuery.setLimit(NB_BY_PAGE);
+            innerQuery.findInBackground(new FindCallback<ParseObject>() {
+
+                @Override
+                public void done(List<ParseObject> list, ParseException e) {
+                    if (list != null && list.size() > 0) {
+                        for (ParseObject obj : list) {
+                            listFriend.add(new Friend((ParseUser) obj.get("friend")));
+                        }
+
+                        if(loadNext()) listView.addFooterView(footer);
+                        txtNoFriends.setVisibility(View.GONE);
+                    } else {
+                        txtNoFriends.setVisibility(View.VISIBLE);
+                    }
+
+                    adapter = new FriendsAdapter(RecipientsActivity.this); //fix : CRASH #8 > http://stackoverflow.com/questions/24700588/i-am-using-the-listview-add-remove-footer-for-listview-cross-app-in-android-vers
+                    listView.setAdapter(adapter);
+                }
+            });
         }
         else
         {
@@ -202,7 +220,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     private boolean fromCache;
     private int currentPage;
     private final int NB_BY_PAGE = 50;
-    private List<FriendsAdapter.Friend> listBeforreRequest;
+    private List<Friend> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
     private boolean loadNext()
@@ -213,54 +231,59 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         //il n'y a plus rien a charger
         if(endOfLoading) return false;
 
-        final List<String> listFriends = ParseUser.getCurrentUser().getList("usersFriend");
-        if(listFriends == null || listFriends.isEmpty()) return false;
+        if (listFriend == null || listFriend.isEmpty()) return false;
 
         //copie de la liste actuel des piki
-        if(listFriend == null) listFriend = new ArrayList<FriendsAdapter.Friend>();
-        listBeforreRequest = new ArrayList<FriendsAdapter.Friend>(listFriend);
+        listBeforreRequest = new ArrayList<Friend>(listFriend);
+
+        isLoading = true;
+        fromCache = false;
+
+        if (getFriendsPrefs() == null || getFriendsPrefs().isEmpty()) return false;
+
+        // copie de la liste actuel des friends
+        listBeforreRequest = new ArrayList<Friend>(listFriend);
 
         isLoading = true;
         fromCache = true;
+
         ParseQuery<ParseUser> query = ParseUser.getQuery();
         query.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
-        query.whereContainedIn("objectId", listFriends);
+        query.whereContainedIn("objectId", getFriendsPrefs()); //TODO : CRASH #9
         query.orderByAscending("username");
         query.setSkip(currentPage * NB_BY_PAGE);
         query.setLimit(NB_BY_PAGE);
-        query.findInBackground(new FindCallback<ParseUser>()
-        {
+        query.findInBackground(new FindCallback<ParseUser>() {
+
             @Override
-            public void done(List<ParseUser> parseObjects, ParseException e)
-            {
-                if (e == null)
-                {
-                    if(!fromCache) currentPage++;
+            public void done(List<ParseUser> list, ParseException e) {
+                if (e == null) {
+                    if (currentPage > 0) {
+                        listFriend = new ArrayList<Friend>(listBeforreRequest);
+                    } else {
+                        listFriend = new ArrayList<Friend>();
+                    }
 
-                    listFriend = new ArrayList<FriendsAdapter.Friend>(listBeforreRequest);
+                    if (!fromCache) currentPage++;
 
-                    for (ParseUser user : parseObjects)
-                    {
-                        FriendsAdapter.Friend friend = adapter.new Friend(null, R.string.friends_section, R.drawable.picto_recipient_off);
-                        friend.username = user.getString("username");
-                        friend.parseId = user.getObjectId();
+                    for (ParseObject obj : list) {
+                        Friend friend = new Friend(null, R.string.friends_section, R.drawable.picto_recipient_off);
+                        friend.username = obj.getString("username");
+                        friend.parseId = obj.getObjectId();
                         listFriend.add(friend);
                     }
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
-                    endOfLoading = parseObjects.size() < NB_BY_PAGE;
+                    endOfLoading = list.size() < NB_BY_PAGE;
 
                     updateFiltre();
-                }
-                else
-                {
+                } else {
                     L.e(">>>>>>>>>>>>>> ERROR parsequery user - e=" + e.getMessage());
                     e.printStackTrace();
                 }
 
                 //si réponse network (2eme reponse)
-                if(!fromCache)
-                {
+                if (!fromCache) {
                     listView.removeFooterView(footer);
                     isLoading = false;
                 }
@@ -302,7 +325,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
             boolean isPublic = true;
             if(listFriend != null)
             {
-                for(FriendsAdapter.Friend f : listFriend)//crash #3 listFriend=null
+                for(Friend f : listFriend)//crash #3 listFriend=null
                 {
                     if(f.image == R.drawable.picto_recipient_on)
                     {
@@ -333,20 +356,11 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         if(!isPublic)
         {
             tmpListRecipients = new ArrayList<String>();
-            for(FriendsAdapter.Friend f : listFriend)
+            for(Friend f : listFriend)
             {
                 if(f.image == R.drawable.picto_recipient_on) tmpListRecipients.add(f.parseId);
             }
             tmpListRecipients.add(currentUser.getObjectId());
-
-            List<String> usersWhoMutedMe = currentUser.getList("usersWhoMutedMe");
-            if(usersWhoMutedMe != null)
-            {
-                for(String idWhoMutedMe : usersWhoMutedMe)//crash #1 usersWhoMutedMe = null
-                {
-                    tmpListRecipients.remove(idWhoMutedMe);
-                }
-            }
         }
         final List<String> listRecipients = tmpListRecipients;
 
@@ -447,7 +461,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     {
         try
         {
-            ArrayList<FriendsAdapter.Friend> listFiltred = new ArrayList<FriendsAdapter.Friend>();
+            ArrayList<Friend> listFiltred = new ArrayList<Friend>();
 
             boolean nofriend = listFriend == null || listFriend.size() == 0;
             boolean nofiltre = filtreSearch == null;
@@ -456,7 +470,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
 
             if(!nofriend)
             {
-                for(FriendsAdapter.Friend friend : listFriend)
+                for(Friend friend : listFriend)
                 {
                     if(filtreSearch == null || (friend.username != null && friend.username.toLowerCase().contains(filtreSearch)))
                     {
@@ -603,13 +617,13 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     }
 
     @Override
-    public void clickOnName(FriendsAdapter.Friend friend)
+    public void clickOnName(Friend friend)
     {
         friend.image = friend.image == R.drawable.picto_recipient_off ? R.drawable.picto_recipient_on : R.drawable.picto_recipient_off;
         adapter.notifyDataSetChanged();
 
         int nbFirendChecked = 0;
-        for(FriendsAdapter.Friend f : listFriend)
+        for(Friend f : listFriend)
         {
             if(f.image == R.drawable.picto_recipient_on) nbFirendChecked++;
         }

@@ -11,10 +11,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.pleek.app.R;
-import com.squareup.picasso.Picasso;
+import com.pleek.app.activity.ParentActivity;
+import com.pleek.app.utils.PicassoUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by nicolas on 19/12/14.
@@ -25,6 +27,7 @@ public class AddUserOnLoginAdapter extends BaseAdapter implements View.OnTouchLi
     private List<User> listUserSelected = new ArrayList<User>();
     private Listener listener;
     private Context context;
+    private Set<String> friendsIds;
 
     public AddUserOnLoginAdapter(Listener listener)
     {
@@ -33,6 +36,8 @@ public class AddUserOnLoginAdapter extends BaseAdapter implements View.OnTouchLi
         {
             this.context = (Context) listener;
         }
+
+        friendsIds = ((ParentActivity) context).getFriendsPrefs();
     }
 
     public AddUserOnLoginAdapter(List<User> listUser, Listener listener, Context context)
@@ -71,13 +76,13 @@ public class AddUserOnLoginAdapter extends BaseAdapter implements View.OnTouchLi
         }
 
         ImageView imgUser = (ImageView) view.findViewById(R.id.imgUser);
-        Picasso.with(context).load(user.imageUrl).placeholder(R.drawable.placeholder).error(R.drawable.placeholder).into(imgUser);
+        PicassoUtils.with(context).load(user.imageUrl).placeholder(R.drawable.placeholder).error(R.drawable.placeholder).into(imgUser);
         TextView txtUserName = (TextView) view.findViewById(R.id.txtUserName);
         txtUserName.setText(user.name);
         TextView txtUserBaseline = (TextView) view.findViewById(R.id.txtUserBaseline);
         txtUserBaseline.setText(user.baseline);
         ImageView pictoAddUser = (ImageView) view.findViewById(R.id.pictoAddUser);
-        pictoAddUser.setImageResource(listUserSelected.contains(user) ? R.drawable.picto_adduser_seleced : R.drawable.picto_adduser);
+        pictoAddUser.setImageResource(listUserSelected.contains(user) || friendsIds.contains(user.id) ? R.drawable.picto_added : R.drawable.picto_add_user);
 
         view.setTag(new Integer(i));
         view.setTag(R.string.tag_downpresse, new DownRunnable(view));
@@ -116,11 +121,13 @@ public class AddUserOnLoginAdapter extends BaseAdapter implements View.OnTouchLi
 
                 User user = listUser.get(position);
                 //remove or add to listUserSelected
-                if(!listUserSelected.remove(user)) listUserSelected.add(user);
-                //send to listener
-                if(listener != null) listener.clickOnUser(user);
+                if (!friendsIds.contains(user.id)) {
+                    if (!listUserSelected.remove(user)) listUserSelected.add(user);
+                    //send to listener
+                    if (listener != null) listener.clickOnUser(user);
 
-                notifyDataSetChanged();
+                    notifyDataSetChanged();
+                }
             }
         }
         return true;

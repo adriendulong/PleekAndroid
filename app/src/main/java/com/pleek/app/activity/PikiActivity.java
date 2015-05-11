@@ -1,38 +1,44 @@
 package com.pleek.app.activity;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
-import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
-import android.view.animation.Transformation;
-import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -40,16 +46,15 @@ import com.facebook.AppEventsConstants;
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.utile.Utile;
-import com.goandup.lib.widget.ButtonRoundedMaterialDesign;
 import com.goandup.lib.widget.CameraView;
-import com.goandup.lib.widget.DisableTouchListener;
 import com.goandup.lib.widget.DownTouchListener;
+import com.goandup.lib.widget.EditTextFont;
 import com.goandup.lib.widget.FlipImageView;
-import com.goandup.lib.widget.ListViewScrollingOff;
 import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
 import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
+import com.parse.GetCallback;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -59,31 +64,45 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.pleek.app.R;
-import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.adapter.ReactAdapter;
-import com.pleek.app.bean.AutoResizeFontTextWatcher;
+import com.pleek.app.bean.Emoji;
+import com.pleek.app.bean.Font;
+import com.pleek.app.bean.LikeReact;
+import com.pleek.app.bean.Overlay;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
+import com.pleek.app.bean.VideoBean;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.utils.PicassoUtils;
+import com.pleek.app.views.CircleProgressBar;
+import com.pleek.app.views.CustomGridView;
+import com.pleek.app.views.EmojisFontsPopup;
+import com.pleek.app.views.TextViewFontAutoResize;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by nicolas on 18/12/14.
  */
-public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener
+public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
 {
     private final int DURATION_SHOWSHARE_ANIM = 300;//ms
 
@@ -91,43 +110,48 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private View btnBack;
     private View btnShare;
     private TextView txtNamePiki;
-    private ListViewScrollingOff listViewPiki;
+    private CustomGridView gridViewPiki;
+
+    // HEADER
     private TextView txtNbFriend;
-    private TextView txtNbReply;
+    private TextView txtNbReplies;
     private View pikiHeader;
     private ImageView imgPiki;
-    private TextView txtNbFriendTopbar;
+    private SurfaceView surfaceView;
+    private ImageView imgPlay;
+    private ImageView imgMute;
+    private ImageView imgError;
+    private CircleProgressBar progressBar;
+    private MediaPlayer mediaPlayer;
+    private RelativeLayout layoutVideo;
+    private boolean isPreparePlaying;
+    private boolean isPlaying = false;
+
     private TextView txtTroisPoints;
-    private View layoutTopInfo;
-    private ImageView imgPikiMini;
     private View layoutOverlayShare;
     private LinearLayout layoutShare;
-    private ButtonRoundedMaterialDesign btnConfrimShare;
+    private LinearLayout smallLayoutShare;
+    private ImageView btnConfrimShare;
     private View layoutOverlayReply;
     private View layoutOverlayReplyTop;
-    private View btnReplyHearth;
-    private View btnReplyOk;
-    private View btnReplyStuck;
-    private View btnReplyClose;
-    private View btnReplyTexte;
-    private View layoutBtnReply;
-    private View layoutBtnRoundedReply;
-    private ButtonRoundedMaterialDesign btnReply;
-    private ButtonRoundedMaterialDesign btnCapture;
     private View layoutTextReact;
-    private EditText edittexteReact;
-    private ImageView imgviewReact;
+    private EditTextFont edittexteReact;
     private View removeFocus;
     private View layoutCamera;
     private CameraView cameraView;
-    private FlipImageView imgSwitch;
-    private View layoutTuto;
-    private View layoutTutoTop;
-    private View layoutTutoCenter;
-    private View layoutTutoReact;
-    private ButtonRoundedMaterialDesign btnReplyTuto;
     private ViewLoadingFooter footer;
     private SwipeRefreshLayoutScrollingOff refreshSwipe;
+
+    // NEW ELEMENTS
+    private LinearLayout layoutTutorialReact;
+    private View imgAddReact;
+    private RelativeLayout layoutActionBarKeyboard;
+    private ImageView imgStickers;
+    private ImageView imgFonts;
+    private ImageView imgKeyboard;
+    private FlipImageView imgSwitch;
+    private ImageView imgViewReact;
+    private ImageView imgReply;
 
     private static Piki _piki;
     private Piki piki;
@@ -136,18 +160,24 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Reaction> listReact;
     private boolean isKeyboardShow;
     private int keyboardHeight;
-    private int initialLayoutBtnReplyMarginBottom;
-    private AutoResizeFontTextWatcher fontTextWatcher;
     private boolean isPreviewVisible;
 
-    public static void initActivity(Piki piki)
-    {
+    private int initMarginBottom = 0;
+
+    private List<Emoji> emojis;
+    private List<Font> fonts;
+    private EmojisFontsPopup<Emoji> popupEmoji;
+    private EmojisFontsPopup<Font> popupFont;
+
+    private HashSet<String> likeForReacts;
+    boolean fromCacheLikes = true;
+
+    public static void initActivity(Piki piki) {
         _piki = piki;
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_piki);
 
@@ -158,10 +188,8 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_VIEWED_CONTENT);
     }
 
-    private void setup()
-    {
-        if(_piki != null)
-        {
+    private void setup() {
+        if (_piki != null) {
             piki = _piki;
             _piki = null;
         }
@@ -177,47 +205,58 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         btnShare.setOnTouchListener(new DownTouchListener(colorDown, colorUp));
 
         txtNamePiki = (TextView)findViewById(R.id.txtNamePiki);
-        listViewPiki = (ListViewScrollingOff)findViewById(R.id.listViewPiki);
-        listViewPiki.setOnTouchListener(new MyListTouchListener());
-        listViewPiki.setOnScrollListener(new MyOnScrollListener());
+        gridViewPiki = (CustomGridView) findViewById(R.id.gridViewPiki);
+        gridViewPiki.setOnTouchListener(new MyListTouchListener());
+        gridViewPiki.setOnScrollListener(new MyOnScrollListener());
 
         //header
         pikiHeader = LayoutInflater.from(this).inflate(R.layout.item_piki_header, null, false);
         pikiHeader.setLayoutParams(new AbsListView.LayoutParams(screen.getWidth(), screen.getWidth()));
         imgPiki = (ImageView) pikiHeader.findViewById(R.id.imgPiki);
         imgPiki.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        txtNbFriend = (TextView) pikiHeader.findViewById(R.id.txtNbFriend);
-        txtNbFriend.setVisibility(View.GONE);
-        txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
-        txtNbFriend.setOnClickListener(this);
+        txtNbFriend = (TextView) findViewById(R.id.txtNbFriends);
+        txtNbReplies = (TextView) pikiHeader.findViewById(R.id.txtNbReplies);
+        txtNbReplies.setVisibility(View.GONE);
+        if (!piki.isPublic()) {
+            txtNbFriend.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
+            txtNbFriend.setOnClickListener(this);
+        }
+
+        imgMute = new ImageView(this);
+        imgMute.setImageResource(R.drawable.picto_mute);
+
+        imgPlay = (ImageView) pikiHeader.findViewById(R.id.imgPlay);
+        if (piki.isVideo()) {
+            imgPlay.setVisibility(View.VISIBLE);
+            piki.loadVideoToTempFile(this);
+            piki.setLoadVideoEndListener(this);
+        }
+        imgError = (ImageView) pikiHeader.findViewById(R.id.imgError);
+        progressBar = (CircleProgressBar) pikiHeader.findViewById(R.id.progressBar);
+        progressBar.setColorSchemeResources(R.color.progressBar);
+        surfaceView = new SurfaceView(this);
+        surfaceView.getHolder().addCallback(this);
+        surfaceView.setZOrderOnTop(true);
+        layoutVideo = (RelativeLayout) pikiHeader.findViewById(R.id.layoutVideo);
+
         txtTroisPoints = (TextView) pikiHeader.findViewById(R.id.txtTroisPoints);
         txtTroisPoints.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColor), getResources().getColor(R.color.blanc)));
         txtTroisPoints.setOnClickListener(this);
-        listViewPiki.addHeaderView(pikiHeader);
+        gridViewPiki.addHeaderView(pikiHeader);
 
         //footer listview
         footer = new ViewLoadingFooter(this);
 
-        //topbarinfo
-        layoutTopInfo = findViewById(R.id.layoutTopInfo);
-        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) layoutTopInfo.getLayoutParams();
-        mlp.topMargin = -screen.dpToPx(60);
-        layoutTopInfo.setLayoutParams(mlp);
-        imgPikiMini = (ImageView) findViewById(R.id.imgPikiMini);
-        txtNbFriendTopbar = (TextView) findViewById(R.id.txtNbFriendTopbar);
-        txtNbReply = (TextView) findViewById(R.id.txtNbReply);
-
         //share
         layoutOverlayShare = findViewById(R.id.layoutOverlayShare);
         layoutOverlayShare.setVisibility(View.GONE);
-        layoutOverlayShare.setOnTouchListener(new DisableTouchListener());
+        layoutOverlayShare.setOnClickListener(this);
         layoutShare = (LinearLayout) findViewById(R.id.layoutShare);
-        btnConfrimShare = (ButtonRoundedMaterialDesign) findViewById(R.id.btnConfrimShare);
-        btnConfrimShare.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
+        smallLayoutShare = (LinearLayout) findViewById(R.id.smallLayoutShare);
+        btnConfrimShare = (ImageView) findViewById(R.id.btnConfrimShare);
+        btnConfrimShare.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
+            public void onClick(View v) {
                 sharePiki();
             }
         });
@@ -227,237 +266,231 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         layoutOverlayReply.setOnClickListener(this);
         layoutOverlayReplyTop = findViewById(R.id.layoutOverlayReplyTop);
         layoutOverlayReplyTop.setOnClickListener(this);
-        btnReplyHearth = findViewById(R.id.btnReplyHearth);
-        Drawable drawableUp = getResources().getDrawable(R.drawable.btn_ronded);
-        Drawable drawableDown = getResources().getDrawable(R.drawable.btn_ronded_selected);
-        btnReplyHearth.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        BtnReplyClickListener btnReplyClickListener = new BtnReplyClickListener();
-        btnReplyHearth.setOnClickListener(btnReplyClickListener);
-        btnReplyOk = findViewById(R.id.btnReplyOk);
-        btnReplyOk.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        btnReplyOk.setOnClickListener(btnReplyClickListener);
-        btnReplyStuck = findViewById(R.id.btnReplyStuck);
-        btnReplyStuck.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        btnReplyStuck.setOnClickListener(btnReplyClickListener);
-        btnReplyTexte = findViewById(R.id.btnReplyTexte);
-        btnReplyTexte.setOnTouchListener(new DownTouchListener(drawableDown, drawableUp));
-        btnReplyTexte.setOnClickListener(btnReplyClickListener);
-        btnReplyClose = findViewById(R.id.btnReplyClose);
-        btnReplyClose.setOnTouchListener(new DownTouchListener(getResources().getDrawable(R.drawable.overlay_ronded), null));
-        btnReplyClose.setOnClickListener(this);
-        layoutBtnRoundedReply = findViewById(R.id.layoutBtnRoundedReply);
-        layoutBtnReply = findViewById(R.id.layoutBtnReply);
-        layoutBtnReply.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-                initialLayoutBtnReplyMarginBottom = params.bottomMargin;
 
-                layoutBtnRoundedReply.post(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        //fix marginleft for show/hide animation
-                        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                        params.bottomMargin = initialLayoutBtnReplyMarginBottom;
-                        params.leftMargin = (int) layoutBtnRoundedReply.getX();
-                        layoutBtnRoundedReply.setLayoutParams(params);
-                    }
-                });
-            }
-        });
-        btnReply = (ButtonRoundedMaterialDesign) findViewById(R.id.btnReply);
-        btnReply.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
-            @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                showReplyButtons(true);
-            }
-        });
-        btnCapture = (ButtonRoundedMaterialDesign) findViewById(R.id.btnCapture);
-        btnCapture.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
-            @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                final Bitmap bitmapLayerReact = getBitmapLayerReact();
-                final Dialog dialogLoader = showLoader();
-                cameraView.captureCamera(new CameraView.CameraViewListener()
-                {
-                    @Override
-                    public void repCaptureCamera(Drawable photo)
-                    {
-                        byte[] reactData = getReactData(photo, bitmapLayerReact);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
-
-                        final Reaction tmpReact = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
-                        tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
-                        Reaction.Type type = Reaction.Type.PHOTO;
-                        if(layoutTextReact.getVisibility() == View.VISIBLE) type = Reaction.Type.TEXTE;
-                        else if(imgviewReact.getVisibility() == View.VISIBLE) type = Reaction.Type.EMOJI;
-                        tmpReact.setType(type);
-                        listReact = adapter.addReact(tmpReact);
-                        sendReact(tmpReact);
-
-                        hideDialog(dialogLoader);
-                        new Handler().postDelayed(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                showReplyButtons(false);
-                            }
-                        }, 500);
-                    }
-                });
-            }
-        });
-        int edittexteReactPadding = screen.dpToPx(5);
-        edittexteReact = (EditText) findViewById(R.id.edittexteReact);
-        int size = screen.getWidth()/3 - edittexteReactPadding;
-        fontTextWatcher = new AutoResizeFontTextWatcher(edittexteReact, size, size, screen.dpToPx(30));
+        int edittexteReactPadding = screen.dpToPx(10);
+        edittexteReact = (EditTextFont) findViewById(R.id.edittexteReact);
+        edittexteReact.setSingleLine(false);
+        int size = screen.getWidth() / 2 - edittexteReactPadding;
         layoutTextReact = findViewById(R.id.layoutTextReact);
-        edittexteReact.addTextChangedListener(fontTextWatcher);
         edittexteReact.setPadding(edittexteReactPadding, edittexteReactPadding, edittexteReactPadding, edittexteReactPadding);
-        imgviewReact = (ImageView) findViewById(R.id.imgviewReact);
         removeFocus = findViewById(R.id.removeFocus);
 
         layoutCamera = findViewById(R.id.layoutCamera);
         layoutCamera.setOnClickListener(this);
-        int layoutCameraSize = screen.getWidth() / 3;
-        layoutCamera.setLayoutParams(new RelativeLayout.LayoutParams(layoutCameraSize, layoutCameraSize - screen.dpToPx(1)));
-        cameraView = (CameraView) findViewById(R.id.cameraView);
-        imgSwitch = (FlipImageView) findViewById(R.id.imgSwitch);
 
-        //Open/Close Keyboard detection
-        rootView = findViewById(R.id.rootView);
-        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
-        {
+        pikiHeader.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void onGlobalLayout()
-            {
+            public void onGlobalLayout() {
+                int layoutCameraSize = screen.getWidth() / 2;
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutCamera.getLayoutParams();
+                params.width = layoutCameraSize;
+                params.height = layoutCameraSize - screen.dpToPx(1);
+                initMarginBottom = (int) (rootView.getHeight() - pikiHeader.getHeight() - layoutCameraSize - 60 * screen.getDensity());
+                params.setMargins(0, 0, 0, initMarginBottom); // 60 is the size of the share layout
+                layoutCamera.setLayoutParams(params);
+
+                pikiHeader.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
+        });
+
+        cameraView = (CameraView) findViewById(R.id.cameraView);
+        cameraView.setCycleListener(this);
+
+        // Open/Close Keyboard detection
+        rootView = findViewById(R.id.rootView);
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+            @Override
+            public void onGlobalLayout() {
                 Rect r = new Rect();
                 getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
                 keyboardHeight = rootView.getRootView().getHeight() - r.bottom;
-                if (keyboardHeight > 100 && !isKeyboardShow)//keyboard SHOW
-                {
+
+                if (keyboardHeight > 100 && !isKeyboardShow) { //keyboard SHOW
                     isKeyboardShow = true;
-                    animateStartEditText();
+                    Utile.fadeIn(layoutActionBarKeyboard, 300);
+
+                    if (gridViewPiki.getFirstVisiblePosition() == 0 && adapter.getCount() <= 2) {
+                        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                        p.topMargin =  - pikiHeader.getHeight() + btnShare.getHeight();
+                        rootView.setLayoutParams(p);
+
+                        ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
+                        mlpCamera.topMargin = mlpCamera.topMargin - gridViewPiki.getChildAt(0).getTop();
+                        layoutCamera.setLayoutParams(mlpCamera);
+                    } else if (gridViewPiki.getFirstVisiblePosition() == 0) {
+                        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                        p.topMargin =  - pikiHeader.getHeight() - gridViewPiki.getChildAt(0).getTop() + btnShare.getHeight();
+                        rootView.setLayoutParams(p);
+                    }
+
+                    if (popupEmoji == null) {
+                        setUpPopupEmojis();
+                    }
+
+                    if (popupFont == null) {
+                        setUpPopupFonts();
+                    }
                 }
-                if(keyboardHeight <= 100 && isKeyboardShow)//keyboard HIDE
-                {
+
+                if (keyboardHeight > 100 && isKeyboardShow && popupEmoji != null && popupEmoji.isShowing()) {
+                    popupEmoji.update(Screen.getInstance(PikiActivity.this).getWidth(), keyboardHeight);
+                    popupEmoji.updateAdapter(keyboardHeight);
+                }
+
+                if (keyboardHeight > 100 && isKeyboardShow && popupFont != null && popupFont.isShowing()) {
+                    popupFont.update(Screen.getInstance(PikiActivity.this).getWidth(), keyboardHeight);
+                    popupFont.updateAdapter(keyboardHeight);
+                }
+
+                if (keyboardHeight <= 100 && isKeyboardShow) { //keyboard HIDE
                     isKeyboardShow = false;
-                    animateEndEditText();
+                    layoutActionBarKeyboard.setVisibility(View.GONE);
+
+                    RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                    p.topMargin = btnShare.getHeight();
+                    rootView.setLayoutParams(p);
+
+                    isReplyButtonsShow = false;
+                    endEditText();
                 }
             }
         });
 
-        adapter = new ReactAdapter(new ArrayList<Reaction>(), PikiActivity.this);
-        //wait listViewPiki is created for get height
-        listViewPiki.post(new Runnable()
-        {
+        adapter = new ReactAdapter(new ArrayList<Reaction>(), PikiActivity.this, piki.iamOwner());
+        //wait gridViewPiki is created for get height
+        gridViewPiki.post(new Runnable() {
             @Override
-            public void run()
-            {
-                adapter.setHeightListView(listViewPiki.getHeight());
-                listViewPiki.setAdapter(adapter);
+            public void run() {
+                adapter.setHeightListView(gridViewPiki.getHeight());
+                gridViewPiki.setAdapter(adapter);
             }
         });
 
         isPreviewVisible = true;
 
-        //TUTO
-        layoutTuto = findViewById(R.id.layoutTuto);
-        layoutTuto.setVisibility(View.GONE);
-        layoutTuto.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent)
-            {
-                Utile.fadeOut(layoutTuto, 300);
-                return true;
-            }
-        });
-        layoutTutoTop = findViewById(R.id.layoutTutoTop);
-        ViewGroup.LayoutParams lp = layoutTutoTop.getLayoutParams();
-        lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        int marginTop = lp.height = screen.dpToPx(60) + screen.getWidth() + screen.dpToPx(1);
-        layoutTutoTop.setLayoutParams(lp);
-        layoutTutoCenter = findViewById(R.id.layoutTutoCenter);
-        lp = layoutTutoCenter.getLayoutParams();
-        lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        lp.height = screen.getWidth() / 3 - screen.dpToPx(1);
-        layoutTutoCenter.setLayoutParams(lp);
-        layoutTutoReact = findViewById(R.id.layoutTutoReact);
-        mlp = (ViewGroup.MarginLayoutParams) layoutTutoReact.getLayoutParams();
-        mlp.setMargins(0, marginTop - screen.dpToPx(100), 0, 0);
-        btnReplyTuto = (ButtonRoundedMaterialDesign) findViewById(R.id.btnReplyTuto);
-        btnReplyTuto.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
-            @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                Utile.fadeOut(layoutTuto, 300);
-            }
-        });
         refreshSwipe = (SwipeRefreshLayoutScrollingOff) findViewById(R.id.refreshSwipe);
         refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
         refreshSwipe.setScrollingEnabled(false);
+
+        // NEW ELEMENTS
+        layoutTutorialReact = (LinearLayout) findViewById(R.id.layoutTutorialReact);
+        imgAddReact = findViewById(R.id.imgAddReact);
+        layoutActionBarKeyboard = (RelativeLayout) findViewById(R.id.layoutActionBarKeyboard);
+        imgFonts = (ImageView) findViewById(R.id.imgFonts);
+        imgFonts.setOnClickListener(this);
+        imgKeyboard = (ImageView) findViewById(R.id.imgKeyboard);
+        imgKeyboard.setOnClickListener(this);
+        imgStickers = (ImageView) findViewById(R.id.imgStickers);
+        imgStickers.setOnClickListener(this);
+        imgSwitch = (FlipImageView) findViewById(R.id.imgSwitch);
+        imgSwitch.setOnClickListener(this);
+
+        imgViewReact = (ImageView) findViewById(R.id.imgViewReact);
+        imgReply = (ImageView) findViewById(R.id.imgReply);
+        imgReply.setOnClickListener(this);
+
+        likeForReacts = new HashSet<String>();
     }
 
 
     private void init() {
         init(true);
     }
-    private void init(boolean withCache)
-    {
-        if(piki != null)
-        {
+    private void init(boolean withCache) {
+        if (piki != null) {
             //mark read
             readDataProvider.setReadDateNow(piki.getId());
 
             //header
-            txtNbFriend.setText(piki.getNbRecipient() + " " + getString(R.string.piki_friend) + (piki.getNbRecipient() > 1 ? "s" : ""));
             txtNbFriend.setVisibility(View.VISIBLE);
-            txtNamePiki.setText("@" + piki.getName());
-            Picasso.with(this)
-                    .load(piki.getUrlPiki())
-                    .placeholder(R.drawable.piki_placeholder)
-                    .error(R.drawable.piki_placeholder)
-                    .into(imgPiki);
+            if (!piki.isPublic()) {
+                txtNbFriend.setText(getString(R.string.pikifriends_text_topbar).replace("_nb_", "" + piki.getNbRecipient()));
+            } else {
+                txtNbFriend.setText(getString(R.string.piki_public));
+            }
 
-            //topbar
-            txtNbFriendTopbar.setText(piki.getNbRecipient() + "");
-            txtNbReply.setText(piki.getNbReact()+"");
-            Picasso.with(this)
+            txtNamePiki.setText(piki.getName());
+            progressBar.setVisibility(View.VISIBLE);
+            PicassoUtils.with(this)
                     .load(piki.getUrlPiki())
-                    .placeholder(R.drawable.gris_label_back)
-                    .error(R.drawable.gris_label_back)
-                    .into(imgPikiMini);
+                    .resize((int) (pikiHeader.getLayoutParams().width * 0.80), (int) (pikiHeader.getLayoutParams().width * 0.80))
+                    .error(R.drawable.piki_placeholder)
+                    .into(imgPikiTarget);
 
             currentPage = 0;
             listReact = new ArrayList<Reaction>();
 
-            refreshSwipe.setRefreshing(loadNext(withCache));
+            final boolean loading = loadNext(withCache);
+
+            refreshSwipe.post(new Runnable() {
+                @Override
+                public void run() {
+                    refreshSwipe.setRefreshing(loading);
+                }
+            });
 
             //count nombre react
             ParseQuery<ParseObject> query = ParseQuery.getQuery("React");
             query.whereEqualTo("Piki", piki.getParseObject());
-            query.countInBackground(new CountCallback()
-            {
-                public void done(int count, ParseException e)
-                {
-                    txtNbReply.setText((e == null ? count : 0)+"");
+            query.countInBackground(new CountCallback() {
+                public void done(int count, ParseException e) {
+                    txtNbReplies.setVisibility(View.VISIBLE);
+
+                    if (count > 0) {
+                        txtNbReplies.setText(count + " " + getString(R.string.piki_replies));
+                    } else {
+                        txtNbReplies.setText(R.string.piki_reply_first);
+                    }
                 }
             });
-        }
-        else
-        {
+
+            emojis = new ArrayList<Emoji>();
+
+            ParseQuery<ParseObject> queryStickers = ParseQuery.getQuery("stickers");
+            queryStickers.addAscendingOrder("priorite");
+            queryStickers.setCachePolicy(ParseQuery.CachePolicy.CACHE_ELSE_NETWORK);
+            queryStickers.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> parseObjects, ParseException e) {
+                    if (e == null && parseObjects != null) {
+                        for (ParseObject parseSticker : parseObjects) {
+                            emojis.add(new Emoji(parseSticker));
+                        }
+                    } else if(e != null) {
+                        Utile.showToast("Error getting stickers", PikiActivity.this);
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            ParseQuery<ParseObject> likes = ParseQuery.getQuery("Like");
+            likes.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
+            likes.whereEqualTo("piki", piki.getParseObject());
+            likes.whereEqualTo("user", ParseUser.getCurrentUser());
+            likes.findInBackground(new FindCallback<ParseObject>() {
+                @Override
+                public void done(List<ParseObject> parseObjects, ParseException e) {
+                    if (e == null && parseObjects != null) {
+                        likeForReacts.clear();
+
+                        for (ParseObject parseLike : parseObjects) {
+                            LikeReact like = new LikeReact(parseLike);
+                            likeForReacts.add(like.getIdReact());
+                        }
+
+                        if (adapter != null) {
+                            adapter.setLikeReactMap(likeForReacts);
+                        }
+                    } else if (e != null && !fromCacheLikes) {
+                        Utile.showToast("Error getting likes", PikiActivity.this);
+                        e.printStackTrace();
+                    }
+
+                    fromCacheLikes = false;
+                }
+            });
+        } else {
             L.e("Erreur : Activity not init, call PikiActivity.initActivity()");
             finish();
         }
@@ -469,16 +502,20 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private List<Reaction> listBeforreRequest;
     private boolean isLoading;
     private boolean endOfLoading;
-    private boolean loadNext(boolean withCache)
-    {
-        if(isLoading) return false;
+    private boolean loadNext(boolean withCache) {
+        if (isLoading) return false;
 
         //il n'y a plus rien a charger
-        if(endOfLoading) return false;
+        if (endOfLoading) return false;
 
-        listViewPiki.addFooterView(footer);
+        if (footer.getParent() != null) {
+            ViewGroup par = (ViewGroup) footer.getParent();
+            par.removeView(footer);
+        }
 
-        if(listReact == null) listReact = new ArrayList<Reaction>();
+        gridViewPiki.addFooterView(footer);
+
+        if (listReact == null) listReact = new ArrayList<Reaction>();
         listBeforreRequest = new ArrayList<Reaction>(listReact);
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("React");
@@ -486,53 +523,54 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         query.include("user");
         query.whereEqualTo("Piki", piki.getParseObject());
         query.orderByDescending("createdAt");
-        query.setSkip(currentPage*NB_BY_PAGE);
+        query.setSkip(currentPage * NB_BY_PAGE);
         query.setLimit(currentPage > 0 ? NB_BY_PAGE : NB_BY_PAGE-1);//first laod que 29. pour faire pile 10 lignes.
 
         isLoading = true;
         fromCache = withCache;
 
-        query.findInBackground(new FindCallback<ParseObject>()
-        {
+        query.findInBackground(new FindCallback<ParseObject>() {
+
             @Override
-            public void done(List<ParseObject> parseObjects, ParseException e)
-            {
-                if(e == null && parseObjects != null)
-                {
-                    if(!fromCache) currentPage++;
+            public void done(List<ParseObject> parseObjects, ParseException e) {
+                if(e == null && parseObjects != null) {
+                    if (!fromCache) currentPage++;
 
                     listReact = new ArrayList<Reaction>(listBeforreRequest);
-                    for (ParseObject parsePiki : parseObjects)
-                    {
+                    for (ParseObject parsePiki : parseObjects) {
                         listReact.add(new Reaction(parsePiki));
                     }
                     adapter.setListReact(listReact);
+
+                    if (likeForReacts.size() > 0) adapter.setLikeReactMap(likeForReacts);
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
                     endOfLoading = parseObjects.size() < (currentPage > 1 ? NB_BY_PAGE : NB_BY_PAGE-1);//pour first load
 
                     //show tuto
-                    if(listReact != null && listReact.size() > 0) showTuto();
-                }
-                else if(e != null)
-                {
+                    //if (listReact != null && listReact.size() > 0) showTuto();
+
+                } else if (e != null) {
                     if(!fromCache) Utile.showToast(R.string.piki_react_nok, PikiActivity.this);
                     e.printStackTrace();
                 }
 
-                if(!fromCache)
-                {
+                if (!fromCache) {
                     refreshSwipe.setRefreshing(false);
-                    listViewPiki.removeFooterView(footer);
-                    listViewPiki.post(new Runnable()
-                    {
+                    gridViewPiki.removeFooterView(footer);
+                    gridViewPiki.post(new Runnable() {
                         @Override
-                        public void run()
-                        {
+                        public void run() {
                             adapter.notifyDataSetChanged();
                         }
                     });
+
                     isLoading = false;
+
+                    // ONLY THE FIRST TIME
+                    if (currentPage == 1) {
+                        generateShareLayout(smallLayoutShare);
+                    }
                 }
 
                 fromCache = false;
@@ -542,108 +580,260 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         return true;
     }
 
-    private void showTuto()
-    {
-        if(layoutTuto.getVisibility() == View.GONE)
-        {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            if(preferences.getBoolean("first_tuto_piki", true))
-            {
-                Utile.fadeIn(layoutTuto, 300);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean("first_tuto_piki", false);
-                editor.commit();
-            }
-            else
-            {
-                layoutTuto.setVisibility(View.GONE);
-            }
-        }
-    }
-
     @Override
-    public void clickOnReaction(Reaction react)
-    {
-        if(react.isTmpReaction() && react.isLoadError())
-        {
+    public void clickOnReaction(Reaction react) {
+        if (react.isTmpReaction() && react.isLoadError()) {
             adapter.markLoadError(react, false);
             sendReact(react);
         }
     }
 
     @Override
-    public void doubleTapReaction(Reaction react)
-    {
-        if(react == null || react.getParseObject() == null) return;//fix : CRASH #11
+    public void doubleTapReaction(Reaction react) {
+        // NOTHING HERE
+    }
 
-        final ParseUser userReact = react.getParseObject().getParseUser("user");
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        List<String> usersFriend = currentUser.getList("usersFriend");
-        List<String> usersIMuted = currentUser.getList("usersIMuted");
-        final boolean alreadyFriend = usersFriend != null && usersFriend.contains(userReact.getObjectId());
-        final boolean alreadyMuted = usersIMuted != null && usersIMuted.contains(userReact.getObjectId());
-        int icon = R.drawable.picto_adduser_noir;
-        if(alreadyFriend) icon = R.drawable.picto_mute_user;
-        if(alreadyMuted) icon = R.drawable.picto_mute_user_on;
-        String popupTitle = getString(R.string.piki_popup_adduser_title);
-        if(alreadyFriend) popupTitle = getString(R.string.piki_popup_mute_title);
-        if(alreadyMuted) popupTitle = getString(R.string.piki_popup_unmute_title);
+    @Override
+    public void showPlaceHolderItem(boolean show) {
+        gridViewPiki.setScrollingEnabled(!show);
+    }
 
-        showDialog(popupTitle, "@"+userReact.getUsername(), icon, R.drawable.picto_nok, new MyDialogListener()
-        {
+    @Override
+    public void onPlayVideo() {
+        if (isPlaying) stopCurrentVideo();
+    }
+
+    @Override
+    public void onDeleteReact(final int position) {
+        showDialog(R.string.piki_popup_remove_title, R.string.piki_popup_remove_texte, new MyDialogListener() {
             @Override
-            public void closed(boolean accept)
-            {
-                if(accept)
-                {
-                    FunctionCallback callback = new FunctionCallback<Object>()
-                    {
-                        @Override
-                        public void done(Object o, ParseException e)
-                        {
-                            if(e == null)
-                            {
-                                ParseUser.getCurrentUser().fetchInBackground();
-                            }
-                            else
-                            {
-                                Utile.showToast(R.string.pikifriends_action_nok, PikiActivity.this);
-                            }
-                        }
-                    };
+            public void closed(boolean accept) {
+                // DELETE
+                if (accept) {
+                    adapter.stopCurrentFlip();
 
-                    if(alreadyFriend)
-                    {
-                        Map<String, Object> param = new HashMap<String, Object>();
-                        param.put("friendId", userReact.getObjectId());
-                        ParseCloud.callFunctionInBackground(alreadyMuted ? "unMuteFriend" : "muteFriend", param, callback);
-                    }
-                    else
-                    {
-                        Map<String, Object> param = new HashMap<String, Object>();
-                        param.put("friendId", userReact.getObjectId());
-                        ParseCloud.callFunctionInBackground("addFriend", param, callback);
-                    }
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            reportOrRemoveReact(adapter.removeReaction(position));
+                        }
+                    }, 500);
                 }
             }
         });
     }
 
     @Override
-    public void showPlaceHolderItem(boolean show) {
-        listViewPiki.setScrollingEnabled(!show);
+    public void onReportReact(final int position) {
+        showDialog(R.string.piki_popup_report_title, R.string.piki_popup_report_texte, new MyDialogListener() {
+            @Override
+            public void closed(boolean accept) {
+                // REPORT
+                if (accept) {
+                    reportReact(adapter.getReaction(position));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onAddFriend(int position, final Reaction react, final ProgressBar pg, final ImageView img, final TextViewFontAutoResize txt) {
+        pg.setVisibility(View.VISIBLE);
+        final String friendId = adapter.getReaction(position).getUserId();
+        Set<String> friendsIds = getFriendsPrefs();
+
+        final FunctionCallback callback = new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                if (e == null) {
+                    getFriendsBg(new FunctionCallback() {
+                        @Override
+                        public void done(Object o, ParseException e) {
+                            if (getFriendsPrefs() != null && getFriendsPrefs().contains(react.getUserId())) {
+                                txt.setTextColor(Color.BLACK);
+                                img.setVisibility(View.VISIBLE);
+                                img.setImageResource(R.drawable.picto_added);
+                            } else {
+                                img.setVisibility(View.VISIBLE);
+                                txt.setTextColor(getResources().getColor(R.color.grisTextDisable));
+                                img.setImageResource(R.drawable.picto_add_user);
+                            }
+
+                            pg.setVisibility(View.GONE);
+                        }
+                    });
+                } else {
+                    pg.setVisibility(View.GONE);
+                    img.setVisibility(View.VISIBLE);
+                    Utile.showToast(R.string.pikifriends_action_nok, PikiActivity.this);
+                }
+            }
+        };
+
+        if (!friendsIds.contains(friendId)) {
+            Map<String, Object> param = new HashMap<String, Object>();
+            param.put("friendId", friendId);
+            ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
+        } else {
+            Map<String, Object> param = new HashMap<String, Object>();
+            param.put("friendId", friendId);
+            ParseCloud.callFunctionInBackground("removeFriendV2", param, new FunctionCallback<Object>() {
+                @Override
+                public void done(Object o, ParseException e) {
+                    callback.done(o, e);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onPreviewReact(int position) {
+        Reaction react = adapter.getReaction(position);
+
+        layoutShare.removeAllViews();
+
+        int layoutID = R.layout.share_preview;
+
+        int size = screen.dpToPx(310);
+
+        View viewShare = LayoutInflater.from(this).inflate(layoutID, layoutShare, false);
+        viewShare.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        viewShare = screen.adapt(viewShare);
+        layoutShare.addView(viewShare);
+
+        TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
+        TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
+        txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
+        txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
+
+        ImageView imgPiki = (ImageView)viewShare.findViewById(R.id.imgPiki);
+        PicassoUtils.with(this)
+                .load(piki.getUrlPiki())
+                .placeholder(R.drawable.piki_placeholder)
+                .fit()
+                .error(R.drawable.piki_placeholder)
+                .into(imgPiki);
+
+        ImageView imgReact = (ImageView) viewShare.findViewById(R.id.imgReact);
+
+        if (!react.isTmpReaction()) {
+            PicassoUtils.with(this)
+                    .load(react.getUrlPhoto())
+                    .placeholder(R.drawable.piki_placeholder)
+                    .fit()
+                    .error(R.drawable.piki_placeholder)
+                    .into(imgReact);
+        } else {
+            imgReact.setImageBitmap(react.getTmpPhoto());
+        }
+
+        showShareLayout();
+    }
+
+    @Override
+    public void onLikeReact(int position) {
+        mixpanel.track("Like", null);
+
+        Reaction react = adapter.getReaction(position);
+
+        final ParseObject like = new ParseObject("Like");
+        like.put("react", react.getParseObject());
+        like.put("piki", piki.getParseObject());
+        like.put("user", ParseUser.getCurrentUser());
+        ParseACL acl = new ParseACL();
+        acl.setPublicReadAccess(true);
+        acl.setWriteAccess(ParseUser.getCurrentUser(), true);
+        like.setACL(acl);
+        like.saveEventually();
+
+        stopSound();
+
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.like_react_sound);
+            mediaPlayer.setVolume(1f, 1f);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    stopSound();
+                }
+            });
+        }
+
+        mediaPlayer.start();
+    }
+
+    private void stopSound() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    @Override
+    public void onDislikeReact(int position) {
+        Reaction react = adapter.getReaction(position);
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Like");
+        query.whereEqualTo("react", react.getParseObject());
+        query.getFirstInBackground(new GetCallback<ParseObject>() {
+
+            @Override
+            public void done(ParseObject parseO, ParseException e) {
+                if (e == null && parseO != null) {
+                    try {
+                        parseO.delete();
+                        parseO.saveInBackground();
+                    } catch (ParseException exception) {
+                        exception.printStackTrace();
+                    }
+                }
+
+                if (e != null) Utile.showToast(R.string.piki_react_remove_like_nok, PikiActivity.this);
+            }
+        });
+    }
+
+    private void reportOrRemoveReact(Reaction react) {
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("reactId", react.getId());
+        ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
+            }
+        });
+    }
+
+    private void reportReact(Reaction react) {
+        final Dialog dialogLoader = showLoader();
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("reactId", react.getId());
+        ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>() {
+            @Override
+            public void done(Object o, ParseException e) {
+                hideDialog(dialogLoader);
+                if (e == null) Utile.showToast(R.string.piki_alert_report_texte, PikiActivity.this);
+                if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
+            }
+        });
     }
 
     @Override
     public void onClick(View view)
     {
-        if(view == btnBack)
-        {
+        if (isPlaying) stopCurrentVideo();
+        adapter.stopCurrentVideo();
+
+        if (view == btnBack) {
             finish();
-        }
-        else if(view == btnShare)
-        {
-            generateShareLayout();
+        } else if (view == btnShare) {
+            generateShareLayout(layoutShare);
             showShareLayout();
 
             //send track mixpanel
@@ -657,67 +847,178 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             {
                 ee.printStackTrace();
             }
-        }
-        else if(view == txtTroisPoints)
-        {
-            showDialog(R.string.piki_report_title, R.string.piki_report_texte, new MyDialogListener()
-            {
+        } else if (view == txtTroisPoints) {
+            showDialog(R.string.piki_report_title, R.string.piki_report_texte, new MyDialogListener() {
                 @Override
-                public void closed(boolean accept)
-                {
-                    if(accept)
-                    {
+                public void closed(boolean accept) {
+                    if (accept) {
                         Map<String, Object> param = new HashMap<String, Object>();
                         param.put("piki", piki.getId());
-                        ParseCloud.callFunctionInBackground("reportPiki", param, new FunctionCallback<Object>()
-                        {
+                        ParseCloud.callFunctionInBackground("reportPiki", param, new FunctionCallback<Object>() {
                             @Override
-                            public void done(Object o, ParseException e)
-                            {
-                                if(e == null) Utile.showToast(R.string.piki_report_ok, PikiActivity.this);
+                            public void done(Object o, ParseException e) {
+                                if (e == null)
+                                    Utile.showToast(R.string.piki_report_ok, PikiActivity.this);
                                 else Utile.showToast(R.string.piki_report_nok, PikiActivity.this);
                             }
                         });
                     }
                 }
             });
-        }
-        else if(view == txtNbFriend)
-        {
+        } else if (view == txtNbFriend) {
             PikiFriendsActivity.initActivity(piki);
             startActivity(new Intent(this, PikiFriendsActivity.class));
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-        }
-        else if(view == btnReplyClose || view == layoutOverlayReply || view == layoutOverlayReplyTop)
-        {
-            if(isKeyboardShow)
-            {
+        } else if (view == layoutOverlayReply || view == layoutOverlayReplyTop) {
+            if (isKeyboardShow) {
                 endEditText();
-            }
-            else
-            {
+            } else {
                 showReplyButtons(false);
             }
-        }
-        else if(view == layoutCamera)
-        {
+        } else if (view == layoutCamera) {
+            imgAddReact.setVisibility(View.GONE);
+            layoutTutorialReact.setVisibility(View.GONE);
+            isReplyButtonsShow = true;
+
+            if (cameraView.isFaceCamera()) {
+                imgSwitch.setImageResource(R.drawable.picto_switch_selfie_selector);
+                imgSwitch.setFlippedDrawable(getResources().getDrawable(R.drawable.picto_switch_back_selector));
+            } else {
+                imgSwitch.setImageResource(R.drawable.picto_switch_back_selector);
+                imgSwitch.setFlippedDrawable(getResources().getDrawable(R.drawable.picto_switch_selfie_selector));
+            }
+
+            startEditText();
+        } else if (view == imgStickers) {
+            if (!popupEmoji.isShowing()) {
+                imgStickers.setImageResource(R.drawable.picto_stickers_selected_selector);
+                imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+                if (popupEmoji.isKeyBoardOpen()) {
+                    popupEmoji.showAtBottom();
+                } else {
+                    popupEmoji.showAtBottomPending();
+                }
+
+                edittexteReact.setTranslationY(Screen.getInstance(PikiActivity.this).getWidth());
+
+                if (popupFont.isShowing()) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hideFonts();
+                        }
+                    }, 300);
+                }
+
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard);
+            } else {
+                hideEmojis();
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
+            }
+
+            popupEmoji.updateAdapter(keyboardHeight);
+        } else if (view == imgFonts) {
+            if (!popupFont.isShowing()) {
+                imgFonts.setImageResource(R.drawable.picto_fonts_selected_selector);
+                imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+                if (popupFont.isKeyBoardOpen()) {
+                    popupFont.showAtBottom();
+                } else {
+                    popupFont.showAtBottomPending();
+                }
+
+                if (popupEmoji.isShowing()) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            hideEmojis();
+                        }
+                    }, 300);
+                }
+
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard);
+            } else {
+                hideFonts();
+                imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
+            }
+
+            popupFont.updateAdapter(keyboardHeight);
+        } else if (view == imgKeyboard) {
+            imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+            imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+            imgKeyboard.setImageResource(R.drawable.picto_keyboard_selected);
+
+            if (popupEmoji.isShowing()) {
+                hideEmojis();
+            } else if (popupFont.isShowing()) {
+                hideFonts();
+            }
+        } else if (view == imgSwitch) {
             toggleCamera();
+        } else if (view == imgReply) {
+            final Bitmap bitmapLayerReact = getBitmapLayerReact();
+            final Dialog dialogLoader = showLoader();
+            cameraView.captureCamera(new CameraView.CameraViewListener() {
+                @Override
+                public void repCaptureCamera(Drawable photo) {
+                    byte[] reactData = getReactData(photo, bitmapLayerReact);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(reactData, 0, reactData.length);
+
+                    final Reaction tmpReact = new Reaction(ParseUser.getCurrentUser().getUsername(), bitmap);
+                    tmpReact.setNameUser(ParseUser.getCurrentUser().getUsername());
+                    Reaction.Type type = Reaction.Type.PHOTO;
+                    if (layoutTextReact.getVisibility() == View.VISIBLE) type = Reaction.Type.TEXTE;
+                    else if (imgViewReact.getVisibility() == View.VISIBLE)
+                        type = Reaction.Type.EMOJI;
+                    tmpReact.setType(type);
+                    listReact = adapter.addReact(tmpReact);
+                    sendReact(tmpReact);
+
+                    hideDialog(dialogLoader);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            endEditText();
+                        }
+                    }, 500);
+                }
+            });
+        } else if (view == layoutOverlayShare) {
+            if (shareLayoutShow) {
+                hideShareLayout();
+            }
         }
     }
 
-    public void startCamera()
-    {
-        if(cameraView != null && cameraView.getCamera() == null)
-        {
+    private void hideEmojis() {
+        imgViewReact.setVisibility(View.GONE);
+        imgViewReact.setImageDrawable(null);
+        startEditText();
+        imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+        popupEmoji.dismiss();
+
+        edittexteReact.setTranslationY(0);
+    }
+
+    private void hideFonts() {
+        imgViewReact.setVisibility(View.GONE);
+        imgViewReact.setImageDrawable(null);
+        startEditText();
+        imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+        popupFont.dismiss();
+    }
+
+    public void startCamera() {
+        if (cameraView != null && cameraView.getCamera() == null) {
             cameraView.setFaceCamera(pref.getBoolean("selfie_camera", true));
             cameraView.start();
         }
     }
-    public boolean toggleCamera()
-    {
+
+    public boolean toggleCamera() {
         boolean toggled = false;
-        if(cameraView != null && cameraView.toggleFaceCamera())
-        {
+
+        if (cameraView != null && cameraView.toggleFaceCamera()) {
             imgSwitch.setFlipped(!imgSwitch.isFlipped());
             toggled = true;
 
@@ -726,339 +1027,87 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             editor.putBoolean("selfie_camera", cameraView.isFaceCamera());
             editor.commit();
         }
+
         return toggled;
     }
 
     @Override
-    public void finish()
-    {
+    public void finish() {
         super.finish();
         Reaction.deleteAllTempFileVideo(this);
+        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
     }
 
-    private class MyListTouchListener implements View.OnTouchListener
-    {
+    @Override
+    public void done(boolean ok, VideoBean react) {
+        playVideo();
+    }
+
+    @Override
+    public void started() {
+        if (!isReplyButtonsShow) {
+            imgAddReact.setVisibility(View.VISIBLE);
+            layoutTutorialReact.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private class MyListTouchListener implements View.OnTouchListener {
         private final int DURATION_DELETE_ANIM = 300;//ms
         private int WIDTH_BORDER_BACKVIEW;// 3/5 d'1/3 de l'écran
         private int WIDTH_BORDER_BACKVIEW_START_ALPHA;// WIDTH_BORDER_BACKVIEW / 2
 
+        private float downX = 0, downY = 0;
+
         private View downItem;
 
-        private MyListTouchListener()
-        {
+        private MyListTouchListener() {
             WIDTH_BORDER_BACKVIEW = (Screen.getWidth(PikiActivity.this) / 3) * 3/5;
             WIDTH_BORDER_BACKVIEW_START_ALPHA = WIDTH_BORDER_BACKVIEW >> 1;
         }
 
         @Override
-        public boolean onTouch(View view, MotionEvent event)
-        {
-            try//fix : crash #36
-            {
+        public boolean onTouch(View view, MotionEvent event) {
+            try { //fix : crash #36
                 int action = event.getAction();
 
-                if(action == MotionEvent.ACTION_MOVE && listViewPiki.isScrollingHorizontalLeft())
-                {
-                    if(downItem == null)
-                    {
-                        // 1) first scroll horizontal to an item (initialize)
-
-                        initialX = (int) event.getRawX();
-
-                        // Find the child view that was touched (perform a hit test)
-                        Rect rect = new Rect();
-                        int childCount = listViewPiki.getChildCount();
-                        int[] listViewCoords = new int[2];
-                        listViewPiki.getLocationOnScreen(listViewCoords);
-                        int x = (int) event.getRawX() - listViewCoords[0];
-                        int y = (int) event.getRawY() - listViewCoords[1];
-                        for (int i = 0; i < childCount; i++)
-                        {
-                            View child = listViewPiki.getChildAt(i);
-                            child.getHitRect(rect);
-                            if (rect.contains(x, y))
-                            {
-                                int col = (int) Math.floor((float)x / (listViewPiki.getWidth() / 3f));
-                                if(child instanceof ViewGroup) downItem = ((ViewGroup)child).getChildAt(col);
-                                break;
-                            }
-                        }
-
-                        //fake view for no loop
-                        if(downItem == null) downItem = new View(PikiActivity.this);
-
-                        //initialize backview
-                        View backView = downItem.findViewById(R.id.back);
-                        if(backView != null)
-                        {
-                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                            lp.setMargins(0, 0, 0, 0);
-                            backView.setLayoutParams(lp);
-
-                            backView.setPadding((screen.getWidth() / 3) - WIDTH_BORDER_BACKVIEW, 0, 0, 0);
-
-                            //ERROR : java.lang.IndexOutOfBoundsException: Invalid index 5, size is 0
-
-                            //change picto : delete or report
-                            int numReaction = downItem != null ? (Integer)downItem.getTag() : -1;//fix : crash #6 > downItem==null (SOLVED)//fix : crash #36
-                            Reaction react = numReaction >= 0 ? listReact.get(numReaction) : null;
-                            ((ImageView)backView.findViewById(R.id.imgActionOn)).setImageResource(canDeleteReact(react) ? R.drawable.picto_delete_item_big_on : R.drawable.picto_report_item_on);
-                            ((ImageView)backView.findViewById(R.id.imgActionOff)).setImageResource(canDeleteReact(react) ? R.drawable.picto_delete_item_big_off : R.drawable.picto_report_item_off);
-                        }
-                    }
-                    else
-                    {
-                        // 2) When scroll horizontal to an item.
-
-                        View frontView = downItem.findViewById(R.id.front);
-                        View backView = downItem.findViewById(R.id.back);
-                        if(frontView != null && backView != null && downItem.getTag() != null)
-                        {
-                            adapter.stopCurrentVideo();
-
-                            int moveX = initialX - (int)event.getRawX();
-
-                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                            lp.setMargins(-moveX,0,moveX,0);
-                            frontView.setLayoutParams(lp);
-
-                            backView.setVisibility(moveX < 0 ? View.GONE : View.VISIBLE);
-
-                            //change alpha action image rouge
-                            if(moveX > WIDTH_BORDER_BACKVIEW_START_ALPHA)
-                            {
-                                //calculate actual alpha of imgDeleteItemOn
-                                float alpha = (Math.abs(moveX) - WIDTH_BORDER_BACKVIEW_START_ALPHA) / (float)(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA);
-                                backView.findViewById(R.id.imgActionOn).setAlpha(Math.min(alpha, 1f));
-                            }
-                            else
-                            {
-                                backView.findViewById(R.id.imgActionOn).setAlpha(0f);//sure alpha is 0 if under WIDTH_BORDER_BACKVIEW_START_ALPHA
-                            }
-
-                            //move action image
-                            if(moveX > WIDTH_BORDER_BACKVIEW)
-                            {
-                                //move item frontview of position X with margin
-                                moveX -= WIDTH_BORDER_BACKVIEW;
-                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                                lp.setMargins(-moveX, 0, moveX, 0);
-                                backView.setLayoutParams(lp);
-                            }
-                            else
-                            {
-                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                                lp.setMargins(0, 0, 0, 0);
-                                backView.setLayoutParams(lp);
-                            }
-
-                            return true;//consume touch event
-                        }
-                    }
+                if (action == MotionEvent.ACTION_DOWN) {
+                    downX = event.getX();
+                    downY = event.getY();
                 }
 
+                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
 
-                if(action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
-                {
-                    if(downItem != null)
-                    {
-                        //3) return item view to original state
-                        View frontView = downItem.findViewById(R.id.front);
-                        View backView = downItem.findViewById(R.id.back);
-                        if(frontView != null && backView != null)
-                        {
-                            final int moveX = initialX - (int)event.getRawX();
-                            if(moveX > WIDTH_BORDER_BACKVIEW && action == MotionEvent.ACTION_UP)
-                            {
-                                final int position = (Integer)downItem.getTag();
-                                if(canDeleteReact(listReact.get(position)))
-                                {
-                                    ///////////////
-                                    // POPUP DELETE
-                                    showDialog(R.string.piki_popup_remove_title, R.string.piki_popup_remove_texte, new MyDialogListener()
-                                    {
-                                        @Override
-                                        public void closed(boolean accept)
-                                        {
-                                            // DELETE
-                                            if(accept)
-                                            {
-                                                final int initialHeight = downItem.getMeasuredHeight();
-                                                animItemDisappear(downItem, moveX, new Animation.AnimationListener()
-                                                {
-                                                    @Override
-                                                    public void onAnimationEnd(Animation a)
-                                                    {
-                                                        //reset view for next
-                                                        downItem.getLayoutParams().height = initialHeight;
-                                                        downItem.requestLayout();
-                                                        downItem.invalidate();
-                                                        View frontView = downItem.findViewById(R.id.front);
-                                                        View backView = downItem.findViewById(R.id.back);
-                                                        if (frontView != null && backView != null)
-                                                        {
-                                                            //reset margin
-                                                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                                                            lp.setMargins(0, 0, 0, 0);
-                                                            frontView.setLayoutParams(lp);
-                                                            lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                                                            lp.setMargins(0, 0, 0, 0);
-                                                            backView.setLayoutParams(lp);
-                                                        }
-                                                        downItem = null;
-
-                                                        reportOrRemoveReact(adapter.removeReaction(position));
-                                                    }
-
-                                                    @Override public void onAnimationRepeat(Animation animation) {}
-                                                    @Override public void onAnimationStart(Animation animation) {}
-                                                });
-                                            }
-                                            else // NOT DELETE
-                                            {
-                                                animRestorePositionItem(downItem, moveX);
-                                            }
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    ///////////////
-                                    // POPUP REPORT
-                                    showDialog(R.string.piki_popup_report_title, R.string.piki_popup_report_texte, new MyDialogListener()
-                                    {
-                                        @Override
-                                        public void closed(boolean accept)
-                                        {
-                                            // REPORT
-                                            if(accept)
-                                            {
-                                                animRestorePositionItem(downItem, moveX);
-                                                reportOrRemoveReact(adapter.getReaction(position));
-
-                                                //showAlert(R.string.piki_popup_report_title, R.string.piki_alert_report_texte);
-                                            }
-                                            else // NOT REPORT
-                                            {
-                                                animRestorePositionItem(downItem, moveX);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                animRestorePositionItem(downItem, moveX);
-                            }
+                    if (action == MotionEvent.ACTION_UP && gridViewPiki.getChildAt(0) != null && gridViewPiki.getFirstVisiblePosition() == 0
+                            && event.getY() < pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop() && event.getY() > pikiHeader.getTop()
+                            && event.getX() > pikiHeader.getLeft() && event.getX() < pikiHeader.getRight()
+                            && Math.abs(downX - event.getX()) < 30 && Math.abs(downY - event.getY()) < 30) {
+                        if (piki.isVideo()) {
+                            if (isPlaying) stopCurrentVideo();
+                            else playVideo();
                         }
+
+                        adapter.stopCurrentFlip();
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 L.w("ERROR  >>  MyListTouchListener e="+e.getMessage());
             }
+
             return false;//no consume touch event
-        }
-
-        private void reportOrRemoveReact(Reaction react)
-        {
-            //Parse remove Piki
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put("reactId", react.getId());
-            ParseCloud.callFunctionInBackground("reportOrRemoveReact", params, new FunctionCallback<Object>()
-            {
-                @Override
-                public void done(Object o, ParseException e)
-                {
-                    if (e != null) Utile.showToast(R.string.piki_react_remove_nok, PikiActivity.this);
-                    //else init(false);
-                }
-            });
-        }
-
-        private void animItemDisappear(final View item, int moveX, final Animation.AnimationListener animListener)
-        {
-            if(downItem == null) return;
-
-            final View frontView = downItem.findViewById(R.id.front);
-            final View backView = downItem.findViewById(R.id.back);
-            if(frontView != null && backView != null)
-            {
-                TranslateAnimation ta = new TranslateAnimation(-moveX, -screen.getWidth() / 3,0,0);
-                ta.setDuration(DURATION_DELETE_ANIM);
-                ta.setAnimationListener(animListener);
-                frontView.startAnimation(ta);
-                backView.startAnimation(ta);
-
-                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                lp.setMargins(0, 0, 0, 0);
-                frontView.setLayoutParams(lp);
-                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                lp.setMargins(0, 0, 0, 0);
-                backView.setLayoutParams(lp);
-            }
-
-        }
-
-        private void animRestorePositionItem(final View item, int moveX)
-        {
-            if(item == null) return;
-
-            View frontView = item.findViewById(R.id.front);//TODO : crash #31
-            View backView = item.findViewById(R.id.back);
-            if(frontView != null && backView != null)
-            {
-                TranslateAnimation ta = new TranslateAnimation(-moveX,0,0,0);
-                ta.setDuration(DURATION_DELETE_ANIM);
-                frontView.startAnimation(ta);
-
-                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                lp.setMargins(0, 0, 0, 0);
-                frontView.setLayoutParams(lp);
-
-                //anim alpha imgDeleteItemOn to origin
-                if(moveX > WIDTH_BORDER_BACKVIEW_START_ALPHA)
-                {
-                    //calculate actual alpha of imgDeleteItemOn
-                    float alpha = (moveX - WIDTH_BORDER_BACKVIEW_START_ALPHA) / (float)(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA);
-
-                    AlphaAnimation aa = new AlphaAnimation(alpha, 0);
-                    aa.setDuration(DURATION_DELETE_ANIM);
-                    //aa.setFillAfter(true); /!\ BUG
-                    backView.findViewById(R.id.imgActionOn).startAnimation(aa);
-                }
-
-                //anim position backView to origin
-                if(moveX > WIDTH_BORDER_BACKVIEW)
-                {
-                    //start animation
-                    moveX -= WIDTH_BORDER_BACKVIEW;
-                    ta = new TranslateAnimation(-moveX,0,0,0);
-                    ta.setDuration(DURATION_DELETE_ANIM);
-                    backView.startAnimation(ta);
-
-                    //reset margin
-                    lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                    lp.setMargins(0, 0, 0, 0);
-                    backView.setLayoutParams(lp);
-                }
-            }
-
-            downItem = null;
         }
     }
 
     private int lastItemShow;
-    private class MyOnScrollListener implements AbsListView.OnScrollListener
-    {
+    private class MyOnScrollListener implements AbsListView.OnScrollListener {
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState)
         {
             if(scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
             {
                 //start scroll
+                if (isPlaying) stopCurrentVideo();
+                adapter.stopCurrentVideo();
             }
             else if(scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE)
             {
@@ -1067,53 +1116,34 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         }
 
         @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
-        {
-            //anim topbarinfo
-            if(view != null && view.getChildAt(0) != null)
-            {
-                int yPos = view.getChildAt(0).getTop();
-
-                if(firstVisibleItem > 0) yPos -= screen.getWidth();
-                if(firstVisibleItem > 1) yPos -= (firstVisibleItem-1) * screen.dpToPx(PikiAdapter.HEIGHT_ITEM);
-
-                int marginTop = -Math.max(0, Math.min(yPos + screen.getWidth(), layoutTopInfo.getHeight()));
-
-                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) layoutTopInfo.getLayoutParams();
-                mlp.topMargin = marginTop;
-                layoutTopInfo.setLayoutParams(mlp);
-            }
-
+        public void onScroll(AbsListView view, final int firstVisibleItem, int visibleItemCount, int totalItemCount) {
             //anim layout CameraView
-            if((view != null && view.getChildAt(1) != null))
-            {
-                final boolean isVisible = firstVisibleItem <= 1;
-                final int yPos = isVisible ? view.getChildAt(1 - firstVisibleItem).getTop() : 0;
+            if((view != null && view.getChildAt(1) != null)) {
+                final boolean isVisible = firstVisibleItem < 4;
 
-                Runnable updateRunnable = new Runnable()
-                {
+                Runnable updateRunnable = new Runnable() {
                     @Override
-                    public void run()
-                    {
-                        if(isVisible)
-                        {
+                    public void run() {
+                        if (isVisible) {
                             ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                            mlpCamera.topMargin = yPos;
-                            layoutCamera.setLayoutParams(mlpCamera);
-                            if(isVisible && !isPreviewVisible)
-                            {
-                                startCamera();
-                                isPreviewVisible = true;
+
+                            if (firstVisibleItem == 0) {
+                                mlpCamera.topMargin = (int) (1 * screen.getDensity()) + (pikiHeader.getBottom() + gridViewPiki.getChildAt(0).getTop());
+                            } else {
+                                mlpCamera.topMargin = gridViewPiki.getChildAt(firstVisibleItem).getTop() - screen.getWidth() / 2;
                             }
 
-                        }
-                        else
-                        {
-                            CameraView.release(new CameraView.ListenerRelease()
-                            {
+                            layoutCamera.setLayoutParams(mlpCamera);
+                            if (isVisible && !isPreviewVisible) {
+                                startCamera();
+                                imgAddReact.setVisibility(View.GONE);
+                                layoutTutorialReact.setVisibility(View.GONE);
+                                isPreviewVisible = true;
+                            }
+                        } else {
+                            CameraView.release(new CameraView.ListenerRelease() {
                                 @Override
-                                public void end()
-                                {
+                                public void end() {
                                     isPreviewVisible = false;
                                 }
                             });
@@ -1122,24 +1152,19 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                     }
                 };
 
-                if(layoutCamera.getVisibility() == View.GONE)
-                {
+                if (layoutCamera.getVisibility() == View.GONE) {
                     layoutCamera.post(updateRunnable);//for first must be execute in post (for Piki with no react)
-                }
-                else
-                {
+                } else {
                     updateRunnable.run();//all other must be execute same thread
                 }
             }
 
             //pagination
             final int lastItem = firstVisibleItem + visibleItemCount;
-            if(lastItem == totalItemCount)
-            {
-                if(lastItemShow < lastItem)
-                {
-                    if(loadNext(true))
-                    {
+
+            if (lastItem == totalItemCount) {
+                if (lastItemShow < lastItem) {
+                    if (loadNext(true)) {
                         lastItemShow = lastItem;
                     }
                 }
@@ -1155,7 +1180,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     {
         if(layoutShare.getChildCount() > 0)
         {
-            if(lastSharefile == null || !lastSharefile.exists())
+            if(lastSharefile == null || !lastSharefile.exists() || layoutShare.findViewById(R.id.layoutReplies) == null)
             {
                 View view = layoutShare.getChildAt(0);
                 view.setDrawingCacheEnabled(true);
@@ -1207,6 +1232,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 share.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_text) + " @" + piki.getName());
 
                 startActivity(Intent.createChooser(share, getString(R.string.share_title)));
+
+                if (layoutShare.findViewById(R.id.layoutReplies) == null)
+                    lastSharefile = null;
             }
             else
             {
@@ -1318,11 +1346,10 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     }
 
-    private void generateShareLayout()
-    {
-        if(piki == null || listReact == null) return;
+    private void generateShareLayout(ViewGroup layout) {
+        if (piki == null || listReact == null) return;
 
-        layoutShare.removeAllViews();
+        layout.removeAllViews();
 
         int nbReact = listReact.size();
         int nbReactShow;
@@ -1333,24 +1360,42 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         else if(nbReact >= (nbReactShow = 11)) layoutID = R.layout.share2;
         else if(nbReact >= (nbReactShow = 6)) layoutID = R.layout.share1;
 
-        int size = screen.dpToPx(310);
+        int size = 0;
 
-        View viewShare = LayoutInflater.from(this).inflate(layoutID, layoutShare, false);
+        if (layout == smallLayoutShare) {
+            size = smallLayoutShare.getWidth();
+        } else {
+            size = screen.dpToPx(310);
+        }
+
+        View viewShare = LayoutInflater.from(this).inflate(layoutID, layout, false);
         viewShare.setLayoutParams(new LinearLayout.LayoutParams(size, size));
         viewShare = screen.adapt(viewShare);
-        layoutShare.addView(viewShare);
+        layout.addView(viewShare);
 
+        LinearLayout iconPiki = (LinearLayout) viewShare.findViewById(R.id.icon_piki);
+        LinearLayout layoutReplies = (LinearLayout) viewShare.findViewById(R.id.layoutReplies);
         TextView txtUserName = (TextView) viewShare.findViewById(R.id.txtUserName);
         TextView txtDate = (TextView) viewShare.findViewById(R.id.txtDate);
         TextView txtReplies = (TextView) viewShare.findViewById(R.id.txtReplies);
-        txtUserName.setText("@"+piki.getName() + " " + getString(R.string.share_onpleek));
-        txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
-        if(txtReplies != null) txtReplies.setText(piki.getNbReact()+"+ "+getString(R.string.share_replies));
+        if (iconPiki != null && layout == smallLayoutShare) {
+            iconPiki.setVisibility(View.GONE);
+
+            if (layoutReplies != null) {
+                layoutReplies.setVisibility(View.GONE);
+            }
+        } else {
+            txtUserName.setText(piki.getName() + " " + getString(R.string.share_onpleek));
+            txtDate.setText(DateFormat.getDateTimeInstance().format(piki.getCreatedAt()));
+            if (txtReplies != null)
+                txtReplies.setText(piki.getNbReact() + "+ " + getString(R.string.share_replies));
+        }
 
         ImageView imgPiki = (ImageView)viewShare.findViewById(R.id.imgPiki);
-        Picasso.with(this)
+        PicassoUtils.with(this)
                 .load(piki.getUrlPiki())
                 .placeholder(R.drawable.piki_placeholder)
+                .fit()
                 .error(R.drawable.piki_placeholder)
                 .into(imgPiki);
 
@@ -1362,11 +1407,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                 int id = R.id.class.getField("imgReact" + (i+1)).getInt(0);
                 ImageView imgReact = (ImageView) viewShare.findViewById(id);
-                if(!react.isTmpReaction())
-                {
-                    Picasso.with(this)
+                if(!react.isTmpReaction()) {
+                    PicassoUtils.with(this)
                             .load(react.getUrlPhoto())
                             .placeholder(R.drawable.piki_placeholder)
+                            .fit()
                             .error(R.drawable.piki_placeholder)
                             .into(imgReact);
                 }
@@ -1376,7 +1421,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 }
 
                 View pictoPlay = ((ViewGroup)imgReact.getParent()).getChildAt(1);
-                pictoPlay.setVisibility(react.isVideo() ? View.VISIBLE : View.GONE);
+                pictoPlay.setVisibility(react.isVideo() && layout == layoutShare ? View.VISIBLE : View.GONE);
             }
             catch (Exception e)
             {
@@ -1440,176 +1485,71 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     private final int TIME_ANIM = 300;//ms
     private boolean isReplyButtonsShow;
-    private void showReplyButtons(final boolean show)
-    {
+    private void showReplyButtons(final boolean show) {
+        // STOP ALL VIDEOS
+        if (isPlaying) stopCurrentVideo();
+        adapter.stopCurrentVideo();
+
         isReplyButtonsShow = show;
-
-        final View[] btns = {btnReplyClose, btnReplyTexte, btnReplyStuck, btnReplyOk, btnReplyHearth};
-
-        if(show)
-        {
-            new Thread(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    for(int i = 0; i < btns.length; i++)
-                    {
-                        animatedReplyButton((View) btns[i].getParent());
-                        try {
-                            Thread.sleep(TIME_ANIM / (btns.length>>1), 0);
-                        } catch (InterruptedException e) {}
-                    }
-                }
-            }).start();
-
-            Utile.fadeIn(layoutOverlayReply, TIME_ANIM);
-            Utile.fadeIn(layoutOverlayReplyTop, TIME_ANIM);
-            Utile.fadeIn(layoutTextReact, TIME_ANIM);
-            Utile.fadeIn(btnCapture, TIME_ANIM);
-            Utile.fadeOut(btnReply, TIME_ANIM);
-
-            listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, TIME_ANIM >> 1);
-        }
-        else
-        {
-            RelativeLayout.LayoutParams p1 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-            p1.bottomMargin = initialLayoutBtnReplyMarginBottom;
-            layoutBtnReply.setLayoutParams(p1);
-
-            RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-            p2.bottomMargin = initialLayoutBtnReplyMarginBottom;
-            layoutBtnRoundedReply.setLayoutParams(p2);
-
-            for(int i = 0; i < btns.length; i++)
-            {
-                ((View)btns[i].getParent()).setVisibility(View.GONE);
-            }
-
-            Utile.fadeOut(layoutOverlayReply, TIME_ANIM >> 1);
-            Utile.fadeOut(layoutOverlayReplyTop, TIME_ANIM >> 1);
-            Utile.fadeOut(layoutTextReact, TIME_ANIM >> 1);
-            Utile.fadeOut(btnCapture, TIME_ANIM >> 1);
-            Utile.fadeIn(btnReply, TIME_ANIM >> 1);
-
-            listViewPiki.smoothScrollToPosition(0);
-        }
-
-        final int leftMarginShow = (screen.getWidth() - layoutBtnRoundedReply.getWidth()) >> 1;
-        final int leftMarginHide = screen.getWidth() - layoutBtnRoundedReply.getWidth() - screen.dpToPx(30);
-
-        Animation translateAnim = new Animation()
-        {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t)
-            {
-                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-                params.leftMargin = (int) ((leftMarginHide - leftMarginShow) * (show ? 1-interpolatedTime : interpolatedTime)) + leftMarginShow;
-                layoutBtnRoundedReply.setLayoutParams(params);
-            }
-        };
-        translateAnim.setDuration(show ? TIME_ANIM : TIME_ANIM >> 1); // in ms
-        layoutBtnRoundedReply.startAnimation(translateAnim);
     }
 
-    private void animatedReplyButton(final View button)
-    {
-        runOnUiThread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                if(!isReplyButtonsShow) return;
-                Animation animBtn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.popin);
-                animBtn.setDuration(TIME_ANIM);
-                animBtn.setInterpolator(new OvershootInterpolator(4));
-                button.startAnimation(animBtn);
-                button.setVisibility(View.VISIBLE);
-            }
-        });
-    }
+    private void startEditText() {
+        if (gridViewPiki.getFirstVisiblePosition() > 0) {
+            gridViewPiki.smoothScrollToPositionFromTop(0, -pikiHeader.getHeight(), 0);
+        }
 
-    private void startEditText()
-    {
         edittexteReact.setVisibility(View.VISIBLE);
         edittexteReact.requestFocus();
+        layoutOverlayReply.setVisibility(View.VISIBLE);
         ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(edittexteReact, 0);
     }
-    private void animateStartEditText()
-    {
-        edittexteReact.setVisibility(View.VISIBLE);
-        imgviewReact.setVisibility(View.GONE);
-        btnReplyTexte.setBackgroundResource(R.drawable.btn_ronded_selected);
 
-        ((View)btnReplyHearth.getParent()).setVisibility(View.GONE);
-        ((View)btnReplyOk.getParent()).setVisibility(View.GONE);
-        ((View)btnReplyStuck.getParent()).setVisibility(View.GONE);
-        ((View)btnReplyClose.getParent()).setVisibility(View.GONE);
-
-        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-        p.topMargin =  -(keyboardHeight - screen.getWidth()/6);// screen.getWidth()/6 >> half height of row
-        rootView.setLayoutParams(p);
-
-        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-        p2.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-        layoutBtnReply.setLayoutParams(p2);
-
-        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-        p3.bottomMargin = initialLayoutBtnReplyMarginBottom >> 1;//half of initialLayoutBtnReplyMarginBottom
-        layoutBtnRoundedReply.setLayoutParams(p3);
-    }
-
-    private void endEditText()
-    {
-        ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
-    }
-    private void animateEndEditText()
-    {
-        removeFocus.requestFocus();//remove focus
-
-        ((View)btnReplyHearth.getParent()).setVisibility(View.VISIBLE);
-        ((View)btnReplyOk.getParent()).setVisibility(View.VISIBLE);
-        ((View)btnReplyStuck.getParent()).setVisibility(View.VISIBLE);
-        ((View)btnReplyClose.getParent()).setVisibility(View.VISIBLE);
-
-        btnReplyTexte.setBackgroundResource(R.drawable.btn_ronded);
+    private void endEditText() {
         edittexteReact.setVisibility(View.GONE);
+        edittexteReact.clearFocus();
         edittexteReact.setText("");
-        fontTextWatcher.reset();
-
-        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-        p.topMargin = 0;
-        rootView.setLayoutParams(p);
-
-        RelativeLayout.LayoutParams p2 = (RelativeLayout.LayoutParams) layoutBtnReply.getLayoutParams();
-        p2.bottomMargin = initialLayoutBtnReplyMarginBottom;
-        layoutBtnReply.setLayoutParams(p2);
-
-        RelativeLayout.LayoutParams p3 = (RelativeLayout.LayoutParams) layoutBtnRoundedReply.getLayoutParams();
-        p3.bottomMargin = initialLayoutBtnReplyMarginBottom;
-        layoutBtnRoundedReply.setLayoutParams(p3);
-
-        listViewPiki.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                listViewPiki.smoothScrollToPositionFromTop(2, listViewPiki.getHeight() - screen.getWidth()/3, 0);
-            }
-        });
+        layoutOverlayReply.setVisibility(View.GONE);
+        ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
+        imgAddReact.setVisibility(View.VISIBLE);
+        layoutTutorialReact.setVisibility(View.VISIBLE);
+        imgViewReact.setVisibility(View.GONE);
+        imgViewReact.setImageDrawable(null);
+        edittexteReact.setTranslationY(0);
     }
+
     ////// ANIMATION //////
     ///////////////////////
 
 
     private int SIZE_REACT = 360;
-    private byte[] getReactData(Drawable photo, Bitmap layerReact)
-    {
-        if(photo == null) return new byte[0];//fix : crash #17
+    private byte[] getReactData(Drawable photo, Bitmap layerReact) {
+        if (photo == null) return new byte[0];//fix : crash #17
 
         ///////////
         // Bitmap de la photo
-        Bitmap photoBitmap = ((BitmapDrawable)photo).getBitmap();
+        Bitmap photoBitmap = ((BitmapDrawable) photo).getBitmap();
+
+//        OutputStream fOut = null;
+//        String strDirectory = Environment.getExternalStorageDirectory().toString();
+//
+//        File f = new File(strDirectory, "test2.jpg");
+//        try {
+//            fOut = new FileOutputStream(f);
+//
+//            /**Compress image**/
+//            photoBitmap.compress(Bitmap.CompressFormat.JPEG, 70, fOut);
+//            fOut.flush();
+//            fOut.close();
+//
+//            /**Update image to gallery**/
+//            MediaStore.Images.Media.insertImage(getContentResolver(),
+//                    f.getAbsolutePath(), f.getName(), f.getName());
+//
+//            L.e("Original dimensions", photoBitmap.getWidth()+ " " + photoBitmap.getHeight());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
         int photoWidth = photoBitmap.getWidth();
         int photoHeight = photoBitmap.getHeight();
 
@@ -1628,7 +1568,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         ///////////
         // Bitmap du texte
         //resize and calcul position of textBitmap in final canvas
-        float ratio = (float)SIZE_REACT / Math.min(layoutCamera.getWidth(), layoutCamera.getHeight());
+        float ratio = (float) SIZE_REACT / Math.min(layoutCamera.getWidth(), layoutCamera.getHeight());
 
         int texteWidth = (int) (layerReact.getWidth() * ratio);
         int texteHeight = (int) (layerReact.getHeight() * ratio);
@@ -1641,29 +1581,22 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         // Create canvas finale
         Bitmap finalBitmap = Bitmap.createBitmap(SIZE_REACT, SIZE_REACT, photoBitmap.getConfig());
         Canvas finalCanvas = new Canvas(finalBitmap);
-        finalCanvas.drawBitmap(photoBitmap, null, targetRect, null);
-        finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, null);
+        finalCanvas.drawBitmap(photoBitmap, null, targetRect, new Paint(Paint.FILTER_BITMAP_FLAG));
+        finalCanvas.drawBitmap(layerReact, srcTextRect, dstTextRect, new Paint(Paint.FILTER_BITMAP_FLAG));
 
         //create jpeg data
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        finalBitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
         return stream.toByteArray();
     }
 
-    private Bitmap getBitmapLayerReact()
-    {
-        removeFocus.requestFocus();//remove focus
+    private Bitmap getBitmapLayerReact() {
+        removeFocus.requestFocus();
         Bitmap textBitmap = Bitmap.createBitmap(layoutCamera.getWidth(), layoutCamera.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(textBitmap);
         layoutTextReact.draw(c);
         return textBitmap;
     }
-
-    private boolean canDeleteReact(Reaction react)
-    {
-        return (react != null && react.iamOwner()) || piki.iamOwner();
-    }
-
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
@@ -1675,11 +1608,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 hideShareLayout();
                 return false;
             }
-            else if(isReplyButtonsShow)
-            {
-                showReplyButtons(false);
-                return false;
-            }
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -1688,74 +1616,314 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     protected void onPause() {
         super.onPause();
         CameraView.release();
-        if(adapter != null) adapter.stopCurrentVideo();
+        if (adapter != null) adapter.stopCurrentVideo();
+        if (isPlaying) stopCurrentVideo();
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
-        if(isPreviewVisible) startCamera();
+        if (isPreviewVisible) startCamera();
     }
 
-    private class BtnReplyClickListener implements View.OnClickListener
-    {
-        private int currentEmojiSelected;
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        if (piki.isLoadError()) {
+            // show error
+            imgError.setVisibility(View.VISIBLE);
+            imgError.setImageResource(R.drawable.picto_loaderror);
+            isPreparePlaying = false;
+        } else if (piki.isLoaded()) {
+            // play video
+            layoutVideo.setVisibility(View.VISIBLE);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    imgPiki.setVisibility(View.GONE);
+                    mediaPlayer.start();
+                    isPreparePlaying = false;
+                }
+            });
+
+            mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+                    L.e("ERROR : play video in MediaPlayer - what=[" + what + "] - extra=[" + extra + "]");
+                    imgError.setVisibility(View.VISIBLE);
+                    isPreparePlaying = false;
+                    return false;
+                }
+            });
+
+            mediaPlayer.setVolume(1, 1);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.setDisplay(surfaceView.getHolder());
+            try {
+                FileInputStream fis = new FileInputStream(piki.getTempFilePath(this));
+                FileDescriptor fd = fis.getFD();
+                long size = fis.getChannel().size();
+
+                if (fd != null) {
+                    mediaPlayer.setDataSource(fd, 0, size);
+                    mediaPlayer.prepareAsync();
+                    isPlaying = true;
+                } else {
+                    L.e("ERROR WITH FILE DESCRIPTOR");
+                    isPlaying = false;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                imgError.setVisibility(View.VISIBLE);
+                imgError.setImageResource(R.drawable.picto_loaderror);
+                isPlaying = false;
+            }
+        } else { //loading
+            // wait loading
+            progressBar.setVisibility(View.VISIBLE);
+            piki.setLoadVideoEndListener(new VideoBean.LoadVideoEndListener() {
+                @Override
+                public void done(boolean ok, VideoBean react) {
+                    progressBar.setVisibility(View.GONE);
+                    isPreparePlaying = false;
+                    playVideo();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    private void playVideo() {
+        adapter.stopCurrentVideo();
+
+        if (isPreparePlaying) return;
+        isPreparePlaying = true;
+
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            stopCurrentVideo();
+        }
+
+        imgPlay.setVisibility(View.GONE);
+        imgError.setVisibility(View.GONE);
+        txtNbReplies.setVisibility(View.GONE);
+        txtTroisPoints.setVisibility(View.GONE);
+
+        if (surfaceView.getParent() != null) {
+            ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
+        }
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        layoutVideo.addView(surfaceView, params);
+    }
+
+    public void stopCurrentVideo() {
+        layoutVideo.setVisibility(View.GONE);
+        layoutVideo.removeAllViews();
+        imgPiki.setVisibility(View.VISIBLE);
+        imgPlay.setVisibility(View.VISIBLE);
+        imgError.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
+        pikiHeader.invalidate();
+        txtNbReplies.setVisibility(View.VISIBLE);
+        txtTroisPoints.setVisibility(View.VISIBLE);
+
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        mediaPlayer = null;
+        isPlaying = false;
+    }
+
+    private void showTuto()  {
+        if (layoutTutorialReact.getVisibility() == View.GONE) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            if (preferences.getBoolean("first_tuto_piki", true)) {
+                Utile.fadeIn(layoutTutorialReact, 300, new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        layoutTutorialReact.setAnimation(AnimationUtils.loadAnimation(PikiActivity.this, R.anim.floating));
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("first_tuto_piki", false);
+                editor.commit();
+            } else {
+                layoutTutorialReact.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void setUpPopupEmojis() {
+        // POPUP EMOJIS / FONTS ON TOP OF SHOWN KEYBOARD
+        popupEmoji = new EmojisFontsPopup(rootView, this, emojis, EmojisFontsPopup.POPUP_STICKERS, keyboardHeight);
+        popupEmoji.setSizeForSoftKeyboard();
+        popupEmoji.setOnEmojiFontClickedListener(new EmojisFontsPopup.OnEmojiFontClickListener() {
+
+            @Override
+            public void onEmojiFontClick(Overlay overlay, float size) { // size not used here
+                if (overlay instanceof Emoji) {
+                    Emoji emoji = (Emoji) overlay;
+
+                    if (emoji != null) {
+                        imgViewReact.setVisibility(View.VISIBLE);
+                        PicassoUtils.with(PikiActivity.this)
+                                .load(emoji.getUrlPhoto())
+                                .resize(layoutCamera.getWidth(), layoutCamera.getHeight())
+                                .into(imgViewReact);
+                    }
+                } else {
+                    imgViewReact.setVisibility(View.GONE);
+                    imgViewReact.setImageDrawable(null);
+                }
+            }
+        });
+
+        popupEmoji.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                // TODO ON DISMISS
+            }
+        });
+
+        popupEmoji.setOnSoftKeyboardOpenCloseListener(new EmojisFontsPopup.OnSoftKeyboardOpenCloseListener() {
+            @Override
+            public void onKeyboardOpen(int keyBoardHeight) {}
+
+            @Override
+            public void onKeyboardClose() {
+                if (popupEmoji.isShowing()) {
+                    popupEmoji.dismiss();
+                    edittexteReact.setText("");
+                    edittexteReact.setVisibility(View.GONE);
+                    imgViewReact.setVisibility(View.GONE);
+                    imgViewReact.setImageDrawable(null);
+                    imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+                    imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+                }
+            }
+        });
+    }
+
+    private void setUpPopupFonts() {
+        // POPUP EMOJIS / FONTS ON TOP OF SHOWN KEYBOARD
+        fonts = new ArrayList<Font>();
+        fonts.add(new Font("banzaibros.otf", R.color.blanc));
+        fonts.add(new Font("banzaibros.otf", R.color.emojiGreen));
+        fonts.add(new Font("voltebold.otf", R.color.blanc));
+        fonts.add(new Font("voltebold.otf", R.color.emojiLightBlue));
+        fonts.add(new Font("trashhand.otf", R.color.blanc));
+        fonts.add(new Font("trashhand.otf", R.color.emojiRed));
+        fonts.add(new Font("impact.ttf", R.color.blanc));
+        fonts.add(new Font("impact.ttf", R.color.emojiGreenFluo));
+        fonts.add(new Font("plasticapro.otf", R.color.blanc));
+        fonts.add(new Font("plasticapro.otf", R.color.emojiYellow));
+        fonts.add(new Font("trendsansfour.otf", R.color.blanc));
+        fonts.add(new Font("trendsansfour.otf", R.color.emojiBrickRed));
+        fonts.add(new Font("story.otf", R.color.blanc));
+        fonts.add(new Font("story.otf", R.color.emojiPurple));
+        fonts.add(new Font("baronneueblack.otf", R.color.blanc));
+        fonts.add(new Font("baronneueblack.otf", R.color.emojiBlue));
+
+        popupFont = new EmojisFontsPopup(rootView, this, fonts, EmojisFontsPopup.POPUP_FONTS, keyboardHeight);
+        popupFont.setSizeForSoftKeyboard();
+        popupFont.setOnEmojiFontClickedListener(new EmojisFontsPopup.OnEmojiFontClickListener() {
+
+            @Override
+            public void onEmojiFontClick(Overlay overlay, float size) {
+                if (overlay instanceof Font) {
+                    Font font = (Font) overlay;
+
+                    if (font != null) {
+                        imgViewReact.setVisibility(View.VISIBLE);
+
+                        if (edittexteReact.getText() == null || edittexteReact.getText().toString().isEmpty()) {
+                            edittexteReact.setText("Yo");
+                        }
+
+                        edittexteReact.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
+                        edittexteReact.setTextColor(getResources().getColor(font.getColor()));
+                        edittexteReact.setCustomFont(PikiActivity.this, font.getName());
+                        edittexteReact.setIncludeFontPadding(false);
+
+                        if (font.getName().equals("voltebold.otf") || font.getName().equals("story.otf")) {
+                            //edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE);
+                        } else {
+                            //edittexteReact.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+                        }
+
+                        edittexteReact.setSelection(edittexteReact.getText().length());
+                    } else {
+                        imgViewReact.setVisibility(View.GONE);
+                        imgViewReact.setImageDrawable(null);
+                        edittexteReact.setTextColor(getResources().getColor(R.color.blanc));
+                    }
+                }
+            }
+        });
+
+        popupFont.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+            @Override
+            public void onDismiss() {
+                // TODO ON DISMISS
+            }
+        });
+
+        popupFont.setOnSoftKeyboardOpenCloseListener(new EmojisFontsPopup.OnSoftKeyboardOpenCloseListener() {
+            @Override
+            public void onKeyboardOpen(int keyBoardHeight) {
+            }
+
+            @Override
+            public void onKeyboardClose() {
+                if (popupFont.isShowing()) {
+                    popupFont.dismiss();
+                    edittexteReact.setText("");
+                    edittexteReact.setVisibility(View.GONE);
+                    imgViewReact.setVisibility(View.GONE);
+                    imgViewReact.setImageDrawable(null);
+                    imgStickers.setImageResource(R.drawable.picto_stickers_selector);
+                    imgFonts.setImageResource(R.drawable.picto_fonts_selector);
+                }
+            }
+        });
+    }
+
+    private Target imgPikiTarget = new Target() {
 
         @Override
-        public void onClick(View view)
-        {
-            if(view == btnReplyHearth)
-            {
-                clickOnBtnEmoji(btnReplyHearth, R.drawable.emoji_heart);
-            }
-            else if(view == btnReplyOk)
-            {
-                clickOnBtnEmoji(btnReplyOk, R.drawable.emoji_ok);
-            }
-            else if(view == btnReplyStuck)
-            {
-                clickOnBtnEmoji(btnReplyStuck, R.drawable.emoji_stuck);
-            }
-            else if(view == btnReplyTexte)
-            {
-                btnReplyHearth.setBackgroundResource(R.drawable.btn_ronded);
-                btnReplyOk.setBackgroundResource(R.drawable.btn_ronded);
-                btnReplyStuck.setBackgroundResource(R.drawable.btn_ronded);
-                currentEmojiSelected = 0;
-
-                if(isKeyboardShow) endEditText();
-                else startEditText();
-            }
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            imgPiki.setImageBitmap(bitmap);
+            progressBar.setVisibility(View.GONE);
         }
 
-        private void clickOnBtnEmoji(View btn, int image)
-        {
-            btnReplyHearth.setBackgroundResource(R.drawable.btn_ronded);
-            btnReplyOk.setBackgroundResource(R.drawable.btn_ronded);
-            btnReplyStuck.setBackgroundResource(R.drawable.btn_ronded);
-            btnReplyTexte.setBackgroundResource(R.drawable.btn_ronded);
-
-            if(currentEmojiSelected == image)
-            {
-                currentEmojiSelected = 0;
-                imgviewReact.setVisibility(View.GONE);
-                btn.setBackgroundResource(R.drawable.btn_ronded);
-            }
-            else
-            {
-                int sticker = R.drawable.stickers_love;
-                if(image == R.drawable.emoji_ok) sticker = R.drawable.stickers_ok;
-                if(image == R.drawable.emoji_stuck) sticker = R.drawable.stickers_stuck;
-
-                currentEmojiSelected = image;
-                imgviewReact.setVisibility(View.VISIBLE);
-                edittexteReact.setVisibility(View.GONE);
-                imgviewReact.setImageResource(sticker);
-                btn.setBackgroundResource(R.drawable.btn_ronded_selected);
-            }
-
-            endEditText();
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            progressBar.setVisibility(View.GONE);
         }
-    }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            progressBar.setVisibility(View.GONE);
+        }
+    };
 }

@@ -12,8 +12,13 @@ import android.widget.TextView;
 import com.goandup.lib.R;
 import com.goandup.lib.utile.L;
 
-public class TextViewFont extends TextView
-{
+import java.util.HashMap;
+import java.util.Map;
+
+public class TextViewFont extends TextView {
+
+    private static Map<String, Typeface> fonts = new HashMap<String, Typeface>();
+
     public TextViewFont(Context context) {
         super(context);
     }
@@ -39,18 +44,21 @@ public class TextViewFont extends TextView
     }
 
     public boolean setCustomFont(Context ctx, String asset) {
-        Typeface tf = null;
-        try
-        {
-        	tf = Typeface.createFromAsset(ctx.getAssets(), asset);  
-        } 
-        catch (Exception e)
-        {
-            L.e("TextViewFont : Impossible de charger la CustomFont e=["+e.getMessage()+"] - asset=["+asset+"]");
-            return false;
+        if (!fonts.containsKey(asset)) {
+            Typeface tf = null;
+            try {
+                tf = Typeface.createFromAsset(ctx.getAssets(), asset);
+            } catch (Exception e) {
+                L.e("TextViewFont : Impossible de charger la CustomFont e=[" + e.getMessage() + "] - asset=[" + asset + "]");
+                return false;
+            }
+
+            setTypeface(tf);
+            fonts.put(asset, tf);
+        } else {
+            setTypeface(fonts.get(asset));
         }
 
-        setTypeface(tf);  
         return true;
     }
 

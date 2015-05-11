@@ -11,10 +11,10 @@ import java.util.List;
 /**
  * Created by nicolas on 31/12/14.
  */
-public class Piki implements Serializable
+public class Piki extends VideoBean
 {
-    private String id;
     private String name;
+    private String firstName;
     private int nbReact;
     private int nbRecipient;
     private String urlPiki;
@@ -24,7 +24,7 @@ public class Piki implements Serializable
     private Date createdAt;
     private Date updatedAt;
     private List<String> frinedsId;
-    private ParseObject parseObject;
+    private boolean isPublic;
 
     public Piki(ParseObject parseObject)
     {
@@ -32,17 +32,26 @@ public class Piki implements Serializable
 
         id = parseObject.getObjectId();
         name = parseObject.containsKey("user") ? parseObject.getParseUser("user").getUsername() : "NULL";
+        firstName = parseObject.containsKey("user") ? parseObject.getParseUser("user").getString("name") : "";
         nbReact = parseObject.getInt("nbReaction");
         frinedsId = parseObject.getList("recipients");
         if(frinedsId == null) frinedsId = new ArrayList<String>();
         nbRecipient = frinedsId.size();
-        urlPiki = parseObject.getParseFile("smallPiki") != null ? parseObject.getParseFile("smallPiki").getUrl() : null;//TODO : CRASH #12
+
+        if (parseObject.getParseFile("video") == null) {
+            urlPiki = parseObject.getParseFile("smallPiki") != null ? parseObject.getParseFile("smallPiki").getUrl() : null;//TODO : CRASH #12
+        } else {
+            urlPiki = parseObject.getParseFile("previewImage") != null ? parseObject.getParseFile("previewImage").getUrl() : null;
+        }
         urlReact1 = parseObject.getParseFile("react1") != null ? parseObject.getParseFile("react1").getUrl() : null;
         urlReact2 = parseObject.getParseFile("react2") != null ? parseObject.getParseFile("react2").getUrl() : null;
         urlReact3 = parseObject.getParseFile("react3") != null ? parseObject.getParseFile("react3").getUrl() : null;
         updatedAt = parseObject.getUpdatedAt();
         createdAt = parseObject.getCreatedAt();
+        isPublic = parseObject.getBoolean("isPublic");
         this.parseObject = parseObject;
+
+        urlVideo = parseObject.getParseFile("video") != null ? parseObject.getParseFile("video").getUrl() : null;
     }
 
     public String getName() {
@@ -135,7 +144,8 @@ public class Piki implements Serializable
     public boolean iamOwner()
     {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        return currentUser != null && currentUser.getObjectId().equals(parseObject.getParseUser("user").getObjectId());
+        if (currentUser == null || parseObject == null || parseObject.getParseUser("user") == null) return false; //fix : crash #155
+        return currentUser.getObjectId().equals(parseObject.getParseUser("user").getObjectId());
     }
 
     public List<String> getFrinedsId()
@@ -146,5 +156,21 @@ public class Piki implements Serializable
     public Date getCreatedAt()
     {
         return createdAt;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 }

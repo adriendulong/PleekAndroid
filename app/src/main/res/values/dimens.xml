@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- PIKIS -->
+    <dimen name="img_piki_width">110dp</dimen>
+    <dimen name="img_piki_height">110dp</dimen>
+    <dimen name="img_piki_small_width">24dp</dimen>
+    <dimen name="img_piki_small_height">24dp</dimen>
+
+    <!-- KEYBOARD -->
+    <dimen name="keyboard_height">250dp</dimen>
+    <dimen name="txt_new">16dp</dimen>
+</resources>

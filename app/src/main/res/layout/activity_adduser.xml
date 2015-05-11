@@ -128,6 +128,29 @@
 
             </RelativeLayout>
 
+            <RelativeLayout
+                android:id="@+id/btnDismiss"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:background="@drawable/second_color"
+                android:visibility="gone">
+
+                <com.goandup.lib.widget.TextViewFont
+                    android:id="@+id/txtBtnDismiss"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/adduser_btn_next_done"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    android:layout_margin="5dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_centerInParent="true"
+                    app:customFont="proximanova_sbold.otf"
+                    android:textColor="@color/blanc"/>
+
+            </RelativeLayout>
+
         </LinearLayout>
 
     </ScrollView>

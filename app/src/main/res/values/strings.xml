@@ -35,6 +35,7 @@
     <string name="username_check_no_network">Can\'t check your username for now. Try again ?</string>
     <string name="username_no_network">Can\'t create your account for now. Try again ?</string>
     <string name="username_is_sending">Your account is already being created</string>
+    <string name="name_no_network">Can\'t save your name for now. Try again ?</string>
 
     <!-- ADDUSER -->
     <string name="adduser_title">Surprise.</string>
@@ -53,6 +54,7 @@
     <string name="home_piki_nok">Can\'t recover your Pleek for now. Try again ?</string>
     <string name="home_tuto_friend">Find more friends to get more Pleeks</string>
     <string name="home_tuto_pleek">This is a PLEEK</string>
+    <string name="home_from">From</string>
 
     <!-- PIKI -->
     <string name="piki_friend">friend</string>
@@ -68,12 +70,20 @@
     <string name="piki_popup_report_texte">Are you sure you want to report this reaction ?</string>
     <string name="piki_alert_report_texte">This react has been reported. Thank you.</string>
     <string name="piki_react_remove_nok">Can\'t remove your reaction for now.</string>
+    <string name="piki_react_report_nok">Can\'t report this reaction for now.</string>
     <string name="piki_popup_adduser_title">ADD THIS USER</string>
     <string name="piki_popup_mute_title">MUTE THIS USER</string>
     <string name="piki_popup_unmute_title">UNMUTE THIS USER</string>
     <string name="piki_share_impossible">Can\'t share this Pleek for now</string>
     <string name="piki_tuto_add">Add your own reaction</string>
     <string name="piki_tuto_react">This is a reaction</string>
+    <string name="piki_public">Public</string>
+    <string name="piki_tutorial_add_react">TAP TO REPLY</string>
+    <string name="piki_react_preview">PREVIEW</string>
+    <string name="piki_react_delete">DELETE</string>
+    <string name="piki_react_remove_like_nok">Can\'t remove your like for now.</string>
+    <string name="piki_replies">REPLIES</string>
+    <string name="piki_reply_first">REPLY FIRST</string>
 
     <!-- PIKIFRIENDS -->
     <string name="pikifriends_text_topbar">To _nb_ people</string>
@@ -82,27 +92,35 @@
     <!-- FRIENDS -->
     <string name="friends_hint">Search a user</string>
     <string name="friends_tab1">FIND</string>
-    <string name="friends_tab2">FRIENDS</string>
+    <string name="friends_tab2">YOU FOLLOW</string>
+    <string name="friends_tab3">FOLLOWS YOU</string>
+    <string name="friends_title">Friends</string>
     <string name="friends_section_on">FRIENDS ON PLEEK</string>
     <string name="friends_section_out">FRIENDS NOT YET ON PLEEK</string>
     <string name="friends_section">FRIENDS</string>
     <string name="friends_section_pikiuser">PLEEK USER</string>
     <string name="friends_nofriend">You have no friends yet!</string>
+    <string name="friends_nofriend_added_you">Nobody added you yet!</string>
     <string name="friends_nocontact">You have no contacts in your phone ?! </string>
     <string name="friends_noresult">No result</string>
     <string name="sms_invit">Download Pleek here ! http://pleekapp.com/getpleek/</string>
+    <string name="friends_certified">TAP TO VIEW POPULAR ACCOUNTS</string>
+    <string name="friends_you_added">You\'ll receive their pics &amp; vids.</string>
+    <string name="friends_added_you">They\'ll see your public pics &amp; vids.</string>
+    <string name="friends_send_sms">We couldn\'t find an app to send an sms.</string>
 
     <!-- RECIPIENTS -->
     <string name="recipients_title">Send to...</string>
     <string name="recipients_everyone">EVERYONE</string>
     <string name="recipients_selected">SELECTED</string>
-    <string name="recipients_sendeveryone">SEND TO EVERYONE</string>
+    <string name="recipients_sendeveryone">PUBLIC</string>
     <string name="recipients_savepiki_nok">Can\'t save your Pleek for now.</string>
 
 
     <!-- PARAMETER -->
     <string name="param_title">Settings</string>
     <string name="param_username">Change username</string>
+    <string name="param_name">Change my name</string>
     <string name="param_categ_notif">NOTIFICATIONS</string>
     <string name="param_notif">Notifications</string>
     <string name="param_categ_help">HELP / BUGS</string>
@@ -120,7 +138,16 @@
     <string name="param_mail_texte">I wanted to let you know that ...</string>
     <string name="param_twitter_texte">Hey @Pleekeapp</string>
     <string name="param_sendapp_text">Download Pleek! Communicate with your friends trough beautiful photos mozaics! http://pleekapp.com/getpleek</string>
+    <string name="param_popular">Popular accounts</string>
+    <string name="param_pleekid">Create my Pleek ID</string>
+    <string name="param_pleekid_send">SEND ME</string>
+    <string name="param_pleekid_send_pleeks">\u0020YOUR PICS ON PLEEK!</string>
+    <string name="param_pleekid_iamonpleek">#iamonpleek</string>
+    <string name="param_create_pleekid">Create my Pleek ID</string>
 
+    <string name="param_name_placeholder">\@name</string>
+    <string name="param_name_popup_title">ERROR</string>
+    <string name="param_name_saveok">Your new name has been saved</string>
 
     <!-- BEAN -->
     <string name="last_piki_ago">Last Pleek at _date_</string>
@@ -141,6 +168,10 @@
     <string name="share_replies">replies on the app</string>
     <string name="share_title">Share your Pleek</string>
     <string name="share_text">I love this new Pleek of</string>
+    <string name="add">Add</string>
+    <string name="me">Me</string>
+    <string name="on">On</string>
+    <string name="pleek">Pleek</string>
 
     <!-- FACEBOOK -->
     <!--<string name="app_id">381972298527872</string>-->

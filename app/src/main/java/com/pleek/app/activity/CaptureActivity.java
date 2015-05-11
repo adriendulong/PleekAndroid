@@ -69,11 +69,11 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     private EditTextFont edittextePhoto;
     private View layoutBottomControl1;
     private FlipImageView btnReverse;
-    private ButtonRoundedMaterialDesign btnCapture;
+    private ImageView btnCapture;
     private ImageView imgGallerie;
     private View layoutBottomControl2;
     private View btnBackCapture;
-    private ButtonRoundedMaterialDesign btnNext;
+    private ImageView btnNext;
     private View btnSave;
     private View removeFocus;
 
@@ -115,14 +115,11 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         layoutBottomControl1.setVisibility(View.VISIBLE);
         btnReverse = (FlipImageView) findViewById(R.id.btnReverse);
         btnReverse.setOnClickListener(this);
-        btnCapture = (ButtonRoundedMaterialDesign) findViewById(R.id.btnCapture);
-        btnCapture.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
+        btnCapture = (ImageView) findViewById(R.id.btnCapture);
+        btnCapture.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
-                camera.captureCamera(new CameraView.CameraViewListener()
-                {
+            public void onClick(View v) {
+                camera.captureCamera(new CameraView.CameraViewListener() {
                     @Override
                     public void repCaptureCamera(Drawable image)
                     {
@@ -137,12 +134,10 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         layoutBottomControl2.setVisibility(View.GONE);
         btnBackCapture = findViewById(R.id.btnBackCapture);
         btnBackCapture.setOnClickListener(this);
-        btnNext = (ButtonRoundedMaterialDesign) findViewById(R.id.btnNext);
-        btnNext.setOnPressedListener(new ButtonRoundedMaterialDesign.OnPressedListener()
-        {
+        btnNext = (ImageView) findViewById(R.id.btnNext);
+        btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void endPress(ButtonRoundedMaterialDesign button)
-            {
+            public void onClick(View v) {
                 byte[] pikiData = getPikiData();
                 if(pikiData != null)
                 {

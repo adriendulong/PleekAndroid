@@ -362,15 +362,13 @@ public class PhoneNumberActivity extends ParentActivity implements View.OnClickL
     }
 
     @Override
-    public void finish()
-    {
+    public void finish() {
         super.finish();
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
     }
 
     /** editText for code */
-    private class PhoneNumberTextWatcher implements TextWatcher
-    {
+    private class PhoneNumberTextWatcher implements TextWatcher {
         @Override public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {}
         @Override public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {}
 
