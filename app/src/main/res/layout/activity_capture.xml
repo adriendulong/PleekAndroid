@@ -5,13 +5,19 @@
     android:layout_height="match_parent"
     android:background="@color/noir">
 
-    <com.goandup.lib.widget.CameraView
-        android:id="@+id/camera"
+    <RelativeLayout
+        android:id="@+id/layoutCamera"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:autoStart="true"
-        app:faceCamera="false"/>
+        android:layout_height="match_parent">
 
+        <com.goandup.lib.widget.CameraView
+            android:id="@+id/camera"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:autoStart="true"
+            app:faceCamera="false" />
+
+    </RelativeLayout>
 
     <View
         android:id="@+id/videoProgress"
@@ -27,6 +33,14 @@
         android:scaleType="centerCrop"
         android:layout_centerInParent="true"
         android:visibility="gone"/>
+
+    <RelativeLayout
+        android:id="@+id/layoutVideo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:layout_centerInParent="true">
+    </RelativeLayout>
 
     <com.goandup.lib.widget.SquareOverlay
         android:id="@+id/layoutOverlay"
@@ -136,7 +150,7 @@
 
 
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/layoutBottomControl2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -149,12 +163,8 @@
             android:id="@+id/btnBackCapture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/picto_capture"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:src="@drawable/picto_capture"
+            android:layout_alignParentLeft="true" />
 
         <ImageView
             android:id="@+id/btnNext"
@@ -166,11 +176,6 @@
             android:paddingBottom="5dp"
             android:scaleType="centerInside" />
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/>
-
         <ImageView
             android:id="@+id/btnSave"
             android:scaleType="centerCrop"
@@ -179,17 +184,8 @@
             android:src="@drawable/picto_export"
             android:layout_alignParentRight="true"/>
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <RelativeLayout android:id="@+id/removeFocus" android:focusableInTouchMode="true" android:focusable="true" android:layout_width="0px" android:layout_height="0px"/>
 
-
-    <RelativeLayout
-        android:id="@+id/layoutVideo"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        android:background="@color/secondColor">
-    </RelativeLayout>
 </RelativeLayout>

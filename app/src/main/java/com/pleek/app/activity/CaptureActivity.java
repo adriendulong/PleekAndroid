@@ -14,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
@@ -31,8 +32,10 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -66,7 +69,7 @@ import java.util.List;
 /**
  * Created by nicolas on 15/01/15.
  */
-public class CaptureActivity extends ParentActivity implements View.OnClickListener, SquareOverlay.Listener, SurfaceHolder.Callback
+public class CaptureActivity extends ParentActivity implements View.OnClickListener, SquareOverlay.Listener, TextureView.SurfaceTextureListener
 {
     public static boolean CLOSE_ME;
 
@@ -76,6 +79,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     private int GALLERY_KITKAT_INTENT_CALLED = 2;
     private int MAX_FONTSIZE = 60;//dp
 
+    private RelativeLayout layoutCamera;
     private CameraView camera;
     private ImageView imgPreview;
     private View btnBack;
@@ -104,12 +108,13 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     private long timeDown;
     private boolean isDown;
     private int longClickDuration = 700;
+    private boolean isVideo;
 
     private MediaPlayer mediaPlayer;
     private RelativeLayout layoutVideo;
     private boolean isPreparePlaying;
     private boolean isPlaying = false;
-    private SurfaceView surfaceView;
+    private TextureView textureView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -129,7 +134,8 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         handler = new Handler();
         camera = (CameraView)findViewById(R.id.camera);
         camera.setFaceCamera(pref.getBoolean("selfie_camera", true));
-        camera.setVisibility(View.VISIBLE);
+        layoutCamera = (RelativeLayout) findViewById(R.id.layoutCamera);
+        layoutCamera.setVisibility(View.VISIBLE);
         imgPreview = (ImageView)findViewById(R.id.imgPreview);
         imgPreview.setVisibility(View.GONE);
         btnBack = findViewById(R.id.btnBack);
@@ -151,17 +157,6 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         btnReverse = (FlipImageView) findViewById(R.id.btnReverse);
         btnReverse.setOnClickListener(this);
         btnCapture = (ImageView) findViewById(R.id.btnCapture);
-        btnCapture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                camera.captureCamera(new CameraView.CameraViewListener() {
-                    @Override
-                    public void repCaptureCamera(Drawable image) {
-                        showPreview(image);
-                    }
-                });
-            }
-        });
         btnCapture.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -202,9 +197,16 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 byte[] pikiData = getPikiData();
-                if(pikiData != null)
+                if(pikiData != null || isVideo)
                 {
-                    RecipientsActivity.initActivity(pikiData);
+                    if (!isVideo) {
+                        RecipientsActivity.initActivity(pikiData);
+                    } else {
+                        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+                        final File tmpFile = new File(videosDir, "out.mp4");
+                        RecipientsActivity.initActivity(tmpFile.getAbsolutePath());
+                        stopCurrentVideo();
+                    }
                     startActivity(new Intent(CaptureActivity.this, RecipientsActivity.class));
                     overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
                 }
@@ -221,9 +223,8 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         layoutVideo = (RelativeLayout) findViewById(R.id.layoutVideo);
         viewVideoProgress = findViewById(R.id.videoProgress);
 
-        surfaceView = new SurfaceView(this);
-        surfaceView.getHolder().addCallback(this);
-        surfaceView.setZOrderOnTop(false);
+        textureView = new TextureView(this);
+        textureView.setSurfaceTextureListener(this);
     }
 
     private void init()
@@ -364,16 +365,18 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
         imgPreview.setImageDrawable(drawable);
         imgPreview.setVisibility(View.VISIBLE);
-        camera.setVisibility(View.GONE);
+        layoutCamera.setVisibility(View.GONE);
         showLayoutControl2();
     }
 
     private void showCapture()
     {
+        isVideo = false;
         imgPreview.setVisibility(View.GONE);
         imgPreview.setScaleType(ImageView.ScaleType.CENTER_CROP);
         stopCurrentVideo();
-        camera.setVisibility(View.VISIBLE);
+        layoutCamera.setVisibility(View.VISIBLE);
+        camera.getCamera().startPreview();
         edittextePhoto.setVisibility(View.VISIBLE);
         showLayoutControl1();
     }
@@ -387,6 +390,8 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
     private void showLayoutControl2()
     {
+        btnSave.setVisibility(isVideo ? View.GONE : View.VISIBLE);
+
         if(layoutBottomControl2.getVisibility() == View.VISIBLE) return;
         Utile.fadeOut(layoutBottomControl1, 300);
         Utile.fadeIn(layoutBottomControl2, 300);
@@ -423,6 +428,18 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
                 params.height = sizeSquare;
                 params.width = sizeSquare;
                 imgPreview.requestLayout();
+            }
+        });
+
+        layoutVideo.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ViewGroup.LayoutParams params = layoutVideo.getLayoutParams();
+                params.height = sizeSquare;
+                params.width = sizeSquare;
+                layoutVideo.requestLayout();
             }
         });
     }
@@ -502,7 +519,6 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
         return null;
     }
-
 
     /**
      * Texte of Image
@@ -687,7 +703,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     {
         super.onPause();
         CameraView.release();
-        stopCurrentVideo();
+        //stopCurrentVideo();
     }
 
     @Override
@@ -700,6 +716,8 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
             HomeActivity.AUTO_RELOAD = true;
             finish();
         }
+
+        if (isVideo) playVideo();
         else camera.resume();
     }
 
@@ -809,24 +827,14 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
             mediaRecorder.stop();
             releaseMediaRecorder();
             handler.removeCallbacks(runnableTimeRecording);
-            //Toast.makeText(PikiActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
 
-            new Thread() {
-                @Override
-                public void run() {
-                    generateTempPiki();
-                }
-            }.run();
+            isVideo = true;
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    camera.setVisibility(View.GONE);
-                    showLayoutControl2();
-                }
-            });
+            layoutCamera.setVisibility(View.GONE);
+            camera.getCamera().stopPreview();
+            showLayoutControl2();
 
-            playVideo();
+            processVideo();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -877,6 +885,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     }
 
     public void processVideo() {
+        loader = showLoader();
         final FFmpeg ffmpeg = FFmpeg.getInstance(this);
         try {
             final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
@@ -886,8 +895,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
                 @Override
                 public void onFinish() {
-                    //tmpReactVideo.setTmpPathVideo(videosDir + "/out.mp4");
-                    //sendReact(tmpReactVideo);
+                    generateTempPiki();
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {
@@ -910,25 +918,16 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     };
 
     private void generateTempPiki() {
-        loader = showLoader();
         final FFmpeg ffmpeg = FFmpeg.getInstance(this);
         final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
-        File tmpFile = new File(videosDir, "myvideo.mp4");
+        File tmpFile = new File(videosDir, "out.mp4");
         try {
             ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
 
                 @Override
                 public void onFinish() {
-                    File tmpFileImg = new File(videosDir, "out1.jpg");
-                    Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                    byte[] byteArray = stream.toByteArray();
-                    //tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), cameraView.convertPicture(byteArray), tmpFileImg.getAbsolutePath());
-                    //tmpReactVideo.setType(Reaction.Type.VIDEO);
-                    //listReact = adapter.addReact(tmpReactVideo);
                     hideDialog(loader);
-                    processVideo();
+                    playVideo();
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {
@@ -940,18 +939,13 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         if (isPreparePlaying) return;
         isPreparePlaying = true;
 
-        layoutVideo.setVisibility(View.VISIBLE);
-
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            stopCurrentVideo();
-        }
-
-        if (surfaceView.getParent() != null) {
-            ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
+        if (textureView.getParent() != null) {
+            ((ViewGroup) textureView.getParent()).removeView(textureView);
         }
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-        layoutVideo.addView(surfaceView, params);
+        layoutVideo.addView(textureView, params);
+        layoutVideo.setVisibility(View.VISIBLE);
     }
 
     public void stopCurrentVideo() {
@@ -967,8 +961,8 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        Surface s = new Surface(surface);
         // play video
         layoutVideo.setVisibility(View.VISIBLE);
         mediaPlayer = new MediaPlayer();
@@ -991,10 +985,10 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
 
         mediaPlayer.setVolume(1, 1);
         mediaPlayer.setLooping(true);
-        mediaPlayer.setDisplay(surfaceView.getHolder());
+        mediaPlayer.setSurface(s);
         try {
             final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
-            final File tmpFile = new File(videosDir, "myvideo.mp4");
+            final File tmpFile = new File(videosDir, "out.mp4");
             FileInputStream fis = new FileInputStream(tmpFile.getAbsolutePath());
             FileDescriptor fd = fis.getFD();
             long size = fis.getChannel().size();
@@ -1014,12 +1008,17 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
 
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
     }
 
@@ -1031,7 +1030,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
                 edittextePhoto.setVisibility(View.GONE);
 
                 if (!prepareMediaRecorder()) {
-                    Toast.makeText(CaptureActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                    Toast.makeText(CaptureActivity.this, "Fail in recording the video ! Please try again.", Toast.LENGTH_LONG).show();
                     isRecording = false;
                 }
 

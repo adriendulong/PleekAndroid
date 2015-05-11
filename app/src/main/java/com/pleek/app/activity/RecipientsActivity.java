@@ -39,11 +39,17 @@ import com.parse.SaveCallback;
 import com.pleek.app.R;
 import com.pleek.app.adapter.FriendsAdapter;
 import com.pleek.app.bean.Friend;
+import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.utils.StringUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,13 +81,18 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
 
     private static byte[] _pikiData;
     private byte[] pikiData;
+    private String videoPath;
+    private static String _videoPath;
     private int initialWidthMarginLeftBtnSearch;
     private FriendsAdapter adapter;
     private ArrayList<Friend> listFriend;
 
-    public static void initActivity(byte[] pikiData)
-    {
+    public static void initActivity(byte[] pikiData) {
         _pikiData = pikiData;
+    }
+
+    public static void initActivity(String videoPath) {
+        _videoPath = videoPath;
     }
 
     @Override
@@ -106,6 +117,11 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         {
             pikiData = _pikiData;
             _pikiData = null;
+        }
+
+        if (_videoPath != null) {
+            videoPath = _videoPath;
+            _videoPath = null;
         }
 
         imgPiki = (ImageView)findViewById(R.id.imgPiki);
@@ -173,10 +189,8 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         footer = new ViewLoadingFooter(this);
     }
 
-    private void init()
-    {
-        if(pikiData != null && pikiData.length != 0)
-        {
+    private void init() {
+        if ((pikiData != null && pikiData.length != 0) || !StringUtils.isStringEmpty(videoPath)) {
             currentPage = 0;
             lastItemShow = 0;
             isLoading = false;
@@ -184,7 +198,10 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
             listFriend = new ArrayList<Friend>();
             listBeforreRequest = new ArrayList<Friend>();
             //crash #25 BOB : retour depuis FriendsActivity
-            imgPiki.setImageBitmap(BitmapFactory.decodeByteArray(pikiData, 0, pikiData.length));
+
+            if (StringUtils.isStringEmpty(videoPath)) {
+                imgPiki.setImageBitmap(BitmapFactory.decodeByteArray(pikiData, 0, pikiData.length));
+            }
 
             ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
             innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
@@ -382,7 +399,35 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
 
         //create PIKI
         final ParseObject piki = ParseObject.create("Piki");
-        piki.put("photo", new ParseFile("photo.jpg", pikiData));
+        if (!StringUtils.isStringEmpty(videoPath)) {
+            try {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                File inputFile = new File(videoPath.replace("out.mp4", "out1.jpg"));
+                FileInputStream fis = new FileInputStream(inputFile);
+                byte[] buf = new byte[(int)inputFile.length()];
+                for (int readNum; (readNum=fis.read(buf)) != -1;){
+                    bos.write(buf,0,readNum);
+                }
+                piki.put("previewImage", new ParseFile("photo.jpg", bos.toByteArray()));
+
+                inputFile = new File(videoPath);
+                bos = new ByteArrayOutputStream();
+                fis = new FileInputStream(inputFile);
+                buf = new byte[(int)inputFile.length()];
+                for (int readNum; (readNum = fis.read(buf)) != -1;){
+                    bos.write(buf,0,readNum);
+                }
+
+                byte[] bytes = bos.toByteArray();
+                piki.put("video", new ParseFile("video.mp4", bytes));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+        } else {
+            piki.put("photo", new ParseFile("photo.jpg", pikiData));
+        }
+
         if(listRecipients != null) piki.put("recipients", listRecipients);
         piki.put("isPublic", isPublic);
         piki.put("user", currentUser);
