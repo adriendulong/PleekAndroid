@@ -9,4 +9,9 @@
     <!-- KEYBOARD -->
     <dimen name="keyboard_height">250dp</dimen>
     <dimen name="txt_new">16dp</dimen>
+
+    <!-- HEADER -->
+    <dimen name="header_height">100dp</dimen>
+    <dimen name="min_header_height">100dp</dimen>
+    <dimen name="top_bar_height">60dp</dimen>
 </resources>

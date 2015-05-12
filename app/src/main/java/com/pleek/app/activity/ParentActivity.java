@@ -16,6 +16,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -72,6 +73,14 @@ public class ParentActivity extends FragmentActivity
                 sendEndSession(session);
             }
         });
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.setStatusBarColor(getResources().getColor(R.color.firstColorDark2));
+        }
     }
 
     @Override
@@ -112,34 +121,34 @@ public class ParentActivity extends FragmentActivity
 
     /************
      MY DIALOGUE*/
-    protected Dialog showDialog(int titleId, int messageId, MyDialogListener listener)
+    public Dialog showDialog(int titleId, int messageId, MyDialogListener listener)
     {
         Resources r = getResources();
         return showDialog(r.getString(titleId), r.getString(messageId), null, listener);
     }
 
-    protected Dialog showDialog(int titleId, int messageId, int iconeId,  MyDialogListener listener)
+    public Dialog showDialog(int titleId, int messageId, int iconeId,  MyDialogListener listener)
     {
         Resources r = getResources();
         return showDialog(r.getString(titleId), r.getString(messageId), r.getDrawable(iconeId), listener);
     }
 
-    protected Dialog showDialog(String title, String message, MyDialogListener listener)
+    public Dialog showDialog(String title, String message, MyDialogListener listener)
     {
         return showDialog(title, message, null, listener);
     }
 
-    protected Dialog showDialog(String title, String message, Drawable icone, final MyDialogListener listener)
+    public Dialog showDialog(String title, String message, Drawable icone, final MyDialogListener listener)
     {
         return showDialog(title, message, null, R.drawable.picto_ok_rose, R.drawable.picto_nok, listener);
     }
 
-    protected Dialog showDialog(String title, String message, int iconBtnOk, int iconBtnNok, final MyDialogListener listener)
+    public Dialog showDialog(String title, String message, int iconBtnOk, int iconBtnNok, final MyDialogListener listener)
     {
         return showDialog(title, message, null, iconBtnOk, iconBtnNok, listener);
     }
 
-    protected Dialog showDialog(String title, String message, Drawable icone, int iconBtnOk, int iconBtnNok, final MyDialogListener listener)
+    public Dialog showDialog(String title, String message, Drawable icone, int iconBtnOk, int iconBtnNok, final MyDialogListener listener)
     {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -219,42 +228,42 @@ public class ParentActivity extends FragmentActivity
         return dialog;
     }
 
-    interface MyDialogListener
+    public interface MyDialogListener
     {
         public void closed(boolean accept);
     }
 
     /*********
      MY ALERT*/
-    protected Dialog showAlert(int titleId, int messageId)
+    public Dialog showAlert(int titleId, int messageId)
     {
         Resources r = getResources();
         return showAlert(r.getString(titleId), r.getString(messageId), null, null);
     }
-    protected Dialog showAlert(int titleId, int messageId, MyAlertListener listener)
+    public Dialog showAlert(int titleId, int messageId, MyAlertListener listener)
     {
         Resources r = getResources();
         return showAlert(r.getString(titleId), r.getString(messageId), null, listener);
     }
 
-    protected Dialog showAlert(int titleId, int messageId, int iconeId,  MyAlertListener listener)
+    public Dialog showAlert(int titleId, int messageId, int iconeId,  MyAlertListener listener)
     {
         Resources r = getResources();
         return showAlert(r.getString(titleId), r.getString(messageId), r.getDrawable(iconeId), listener);
     }
 
-    protected Dialog showAlert(String title, String message)
+    public Dialog showAlert(String title, String message)
     {
         return showAlert(title, message, null, null);
     }
 
-    protected Dialog showAlert(String title, String message, MyAlertListener listener)
+    public Dialog showAlert(String title, String message, MyAlertListener listener)
     {
         return showAlert(title, message, null, listener);
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-    protected Dialog showAlert(String title, String message, Drawable icone, final MyAlertListener listener)
+    public Dialog showAlert(String title, String message, Drawable icone, final MyAlertListener listener)
     {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -414,5 +423,13 @@ public class ParentActivity extends FragmentActivity
 
     public void setFriendsPrefs(HashSet<String> friends) {
         pref.edit().putStringSet(Constants.PREF_FRIENDS, new HashSet<String>(friends)).commit();
+    }
+
+    public SharedPreferences getPref() {
+        return pref;
+    }
+
+    public void setPref(SharedPreferences pref) {
+        this.pref = pref;
     }
 }

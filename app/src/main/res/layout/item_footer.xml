@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:gravity="center">
+
+    <com.pleek.app.views.CircleProgressBar
+        android:id="@+id/progressBar"
+        app:mlpb_show_arrow="false"
+        app:mlpb_enable_circle_background="false"
+        app:mlpb_progress_stoke_width="2dp"
+        app:mlpb_progress_text_visibility="invisible"
+        android:layout_width="60dp"
+        android:layout_height="60dp" />
+
+</LinearLayout>

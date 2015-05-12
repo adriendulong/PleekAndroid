@@ -34,7 +34,7 @@ import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.bean.AutoResizeFontTextWatcher;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
-import com.pleek.app.listeners.FlipListener;
+import com.pleek.app.interfaces.FlipListener;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.CircleProgressBar;
 import com.pleek.app.views.CircularProgressBar;
