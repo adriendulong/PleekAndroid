@@ -189,9 +189,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     private void setup() {
-        if (_piki != null) {
+        if (_piki != null) { // crash #325
             piki = _piki;
             _piki = null;
+        } else {
+            finish();
         }
 
         btnBack = findViewById(R.id.btnBack);
@@ -737,34 +739,36 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void onLikeReact(int position) {
-        mixpanel.track("Like", null);
-
         Reaction react = adapter.getReaction(position);
 
-        final ParseObject like = new ParseObject("Like");
-        like.put("react", react.getParseObject());
-        like.put("piki", piki.getParseObject());
-        like.put("user", ParseUser.getCurrentUser());
-        ParseACL acl = new ParseACL();
-        acl.setPublicReadAccess(true);
-        acl.setWriteAccess(ParseUser.getCurrentUser(), true);
-        like.setACL(acl);
-        like.saveEventually();
+        if (react != null && react.getParseObject() != null) { // crash #323
+            mixpanel.track("Like", null);
 
-        stopSound();
+            final ParseObject like = new ParseObject("Like");
+            like.put("react", react.getParseObject());
+            like.put("piki", piki.getParseObject());
+            like.put("user", ParseUser.getCurrentUser());
+            ParseACL acl = new ParseACL();
+            acl.setPublicReadAccess(true);
+            acl.setWriteAccess(ParseUser.getCurrentUser(), true);
+            like.setACL(acl);
+            like.saveEventually();
 
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer.create(this, R.raw.like_react_sound);
-            mediaPlayer.setVolume(1f, 1f);
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    stopSound();
-                }
-            });
+            stopSound();
+
+            if (mediaPlayer == null) {
+                mediaPlayer = MediaPlayer.create(this, R.raw.like_react_sound);
+                mediaPlayer.setVolume(1f, 1f);
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        stopSound();
+                    }
+                });
+            }
+
+            mediaPlayer.start();
         }
-
-        mediaPlayer.start();
     }
 
     private void stopSound() {
