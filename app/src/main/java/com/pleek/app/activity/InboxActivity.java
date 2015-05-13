@@ -12,6 +12,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.OvershootInterpolator;
 import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -62,12 +63,17 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     RelativeLayout barLayout;
     @InjectView(R.id.header)
     View header;
+    @InjectView(R.id.btnPlus)
+    ImageView btnPlus;
 
     private PagerAdapter pagerAdapter;
 
     private int actionBarHeight;
     private int headerHeightOG;
     private int minHeaderTranslation;
+    int oldScroll = 0;
+
+    boolean pendingAnimations = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,11 +94,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         tabIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
+                btnPlus.setVisibility((position == 0 || position == 1) ? View.VISIBLE : View.GONE);
                 setTab(position == 0 ? btnTab1 : (position == 1 ? btnTab2 : btnTab3));
 
                 SparseArray<ScrollTabHolder> scrollTabHolders = pagerAdapter.getScrollTabHolders();
                 ScrollTabHolder currentHolder = scrollTabHolders.valueAt(position);
-                currentHolder.adjustScroll((int) (headerHeightOG + header.getTranslationY()));
+                currentHolder.adjustScroll(oldScroll);
             }
 
             @Override
@@ -101,6 +108,8 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
+
+        pendingAnimations = savedInstanceState == null;
 
         init();
     }
@@ -112,6 +121,14 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         viewPager.setOffscreenPageLimit(3);
         tabIndicator.setViewPager(viewPager);
         tabIndicator.setFades(false);
+
+
+
+        if (pendingAnimations) {
+            btnPlus.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_size));
+            startAnimation();
+            pendingAnimations = false;
+        }
     }
 
     @Override
@@ -137,6 +154,9 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             viewPager.setCurrentItem(1, true);
         } else if (v == btnTab3) {
             viewPager.setCurrentItem(2, true);
+        } else if (v == btnPlus) {
+            startActivity(new Intent(this, CaptureActivity.class));
+            overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
         }
     }
 
@@ -158,33 +178,43 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
 
     @Override
     public void adjustScroll(int scrollHeight) {
-        // NOTHING
+        oldScroll = scrollHeight;
     }
 
-    @Override
-    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount, int pagePosition) {
-        if (viewPager.getCurrentItem() == pagePosition) {
-            int scrollY = getScrollY(view);
-            header.setTranslationY(Math.max(-scrollY, minHeaderTranslation));
-        }
-    }
+//    @Override
+//    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount, int pagePosition) {
+//        int scrollY = getScrollY(view);
+//
+//        if (viewPager.getCurrentItem() == pagePosition) {
+//            header.setTranslationY(Math.max(-scrollY, minHeaderTranslation));
+//        }
+//
+//        if (oldScroll > scrollY) {
+//            System.out.println("GOING UP");
+//
+//        } else {
+//            System.out.println("GOING DOWN");
+//        }
+//
+//        oldScroll = scrollY;
+//    }
 
-    public int getScrollY(AbsListView view) {
-        View c = view.getChildAt(0);
-        if (c == null) {
-            return 0;
-        }
-
-        int firstVisiblePosition = view.getFirstVisiblePosition();
-        int top = c.getTop();
-
-        int headerHeight = 0;
-        if (firstVisiblePosition >= 1) {
-            headerHeight = headerHeightOG;
-        }
-
-        return -top + firstVisiblePosition * c.getHeight() + headerHeight;
-    }
+//    public int getScrollY(AbsListView view) {
+//        View c = view.getChildAt(0);
+//        if (c == null) {
+//            return 0;
+//        }
+//
+//        int firstVisiblePosition = view.getFirstVisiblePosition();
+//        int top = c.getTop();
+//
+//        int headerHeight = 0;
+//        if (firstVisiblePosition >= 1) {
+//            headerHeight = headerHeightOG;
+//        }
+//
+//        return -top + firstVisiblePosition * c.getHeight() + headerHeight;
+//    }
 
     public class PagerAdapter extends FragmentPagerAdapter {
 
@@ -212,7 +242,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
 
         @Override
         public Fragment getItem(int position) {
-            ScrollTabHolderFragment fragment = (ScrollTabHolderFragment) InboxFragment.newInstance(position);
+            ScrollTabHolderFragment fragment = (ScrollTabHolderFragment) InboxFragment.newInstance(position, header);
 
             fragments.put(position, fragment);
             if (listener != null) {
@@ -226,5 +256,14 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             return fragments;
         }
 
+    }
+
+    private void startAnimation() {
+        btnPlus.animate()
+            .translationY(0)
+            .setInterpolator(new OvershootInterpolator(1.f))
+            .setStartDelay(800)
+            .setDuration(300)
+            .start();
     }
 }

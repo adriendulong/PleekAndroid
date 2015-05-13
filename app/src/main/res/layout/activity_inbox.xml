@@ -192,4 +192,16 @@
                 style="@style/CustomUnderlinePageIndicator" />
         </RelativeLayout>
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/btnPlus"
+        android:layout_width="@dimen/btn_size"
+        android:layout_height="@dimen/btn_size"
+        android:src="@drawable/btn_new_pleek"
+        android:layout_centerInParent="true"
+        android:layout_margin="15dp"
+        android:paddingBottom="5dp"
+        android:paddingRight="1dp"
+        android:scaleType="centerInside"
+        android:layout_gravity="right|bottom" />
 </FrameLayout>

@@ -29,6 +29,7 @@ import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.activity.CaptureActivity;
+import com.pleek.app.activity.InboxActivity;
 import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.activity.PikiActivity;
 import com.pleek.app.adapter.PikiAdapter;
@@ -37,7 +38,9 @@ import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.common.Constants;
 import com.pleek.app.interfaces.ListViewScrollTracker;
 import com.pleek.app.interfaces.OnCollapseABListener;
+import com.pleek.app.interfaces.QuickReturnListViewOnScrollListener;
 import com.pleek.app.interfaces.ScrollTabHolder;
+import com.pleek.app.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,11 +61,11 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
     public static int TYPE_BEST = 2;
 
     private int type;
+    private View header;
+    private QuickReturnListViewOnScrollListener scrollListener;
 
     @InjectView(R.id.listViewPiki)
     ListViewScrollingOff listViewPiki;
-    @InjectView(R.id.btnPlus)
-    ImageView btnPlus;
     @InjectView(R.id.refreshSwipe)
     SwipeRefreshLayout refreshSwipe;
 
@@ -76,9 +79,10 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
 
     private int initialX;
 
-    public static InboxFragment newInstance(int type) {
+    public static InboxFragment newInstance(int type, View header) {
         InboxFragment fragment = new InboxFragment();
         fragment.type = type;
+        fragment.header = header;
         return fragment;
     }
 
@@ -99,6 +103,11 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
     }
 
     private void setup() {
+        scrollListener = new QuickReturnListViewOnScrollListener.Builder()
+                .header(header)
+                .minHeaderTranslation(-getResources().getDimensionPixelSize(R.dimen.top_bar_height))
+                .build();
+
         View placeHolderView = getActivity().getLayoutInflater().inflate(R.layout.item_empty_header, listViewPiki, false);
         listViewPiki.addHeaderView(placeHolderView);
         listViewPiki.setOnTouchListener(new MyListTouchListener());
@@ -112,14 +121,6 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
             }
         });
         refreshSwipe.setProgressViewOffset(false, 0, (int) (getResources().getDimensionPixelSize(R.dimen.header_height) + 20 * screen.getDensity()));
-
-        btnPlus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getActivity(), CaptureActivity.class));
-                getActivity().overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
-            }
-        });
 
         footer = getActivity().getLayoutInflater().inflate(R.layout.item_footer, null);
         listViewPiki.addFooterView(footer);
@@ -542,7 +543,7 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
             View backView = item.findViewById(R.id.back);
 
             if (frontView != null && backView != null) {
-                TranslateAnimation ta = new TranslateAnimation(-moveX,0,0,0);
+                TranslateAnimation ta = new TranslateAnimation(-moveX, 0, 0, 0);
                 ta.setDuration(DURATION_DELETE_ANIM);
                 frontView.startAnimation(ta);
 
@@ -565,7 +566,7 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
                 if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW)) {
                     //start animation
                     moveX -= screen.dpToPx(WIDTH_BORDER_BACKVIEW);
-                    ta = new TranslateAnimation(-moveX,0,0,0);
+                    ta = new TranslateAnimation(-moveX, 0, 0, 0);
                     ta.setDuration(DURATION_DELETE_ANIM);
                     backView.startAnimation(ta);
 
@@ -584,7 +585,9 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
     private class MyOnScrollListener implements AbsListView.OnScrollListener {
 
         @Override
-        public void onScrollStateChanged(AbsListView absListView, int i) {}
+        public void onScrollStateChanged(AbsListView absListView, int i) {
+            scrollListener.onScrollStateChanged(absListView, i);
+        }
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
@@ -594,9 +597,9 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
             //    listener.onCollapseAB(scrolly);
             //}
 
-            if (mScrollTabHolder != null) {
-                mScrollTabHolder.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount, type);
-            }
+            scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+
+            ((InboxActivity) getActivity()).adjustScroll(scrollListener.getPrevScrollY());
 
             //pagination
             final int lastItem = firstVisibleItem + visibleItemCount;
@@ -612,11 +615,11 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
 
     @Override
     public void adjustScroll(int scrollHeight) {
-        if (scrollHeight == 0 && listViewPiki.getFirstVisiblePosition() >= 1) {
+        if (listViewPiki.getFirstVisiblePosition() >= 1) {
             return;
         }
 
-        listViewPiki.setSelectionFromTop(0, scrollHeight);
+        listViewPiki.setSelectionFromTop(0, (int) header.getTranslationY());
     }
 
     @Override

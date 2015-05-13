@@ -2,18 +2,14 @@ package com.pleek.app.fragment;
 
 import android.widget.AbsListView;
 
+import com.pleek.app.interfaces.QuickReturnListViewOnScrollListener;
 import com.pleek.app.interfaces.ScrollTabHolder;
 
 public abstract class ScrollTabHolderFragment extends ParentFragment implements ScrollTabHolder {
 
-	protected ScrollTabHolder mScrollTabHolder;
+    protected ScrollTabHolder scrollTabHolder;
 
-	public void setScrollTabHolder(ScrollTabHolder scrollTabHolder) {
-        mScrollTabHolder = scrollTabHolder;
-	}
-
-	@Override
-	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount, int pagePosition) {
-		// nothing
+	public void setScrollTabHolder(ScrollTabHolder pScrollTabHolder) {
+        scrollTabHolder = pScrollTabHolder;
 	}
 }

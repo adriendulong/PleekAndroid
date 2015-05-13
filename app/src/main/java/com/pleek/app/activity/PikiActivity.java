@@ -340,13 +340,17 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         p.topMargin =  - pikiHeader.getHeight() + btnShare.getHeight();
                         rootView.setLayoutParams(p);
 
-                        ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
-                        mlpCamera.topMargin = mlpCamera.topMargin - gridViewPiki.getChildAt(0).getTop();
-                        layoutCamera.setLayoutParams(mlpCamera);
+                        if (gridViewPiki.getChildAt(0) != null) {
+                            ViewGroup.MarginLayoutParams mlpCamera = (ViewGroup.MarginLayoutParams) layoutCamera.getLayoutParams();
+                            mlpCamera.topMargin = mlpCamera.topMargin - gridViewPiki.getChildAt(0).getTop();
+                            layoutCamera.setLayoutParams(mlpCamera);
+                        }
                     } else if (gridViewPiki.getFirstVisiblePosition() == 0) {
-                        RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
-                        p.topMargin =  - pikiHeader.getHeight() - gridViewPiki.getChildAt(0).getTop() + btnShare.getHeight();
-                        rootView.setLayoutParams(p);
+                        if (gridViewPiki.getChildAt(0) != null) {
+                            RelativeLayout.LayoutParams p = (RelativeLayout.LayoutParams) rootView.getLayoutParams();
+                            p.topMargin = -pikiHeader.getHeight() - gridViewPiki.getChildAt(0).getTop() + btnShare.getHeight();
+                            rootView.setLayoutParams(p);
+                        }
                     }
 
                     if (popupEmoji == null) {

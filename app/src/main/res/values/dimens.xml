@@ -14,4 +14,7 @@
     <dimen name="header_height">100dp</dimen>
     <dimen name="min_header_height">100dp</dimen>
     <dimen name="top_bar_height">60dp</dimen>
+
+    <!-- HOME -->
+    <dimen name="btn_size">70dp</dimen>
 </resources>
