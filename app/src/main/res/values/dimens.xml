@@ -11,8 +11,9 @@
     <dimen name="txt_new">16dp</dimen>
 
     <!-- HEADER -->
-    <dimen name="header_height">100dp</dimen>
-    <dimen name="min_header_height">100dp</dimen>
+    <dimen name="header_height">110dp</dimen>
+    <dimen name="header_height_without_shadow">100dp</dimen>
+    <dimen name="min_header_height">110dp</dimen>
     <dimen name="top_bar_height">60dp</dimen>
 
     <!-- HOME -->

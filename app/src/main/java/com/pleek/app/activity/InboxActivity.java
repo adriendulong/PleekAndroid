@@ -90,6 +90,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         btnTab1.setOnClickListener(this);
         btnTab2.setOnClickListener(this);
         btnTab3.setOnClickListener(this);
+        btnPlus.setOnClickListener(this);
 
         tabIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

@@ -8,190 +8,202 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/header"
-        android:layout_width="match_parent"
         android:layout_height="@dimen/header_height"
-        android:orientation="vertical"
-        android:background="@color/firstColorLight">
+        android:layout_width="match_parent">
 
-        <RelativeLayout
-            android:id="@+id/barLayout"
+        <LinearLayout
+            android:id="@+id/subHeader"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/top_bar_height"
-            android:paddingLeft="22dp"
-            android:paddingRight="22dp">
-            <ImageView
-                android:id="@+id/imgLogo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scaleType="center"
-                android:src="@drawable/picto_logo_home"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="15dp" />
+            android:layout_height="@dimen/header_height_without_shadow"
+            android:orientation="vertical"
+            android:background="@color/firstColorLight">
 
-            <ImageView
-                android:id="@+id/imgSettings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scaleType="center"
-                android:src="@drawable/picto_settings"
-                android:layout_alignParentLeft="true"
-                android:layout_marginTop="21dp" />
+            <RelativeLayout
+                android:id="@+id/barLayout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/top_bar_height"
+                android:paddingLeft="22dp"
+                android:paddingRight="22dp">
+                <ImageView
+                    android:id="@+id/imgLogo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleType="center"
+                    android:src="@drawable/picto_logo_home"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="15dp" />
 
-            <ImageView
-                android:id="@+id/imgFriends"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:scaleType="center"
-                android:src="@drawable/picto_friends_home_sel"
-                android:layout_marginTop="21dp" />
-        </RelativeLayout>
+                <ImageView
+                    android:id="@+id/imgSettings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleType="center"
+                    android:src="@drawable/picto_settings"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginTop="21dp" />
 
-        <!-- PAGER TAB -->
-        <RelativeLayout
-            android:id="@+id/pagerTabLayout"
+                <ImageView
+                    android:id="@+id/imgFriends"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:scaleType="center"
+                    android:src="@drawable/picto_friends_home_sel"
+                    android:layout_marginTop="21dp" />
+            </RelativeLayout>
+
+            <!-- PAGER TAB -->
+            <RelativeLayout
+                android:id="@+id/pagerTabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="40dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <RelativeLayout
+                        android:id="@+id/btnTab1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:id="@+id/imgInbox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/picto_inbox"
+                            android:layout_centerVertical="true" />
+
+                        <ImageView
+                            android:id="@+id/imgInboxSel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/picto_inbox_sel"
+                            android:layout_centerVertical="true" />
+
+                        <com.goandup.lib.widget.TextViewFont
+                            android:id="@+id/txtInbox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="12dp"
+                            app:customFont="montserrat-regular.ttf"
+                            android:text="@string/home_inbox"
+                            android:gravity="center"
+                            android:textStyle="bold"
+                            android:padding="5dp"
+                            android:textColor="@color/blanc"
+                            android:layout_toRightOf="@id/imgInboxSel" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/btnTab2"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:id="@+id/imgSent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/picto_sent"
+                            android:layout_centerVertical="true" />
+
+                        <ImageView
+                            android:id="@+id/imgSentSel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/picto_sent_sel"
+                            android:layout_centerVertical="true"
+                            android:visibility="invisible" />
+
+                        <com.goandup.lib.widget.TextViewFont
+                            android:id="@+id/txtSent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="12dp"
+                            app:customFont="montserrat-regular.ttf"
+                            android:text="@string/home_sent"
+                            android:gravity="center"
+                            android:textStyle="bold"
+                            android:padding="5dp"
+                            android:textColor="@color/blanc"
+                            android:layout_toRightOf="@id/imgSentSel" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/btnTab3"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:id="@+id/imgBest"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/picto_best"
+                            android:layout_centerVertical="true" />
+
+                        <ImageView
+                            android:id="@+id/imgBestSel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/picto_best_sel"
+                            android:layout_centerVertical="true"
+                            android:visibility="invisible" />
+
+                        <com.goandup.lib.widget.TextViewFont
+                            android:id="@+id/txtBest"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:textSize="12dp"
+                            app:customFont="montserrat-regular.ttf"
+                            android:text="@string/home_best"
+                            android:gravity="center"
+                            android:textStyle="bold"
+                            android:padding="5dp"
+                            android:textColor="@color/blanc"
+                            android:layout_toRightOf="@id/imgBestSel" />
+
+                        <View
+                            android:layout_width="5dp"
+                            android:layout_height="5dp"
+                            android:background="@drawable/ind_best_new"
+                            android:layout_centerVertical="true"
+                            android:layout_toRightOf="@id/txtBest" />
+
+                    </RelativeLayout>
+                </LinearLayout>
+
+                <com.viewpagerindicator.UnderlinePageIndicator
+                    android:id="@+id/tabIndicator"
+                    android:layout_height="2dp"
+                    android:layout_width="match_parent"
+                    android:layout_alignParentBottom="true"
+                    style="@style/CustomUnderlinePageIndicator" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <ImageView
             android:layout_width="match_parent"
-            android:layout_height="40dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <RelativeLayout
-                    android:id="@+id/btnTab1"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgInbox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/picto_inbox"
-                        android:layout_centerVertical="true" />
-
-                    <ImageView
-                        android:id="@+id/imgInboxSel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/picto_inbox_sel"
-                        android:layout_centerVertical="true" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtInbox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:textSize="12dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:text="@string/home_inbox"
-                        android:gravity="center"
-                        android:textStyle="bold"
-                        android:padding="5dp"
-                        android:textColor="@color/blanc"
-                        android:layout_toRightOf="@id/imgInboxSel" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/btnTab2"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgSent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/picto_sent"
-                        android:layout_centerVertical="true" />
-
-                    <ImageView
-                        android:id="@+id/imgSentSel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/picto_sent_sel"
-                        android:layout_centerVertical="true"
-                        android:visibility="invisible" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtSent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:textSize="12dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:text="@string/home_sent"
-                        android:gravity="center"
-                        android:textStyle="bold"
-                        android:padding="5dp"
-                        android:textColor="@color/blanc"
-                        android:layout_toRightOf="@id/imgSentSel" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/btnTab3"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgBest"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/picto_best"
-                        android:layout_centerVertical="true" />
-
-                    <ImageView
-                        android:id="@+id/imgBestSel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/picto_best_sel"
-                        android:layout_centerVertical="true"
-                        android:visibility="invisible" />
-
-                    <com.goandup.lib.widget.TextViewFont
-                        android:id="@+id/txtBest"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:textSize="12dp"
-                        app:customFont="montserrat-regular.ttf"
-                        android:text="@string/home_best"
-                        android:gravity="center"
-                        android:textStyle="bold"
-                        android:padding="5dp"
-                        android:textColor="@color/blanc"
-                        android:layout_toRightOf="@id/imgBestSel" />
-
-                    <View
-                        android:layout_width="5dp"
-                        android:layout_height="5dp"
-                        android:background="@drawable/ind_best_new"
-                        android:layout_centerVertical="true"
-                        android:layout_toRightOf="@id/txtBest" />
-
-                </RelativeLayout>
-            </LinearLayout>
-
-            <com.viewpagerindicator.UnderlinePageIndicator
-                android:id="@+id/tabIndicator"
-                android:layout_height="2dp"
-                android:layout_width="match_parent"
-                android:layout_alignParentBottom="true"
-                style="@style/CustomUnderlinePageIndicator" />
-        </RelativeLayout>
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:background="@drawable/shadow_bot"
+            android:layout_below="@id/subHeader" />
+    </RelativeLayout>
 
     <ImageView
         android:id="@+id/btnPlus"
