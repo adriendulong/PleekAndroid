@@ -201,8 +201,8 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                         adapter.setListFriend(listFriend);
                         adapter.notifyDataSetChanged();
 
-                    } else {
-                        L.e("ERROR checkContactOnPiki - e="+e.getMessage());
+                    } else if (e != null) {
+                        L.e("ERROR checkContactOnPiki - e=" + e.getMessage());
                         e.printStackTrace();
                     }
                 }
