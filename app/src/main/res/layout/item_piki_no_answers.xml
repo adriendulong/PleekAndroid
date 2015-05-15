@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent">
+
+    <RelativeLayout
+        android:id="@+id/back"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical|right">
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/front"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/transparent"
+        android:clipToPadding="false">
+        
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/piki_react_sep" />
+
+        <RelativeLayout
+            android:id="@+id/top"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/piki_infos_height"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:layout_marginTop="1dp"
+            android:background="@color/blanc">
+            
+            <ImageView
+                android:id="@+id/imgFrom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_from"
+                android:layout_centerVertical="true" />
+
+            <ImageView
+                android:id="@+id/imgRightArrow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_arrow_right_black"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NEW REPLIES"
+                android:textSize="11dp"
+                app:customFont="montserrat-regular.ttf"
+                android:textColor="@color/noir"
+                android:layout_toLeftOf="@id/imgRightArrow"
+                android:layout_marginRight="10dp"
+                android:layout_centerVertical="true" />
+
+            <ImageView
+                android:id="@+id/imgType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/picto_new_replies"
+                android:layout_toLeftOf="@id/txtType"
+                android:layout_marginRight="5dp"
+                android:layout_centerVertical="true" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtUserName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="alicecarter"
+                android:textSize="16dp"
+                app:customFont="proximanova_sbold.otf"
+                android:textColor="@color/noir"
+                android:layout_toRightOf="@id/imgFrom"
+                android:layout_marginLeft="10dp"
+                android:layout_toLeftOf="@id/imgType"
+                android:gravity="center_vertical"
+                android:layout_centerVertical="true" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/piki_infos_height"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_outer_shadow_top_bottom"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+
+            <com.pleek.app.views.BlockingImageView
+                android:id="@+id/imgPiki"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:background="@color/fondBackReact" />
+
+            <com.pleek.app.views.CircleProgressBar
+                android:id="@+id/progressBarPiki"
+                app:mlpb_show_arrow="false"
+                app:mlpb_enable_circle_background="false"
+                app:mlpb_progress_stoke_width="2dp"
+                app:mlpb_progress_text_visibility="invisible"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_centerInParent="true"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/imgPlay"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/picto_play"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </FrameLayout>
+</FrameLayout>

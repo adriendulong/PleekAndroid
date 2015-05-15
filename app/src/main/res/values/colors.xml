@@ -45,6 +45,9 @@
     <color name="likesText">#1D2029</color>
     <color name="overlayShare">#B3303F9F</color>
 
+    <color name="piki_react_sep">#CAD4DB</color>
+    <color name="piki_bg">#E3EAEF</color>
+
     <!-- EMOJI -->
     <color name="emojiGreen">#24E47A</color>
     <color name="emojiLightBlue">#34FFFE</color>

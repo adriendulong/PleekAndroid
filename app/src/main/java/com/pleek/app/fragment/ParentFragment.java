@@ -9,6 +9,7 @@ import android.support.v4.app.Fragment;
 import android.view.View;
 
 import com.goandup.lib.utile.Screen;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.pleek.app.activity.ParentActivity;
 
 import java.util.Set;
@@ -20,12 +21,14 @@ public class ParentFragment extends Fragment {
 
     protected SharedPreferences pref;
     protected Screen screen;
+    protected MixpanelAPI mixpanel;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         pref = getActivity().getSharedPreferences("PREF_PLEEK", Activity.MODE_PRIVATE);
+        mixpanel = ((ParentActivity) getActivity()).getMixpanel();
         screen = Screen.getInstance(getActivity());
     }
 

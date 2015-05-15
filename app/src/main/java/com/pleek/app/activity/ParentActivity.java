@@ -432,4 +432,12 @@ public class ParentActivity extends FragmentActivity
     public void setPref(SharedPreferences pref) {
         this.pref = pref;
     }
+
+    public MixpanelAPI getMixpanel() {
+        return mixpanel;
+    }
+
+    public void setMixpanel(MixpanelAPI mixpanel) {
+        this.mixpanel = mixpanel;
+    }
 }

@@ -17,6 +17,8 @@ import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.parse.ParseObject;
+import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.fragment.InboxFragment;
 import com.pleek.app.fragment.ScrollTabHolderFragment;
@@ -123,7 +125,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         tabIndicator.setViewPager(viewPager);
         tabIndicator.setFades(false);
 
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null) return;
 
+        ParseObject userInfos = currentUser.getParseObject("UserInfos");
+        if (userInfos != null) mixpanel.getPeople().set("$phone", userInfos.getString("phoneNumber"));
+        mixpanel.flush();
 
         if (pendingAnimations) {
             btnPlus.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_size));
@@ -266,5 +273,11 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             .setStartDelay(800)
             .setDuration(300)
             .start();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mixpanel.flush();
+        super.onDestroy();
     }
 }

@@ -13,11 +13,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fadingEdge="none"
-            android:divider="@color/grisSeparate"
-            android:dividerHeight="1dp"
+            android:background="@color/piki_bg"
+            android:dividerHeight="0dp"
             android:fadingEdgeLength="0px"
             android:scrollbars="none" />
 
     </android.support.v4.widget.SwipeRefreshLayout>
-
 </RelativeLayout>

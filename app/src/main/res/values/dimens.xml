@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- PIKIS -->
-    <dimen name="img_piki_width">110dp</dimen>
-    <dimen name="img_piki_height">110dp</dimen>
-    <dimen name="img_piki_small_width">24dp</dimen>
-    <dimen name="img_piki_small_height">24dp</dimen>
+    <dimen name="img_piki_width">211dp</dimen>
+    <dimen name="img_piki_height">211dp</dimen>
+    <dimen name="img_piki_small_width">112dp</dimen>
+    <dimen name="img_piki_small_height">112dp</dimen>
 
     <!-- KEYBOARD -->
     <dimen name="keyboard_height">250dp</dimen>
@@ -18,4 +18,6 @@
 
     <!-- HOME -->
     <dimen name="btn_size">70dp</dimen>
+    <dimen name="piki_infos_height">50dp</dimen>
+
 </resources>
