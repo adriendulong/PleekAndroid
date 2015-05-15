@@ -507,7 +507,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private boolean loadNext(boolean withCache) {
         if (isLoading) return false;
 
-        //il n'y a plus rien a charger
+        // Il n'y a plus rien a charger
         if (endOfLoading) return false;
 
         if (footer.getParent() != null) {

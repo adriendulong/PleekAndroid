@@ -328,33 +328,35 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         final FunctionCallback callback = new FunctionCallback<Object>() {
             @Override
             public void done(Object o, ParseException e) {
-                if (e == null) {
-                    ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
-                        @Override
-                        public void done(Object o, ParseException e) {
-                            if (friend.image == R.drawable.picto_add_user) {
-                                friend.image = R.drawable.picto_added;
-                            } else {
-                                friend.image = R.drawable.picto_add_user;
+                if (isAdded()) {
+                    if (e == null) {
+                        ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
+                            @Override
+                            public void done(Object o, ParseException e) {
+                                if (friend.image == R.drawable.picto_add_user) {
+                                    friend.image = R.drawable.picto_added;
+                                } else {
+                                    friend.image = R.drawable.picto_add_user;
+                                }
+
+                                adapter.removeFriend(friend);
+                                ((FriendsActivity) getActivity()).startAddFriendAnimation();
+
+                                if (type == TYPE_ADDED_YOU) {
+                                    ((FriendsActivity) getActivity()).initPage2();
+                                }
+
+                                ((FriendsActivity) getActivity()).reloadPage3();
+
+                                if (friend.image == R.drawable.picto_added || type == TYPE_ADDED_YOU) {
+                                    adapter.addPikiUser(friend);
+                                }
                             }
-
-                            adapter.removeFriend(friend);
-                            ((FriendsActivity) getActivity()).startAddFriendAnimation();
-
-                            if (type == TYPE_ADDED_YOU) {
-                                ((FriendsActivity) getActivity()).initPage2();
-                            }
-
-                            ((FriendsActivity) getActivity()).reloadPage3();
-
-                            if (friend.image == R.drawable.picto_added || type == TYPE_ADDED_YOU) {
-                                adapter.addPikiUser(friend);
-                            }
-                        }
-                    });
-                } else {
-                    adapter.removeFriend(friend);
-                    Utile.showToast(R.string.pikifriends_action_nok, getActivity());
+                        });
+                    } else {
+                        adapter.removeFriend(friend);
+                        Utile.showToast(R.string.pikifriends_action_nok, getActivity());
+                    }
                 }
             }
         };
@@ -404,7 +406,9 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
     }
 
     public void reload() {
-        adapter.refactorImages(((ParentActivity) getActivity()).getFriendsPrefs());
-        adapter.notifyDataSetChanged();
+        if (isAdded()) {
+            adapter.refactorImages(((ParentActivity) getActivity()).getFriendsPrefs());
+            adapter.notifyDataSetChanged();
+        }
     }
 }
