@@ -12,14 +12,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.goandup.lib.utile.Screen;
-import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.TextViewFont;
-import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ReadDateProvider;
@@ -29,16 +25,20 @@ import com.pleek.app.views.CircleProgressBar;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.util.Date;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.Optional;
 
 /**
  * Created by nicolas on 19/12/14.
  */
 public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
+
+    private static final int PIKI_SIZE = 640;
+    private static final int REACT_SIZE = 360;
+
     // CELL TYPES
     private static final int CELL_WITH_PIKI_WITH_ANSWERS = 0;
     private static final int CELL_WITH_PIKI_WITH_ONE_ANSWER = 1;
@@ -84,19 +84,19 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         //    return CELL_WITHOUT_PIKI;
         //}
 
-        //if (piki.getNbReact() == 0) {
+        if (piki.getNbReact() == 0) {
             return CELL_WITH_PIKI_WITHOUT_ANSWERS;
-        //}
+        }
 
-        //if (piki.getNbReact() == 1) {
-        //    return CELL_WITH_PIKI_WITH_ONE_ANSWER;
-        //}
+        if (piki.getNbReact() == 1) {
+            return CELL_WITH_PIKI_WITH_ONE_ANSWER;
+        }
 
-        //if (piki.getNbReact() >= 2) {
-        //    return CELL_WITH_PIKI_WITH_ANSWERS;
-        //}
+        if (piki.getNbReact() >= 2) {
+            return CELL_WITH_PIKI_WITH_ANSWERS;
+        }
 
-        //return CELL_WITHOUT_PIKI;
+        return CELL_WITH_PIKI_WITHOUT_ANSWERS;
     }
 
     @Override
@@ -125,13 +125,13 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     public View getView(int i, View view, ViewGroup parent) {
         int viewType = getItemViewType(i);
 
-        //switch (viewType) {
-        //    case CELL_WITH_PIKI_WITH_ANSWERS :
+        switch (viewType) {
+            case CELL_WITH_PIKI_WITHOUT_ANSWERS :
                 Piki piki = i < listPiki.size() ? listPiki.get(i) : null;
 
                 if (view == null) {
                     view = LayoutInflater.from(context).inflate(R.layout.item_piki_no_answers, parent, false);
-                    PikiViewHolder vh = new PikiViewHolder(view);
+                    PikiViewHolder vh = new PikiViewHolder(view, viewType);
                     view.setTag(R.id.vh, vh);
 
                     ViewGroup.LayoutParams lp = vh.imgPiki.getLayoutParams();
@@ -152,6 +152,73 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(640, 640).into(vh.customTargetPiki);
                 }
+
+                break;
+
+            case CELL_WITH_PIKI_WITH_ONE_ANSWER :
+                piki = i < listPiki.size() ? listPiki.get(i) : null;
+
+                if (view == null) {
+                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_one_answer, parent, false);
+                    PikiViewHolder vh = new PikiViewHolder(view, viewType);
+                    view.setTag(R.id.vh, vh);
+
+                    setLayoutParams(vh.layoutPiki, (float) 2/3, false);
+                    //setLayoutParams(vh.imgPiki, (float) 2/3, false);
+                    //setLayoutParams(vh.imgReact, (float) 1/3, true);
+                    setLayoutParams(vh.layoutReact, (float) 1 / 3, true);
+                }
+
+                if (piki != null) { // If is not placeholder
+                    PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
+                    vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
+                    vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
+
+                    vh.progressBarPiki.setVisibility(View.VISIBLE);
+
+                    if (vh.customTargetPiki != null) Picasso.with(context).cancelRequest(vh.customTargetPiki);
+
+                    int resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
+
+                    int resizeReact = vh.layoutReact.getLayoutParams().width > REACT_SIZE ? REACT_SIZE : vh.layoutReact.getLayoutParams().width;
+                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(resizeReact, resizeReact).centerCrop().into(vh.customTargetReact1);
+                }
+
+                break;
+
+            case CELL_WITH_PIKI_WITH_ANSWERS :
+                piki = i < listPiki.size() ? listPiki.get(i) : null;
+
+                if (view == null) {
+                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_with_answers, parent, false);
+                    PikiViewHolder vh = new PikiViewHolder(view, viewType);
+                    view.setTag(R.id.vh, vh);
+
+                    setLayoutParams(vh.layoutPiki, (float) 2/3, false);
+                    //setLayoutParams(vh.imgPiki, (float) 2/3, false);
+                    //setLayoutParams(vh.imgReact, (float) 1/3, true);
+                    setLayoutParams(vh.layoutReact, (float) 1/3, true);
+                }
+
+                if (piki != null) { // If is not placeholder
+                    PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
+                    vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
+                    vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
+
+                    vh.progressBarPiki.setVisibility(View.VISIBLE);
+
+                    if (vh.customTargetPiki != null) Picasso.with(context).cancelRequest(vh.customTargetPiki);
+
+                    int resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
+
+                    int resizeReact = vh.layoutReact.getLayoutParams().width > REACT_SIZE ? REACT_SIZE : vh.layoutReact.getLayoutParams().width;
+                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(resizeReact, resizeReact).into(vh.customTargetReact1);
+                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(resizeReact, resizeReact).into(vh.customTargetReact2);
+                }
+
+                break;
 //
 //                    // Image Piki
 //                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize((int) (imgPikiWidth * 0.80), (int) (imgPikiHeight * 0.80)).into(vh.imgPiki);
@@ -223,7 +290,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
             //    view.setLayoutParams(lp);
 
             //    break;
-        //}
+        }
 
         return view;
     }
@@ -319,10 +386,22 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         this.heightListView = heightListView;
     }
 
-    public void setListPiki(List<Piki> listPiki)
-    {
+    public void setListPiki(List<Piki> listPiki) {
         this.listPiki = listPiki;
         notifyDataSetChanged();
+    }
+
+    private void setLayoutParams(View v, float proportion, boolean fullHeight) {
+        ViewGroup.LayoutParams lp = v.getLayoutParams();
+        int size = screen.dpToPx((int) (screen.getWidthDp() * proportion));
+        lp.width = size;
+
+        if (fullHeight) {
+            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        } else {
+            lp.height = size;
+        }
+        v.setLayoutParams(lp);
     }
 
     // INTERFACE
@@ -333,33 +412,35 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
     class CustomTargetPiki implements Target {
 
-        private PikiViewHolder vh;
+        private CircleProgressBar pgBar;
+        private ImageView img;
 
-        public CustomTargetPiki(PikiViewHolder vh) {
-            this.vh = vh;
+        public CustomTargetPiki(CircleProgressBar pgBar, ImageView img) {
+            this.pgBar = pgBar;
+            this.img = img;
         }
 
         @Override
         public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
-            vh.imgPiki.setImageBitmap(bitmap);
-            vh.progressBarPiki.setVisibility(View.GONE);
+            img.setImageBitmap(bitmap);
+            pgBar.setVisibility(View.GONE);
         }
 
         @Override
         public void onBitmapFailed(Drawable errorDrawable) {
-            vh.imgPiki.setImageDrawable(errorDrawable);
-            vh.progressBarPiki.setVisibility(View.GONE);
+            img.setImageDrawable(errorDrawable);
+            pgBar.setVisibility(View.GONE);
         }
 
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            vh.imgPiki.setImageDrawable(placeHolderDrawable);
+            img.setImageDrawable(placeHolderDrawable);
         }
 
         @Override
         public boolean equals(Object o) {
             if (o instanceof CustomTargetPiki) {
-                return ((CustomTargetPiki) o).vh.imgPiki.equals(this.vh.imgPiki);
+                return ((CustomTargetPiki) o).img.equals(this.img);
             }
 
             return super.equals(o);
@@ -367,7 +448,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
         @Override
         public int hashCode() {
-            return vh.imgPiki.hashCode();
+            return img.hashCode();
         }
     }
 
@@ -384,12 +465,43 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         TextViewFont txtUserName;
         @InjectView(R.id.progressBarPiki)
         CircleProgressBar progressBarPiki;
-        CustomTargetPiki customTargetPiki;
+        @Optional
+        @InjectView(R.id.progressBarReact)
+        CircleProgressBar progressBarReact;
+        @Optional
+        @InjectView(R.id.imgReact)
+        ImageView imgReact;
+        @Optional
+        @InjectView(R.id.layoutPiki)
+        ViewGroup layoutPiki;
+        @Optional
+        @InjectView(R.id.layoutReact)
+        ViewGroup layoutReact;
+        @Optional
+        @InjectView(R.id.progressBarReact1)
+        CircleProgressBar progressBarReact1;
+        @Optional
+        @InjectView(R.id.imgReact1)
+        ImageView imgReact1;
 
-        public PikiViewHolder(View itemView) {
+        CustomTargetPiki customTargetPiki;
+        CustomTargetPiki customTargetReact1;
+        CustomTargetPiki customTargetReact2;
+
+        public PikiViewHolder(View itemView, int type) {
             super(itemView);
             ButterKnife.inject(this, itemView);
-            customTargetPiki = new CustomTargetPiki(this);
+
+            if (type == CELL_WITH_PIKI_WITHOUT_ANSWERS) {
+                customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
+            } else if (type == CELL_WITH_PIKI_WITH_ONE_ANSWER) {
+                customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
+                customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
+            } else if (type == CELL_WITH_PIKI_WITH_ANSWERS) {
+                customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
+                customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
+                customTargetReact2 = new CustomTargetPiki(progressBarReact1, imgReact1);
+            }
         }
     }
 }

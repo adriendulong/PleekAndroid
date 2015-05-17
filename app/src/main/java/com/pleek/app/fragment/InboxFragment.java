@@ -1,7 +1,6 @@
 package com.pleek.app.fragment;
 
 import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -9,42 +8,26 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
-import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
-import android.widget.ImageView;
 
-import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.ListViewScrollingOff;
-import com.goandup.lib.widget.SwipeRefreshLayoutScrollingOff;
 import com.parse.FindCallback;
-import com.parse.FunctionCallback;
-import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
-import com.pleek.app.activity.CaptureActivity;
 import com.pleek.app.activity.InboxActivity;
 import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.activity.PikiActivity;
 import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.bean.Piki;
-import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.common.Constants;
-import com.pleek.app.interfaces.ListViewScrollTracker;
-import com.pleek.app.interfaces.OnCollapseABListener;
 import com.pleek.app.interfaces.QuickReturnListViewOnScrollListener;
-import com.pleek.app.interfaces.ScrollTabHolder;
-import com.pleek.app.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -147,7 +130,8 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
         endOfLoading = false;
         refreshSwipe.post(new Runnable() {
             @Override public void run() {
-                refreshSwipe.setRefreshing(loadNext(withCache));
+                //refreshSwipe.setRefreshing(loadNext(withCache));
+                loadNext(withCache);
             }
         });
     }
@@ -230,10 +214,16 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser == null) return;
 
-        friends.add(currentUser);
+        if (type == TYPE_INBOX) {
+            friends.add(currentUser);
+        }
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-        query.whereContainedIn("user", friends);
+        if (type == TYPE_SENT) {
+            query.whereEqualTo("user", currentUser);
+        } else {
+            query.whereContainedIn("user", friends);
+        }
         if (ParseUser.getCurrentUser().get("pleeksHide") != null) {
             query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHide"));
         }
