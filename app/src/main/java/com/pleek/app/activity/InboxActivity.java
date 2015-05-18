@@ -189,41 +189,6 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         oldScroll = scrollHeight;
     }
 
-//    @Override
-//    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount, int pagePosition) {
-//        int scrollY = getScrollY(view);
-//
-//        if (viewPager.getCurrentItem() == pagePosition) {
-//            header.setTranslationY(Math.max(-scrollY, minHeaderTranslation));
-//        }
-//
-//        if (oldScroll > scrollY) {
-//            System.out.println("GOING UP");
-//
-//        } else {
-//            System.out.println("GOING DOWN");
-//        }
-//
-//        oldScroll = scrollY;
-//    }
-
-//    public int getScrollY(AbsListView view) {
-//        View c = view.getChildAt(0);
-//        if (c == null) {
-//            return 0;
-//        }
-//
-//        int firstVisiblePosition = view.getFirstVisiblePosition();
-//        int top = c.getTop();
-//
-//        int headerHeight = 0;
-//        if (firstVisiblePosition >= 1) {
-//            headerHeight = headerHeightOG;
-//        }
-//
-//        return -top + firstVisiblePosition * c.getHeight() + headerHeight;
-//    }
-
     public class PagerAdapter extends FragmentPagerAdapter {
 
         private SparseArray<ScrollTabHolder> fragments;

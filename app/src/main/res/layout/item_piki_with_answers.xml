@@ -4,27 +4,79 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/transparent">
+    android:background="@color/transparent"
+    android:paddingBottom="10dp">
 
     <RelativeLayout
-        android:id="@+id/back"
+        android:id="@+id/backBg"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical|right">
+        android:layout_height="match_parent">
 
+        <View
+            android:id="@+id/bgDeleteItemOff"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/piki_back_inactive_bg" />
+
+        <View
+            android:id="@+id/bgDeleteItemOn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/piki_back_active_bg"
+            android:alpha="0" />
+
+        <RelativeLayout
+            android:id="@+id/back"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|right">
+
+            <LinearLayout
+                android:id="@+id/imgDeleteItemOff"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_pleek_delete_disabled" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/imgDeleteItemOn"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:alpha="0"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/picto_pleek_delete" />
+
+            </LinearLayout>
+        </RelativeLayout>
     </RelativeLayout>
 
     <FrameLayout
         android:id="@+id/front"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@color/transparent">
+        android:background="@null">
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:background="@color/piki_react_sep" />
+            android:layout_height="1dp"
+            android:background="@color/piki_react_sep"
+            android:layout_gravity="top" />
 
         <RelativeLayout
             android:id="@+id/top"
@@ -87,22 +139,26 @@
 
         </RelativeLayout>
 
+        <View
+            android:id="@+id/viewBg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/blanc"
+            android:layout_marginTop="@dimen/piki_infos_height_margin" />
+
         <RelativeLayout
             android:id="@+id/layoutPiki"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/piki_infos_height"
-            android:layout_marginBottom="8dp"
+            android:layout_marginTop="@dimen/piki_infos_height_margin"
             android:background="@drawable/bg_outer_shadow_top_bottom_right"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
             android:layout_gravity="left">
 
             <com.pleek.app.views.BlockingImageView
                 android:id="@+id/imgPiki"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_centerInParent="true"
+                android:layout_alignParentLeft="true"
                 android:background="@color/fondBackReact"
                 android:scaleType="centerCrop" />
 
@@ -130,10 +186,7 @@
             android:id="@+id/layoutReact"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/piki_infos_height"
-            android:layout_marginBottom="8dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
+            android:layout_marginTop="@dimen/piki_infos_height_margin"
             android:layout_gravity="right"
             android:background="@drawable/bg_outer_shadow_top_bottom_left"
             android:orientation="vertical">
@@ -149,7 +202,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_centerInParent="true"
-                    android:background="@color/fondBackReact" />
+                    android:background="@color/fondBackReact"
+                    android:scaleType="centerCrop" />
 
                 <com.pleek.app.views.CircleProgressBar
                     android:id="@+id/progressBarReact"
@@ -166,7 +220,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="0.5dp"
                 android:background="@color/piki_react_sep" />
 
             <RelativeLayout
@@ -180,7 +234,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_centerInParent="true"
-                    android:background="@color/fondBackReact" />
+                    android:background="@color/fondBackReact"
+                    android:scaleType="centerCrop" />
 
                 <com.pleek.app.views.CircleProgressBar
                     android:id="@+id/progressBarReact1"

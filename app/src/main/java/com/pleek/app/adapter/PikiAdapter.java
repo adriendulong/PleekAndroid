@@ -12,7 +12,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.goandup.lib.utile.Screen;
 import com.goandup.lib.widget.TextViewFont;
@@ -139,6 +141,9 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     lp.width = size;
                     lp.height = size;
                     vh.imgPiki.setLayoutParams(lp);
+
+                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
+                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (2 * screen.getDensity())));
                 }
 
                 if (piki != null) { // If is not placeholder
@@ -150,7 +155,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
                     if (vh.customTargetPiki != null) Picasso.with(context).cancelRequest(vh.customTargetPiki);
 
-                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(640, 640).into(vh.customTargetPiki);
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(PIKI_SIZE, PIKI_SIZE).into(vh.customTargetPiki);
                 }
 
                 break;
@@ -163,10 +168,13 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     PikiViewHolder vh = new PikiViewHolder(view, viewType);
                     view.setTag(R.id.vh, vh);
 
-                    setLayoutParams(vh.layoutPiki, (float) 2/3, false);
-                    //setLayoutParams(vh.imgPiki, (float) 2/3, false);
-                    //setLayoutParams(vh.imgReact, (float) 1/3, true);
-                    setLayoutParams(vh.layoutReact, (float) 1 / 3, true);
+                    int height = (int) (screen.getWidth() * (float) 2/3);
+
+                    setLayoutParams(vh.layoutPiki, (int) height, height);
+                    setLayoutParams(vh.viewBg, screen.getWidth(),  height - (int) (3 * screen.getDensity()));
+                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
+                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
+                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
                 }
 
                 if (piki != null) { // If is not placeholder
@@ -175,8 +183,10 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
 
                     vh.progressBarPiki.setVisibility(View.VISIBLE);
+                    vh.progressBarReact.setVisibility(View.VISIBLE);
 
                     if (vh.customTargetPiki != null) Picasso.with(context).cancelRequest(vh.customTargetPiki);
+                    if (vh.customTargetReact1 != null) Picasso.with(context).cancelRequest(vh.customTargetReact1);
 
                     int resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
@@ -195,10 +205,12 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     PikiViewHolder vh = new PikiViewHolder(view, viewType);
                     view.setTag(R.id.vh, vh);
 
-                    setLayoutParams(vh.layoutPiki, (float) 2/3, false);
-                    //setLayoutParams(vh.imgPiki, (float) 2/3, false);
-                    //setLayoutParams(vh.imgReact, (float) 1/3, true);
-                    setLayoutParams(vh.layoutReact, (float) 1/3, true);
+                    int height = (int) (screen.getWidth() * (float) 2/3);
+                    setLayoutParams(vh.layoutPiki, height, height);
+                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
+                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
+                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
+                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
                 }
 
                 if (piki != null) { // If is not placeholder
@@ -207,8 +219,12 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
 
                     vh.progressBarPiki.setVisibility(View.VISIBLE);
+                    vh.progressBarReact.setVisibility(View.VISIBLE);
+                    vh.progressBarReact1.setVisibility(View.VISIBLE);
 
                     if (vh.customTargetPiki != null) Picasso.with(context).cancelRequest(vh.customTargetPiki);
+                    if (vh.customTargetReact1 != null) Picasso.with(context).cancelRequest(vh.customTargetReact1);
+                    if (vh.customTargetReact2 != null) Picasso.with(context).cancelRequest(vh.customTargetReact2);
 
                     int resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
@@ -292,61 +308,56 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
             //    break;
         }
 
+        view.setTag(new Integer(i));
+
         return view;
     }
 
     private static int FADE_TIME = 150;//ms
 
     @Override
-    public boolean onTouch(View view, MotionEvent event)
-    {
-//        int action = event.getAction();
-//
-//        if(view.getTag() instanceof Integer)
-//        {
-//            int position = (Integer)view.getTag();
-//
-//            DownRunnable down = (DownRunnable)view.getTag(R.string.tag_downpresse);
-//            if(action == MotionEvent.ACTION_DOWN)
-//            {
-//                //highlight with 90ms delay. Because I dont want highlight if user scroll
-//                handler.postDelayed(down, DOWN_TIME);
-//            }
-//            else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP)
-//            {
-//                //finger move, cancel highlight
-//                handler.removeCallbacks(down);
-//
-//                itemMarkDown(view, false);
-//            }
-//            if(action == MotionEvent.ACTION_UP)
-//            {
-//                //highlight just after clicked
-//                itemMarkDown(view, true);
-//
-//                handler.postDelayed(down, DOWN_TIME);
-//
-//                //send to listener
-//                if(listener != null)
-//                {
-//                    Piki piki = listPiki.get(position);
-//                    final TextView txtUnread = (TextView) view.findViewById(R.id.txtUnread);
-//                    final TextView txtRead = (TextView) view.findViewById(R.id.txtRead);
-//                    if(txtUnread.getVisibility() == View.VISIBLE)
-//                    {
-//                        Utile.fadeOut(txtUnread, FADE_TIME);
-//                        if(piki.getNbReact() > NB_THUMBNAIL_REACT) Utile.fadeIn(txtRead, FADE_TIME);
-//                    }
-//
-//                    listener.clickOnPiki(piki);
-//                }
-//            }
-//        }
+    public boolean onTouch(View view, MotionEvent event) {
+        int action = event.getAction();
+
+        if (view.getTag() instanceof Integer) {
+            int position = (Integer)view.getTag();
+
+            DownRunnable down = (DownRunnable)view.getTag(R.string.tag_downpresse);
+            if (action == MotionEvent.ACTION_DOWN) {
+                //highlight with 90ms delay. Because I dont want highlight if user scroll
+                handler.postDelayed(down, DOWN_TIME);
+            } else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+                //finger move, cancel highlight
+                handler.removeCallbacks(down);
+
+                //itemMarkDown(view, false);
+            }
+
+            if (action == MotionEvent.ACTION_UP) {
+                //highlight just after clicked
+                //itemMarkDown(view, true);
+
+                handler.postDelayed(down, DOWN_TIME);
+
+                //send to listener
+                if (listener != null) {
+                    Piki piki = listPiki.get(position);
+                    //final TextView txtUnread = (TextView) view.findViewById(R.id.txtUnread);
+                    //final TextView txtRead = (TextView) view.findViewById(R.id.txtRead);
+                    //if(txtUnread.getVisibility() == View.VISIBLE)
+                    //{
+                    //    Utile.fadeOut(txtUnread, FADE_TIME);
+                    //    if(piki.getNbReact() > NB_THUMBNAIL_REACT) Utile.fadeIn(txtRead, FADE_TIME);
+                    //}
+
+                    listener.clickOnPiki(piki);
+                }
+            }
+        }
         return true;
     }
 
-    public Piki removePiki(int position)
-    {
+    public Piki removePiki(int position) {
         Piki removed = listPiki.remove(position);
         notifyDataSetChanged();
         return removed;
@@ -355,8 +366,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     //DOWN EFFECT
     private static int DOWN_TIME = 90;//ms
     final Handler handler = new Handler();
-    class DownRunnable implements Runnable
-    {
+    class DownRunnable implements Runnable {
         private View view;
 
         public DownRunnable(View view) {
@@ -371,8 +381,8 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
             itemMarkDown(view, !isVisible);
         }
     }
-    private void itemMarkDown(View item, boolean down)
-    {
+
+    private void itemMarkDown(View item, boolean down) {
         View layoutOverlay = item.findViewById(R.id.layoutOverlay);
         if(layoutOverlay != null)
         {
@@ -391,16 +401,10 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         notifyDataSetChanged();
     }
 
-    private void setLayoutParams(View v, float proportion, boolean fullHeight) {
+    private void setLayoutParams(View v, int width, int height) {
         ViewGroup.LayoutParams lp = v.getLayoutParams();
-        int size = screen.dpToPx((int) (screen.getWidthDp() * proportion));
-        lp.width = size;
-
-        if (fullHeight) {
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-        } else {
-            lp.height = size;
-        }
+        lp.width = width;
+        lp.height = height;
         v.setLayoutParams(lp);
     }
 
@@ -455,6 +459,16 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     class PikiViewHolder extends RecyclerView.ViewHolder {
         @InjectView(R.id.back)
         RelativeLayout layoutBack;
+        @InjectView(R.id.backBg)
+        RelativeLayout layoutBackBg;
+        @InjectView(R.id.bgDeleteItemOff)
+        View bgDeleteItemOff;
+        @InjectView(R.id.bgDeleteItemOn)
+        View bgDeleteItemOn;
+        @InjectView(R.id.imgDeleteItemOff)
+        LinearLayout imgDeleteItemOff;
+        @InjectView(R.id.imgDeleteItemOn)
+        LinearLayout imgDeleteItemOn;
         @InjectView(R.id.front)
         FrameLayout layoutFront;
         @InjectView(R.id.imgPiki)
@@ -483,6 +497,9 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         @Optional
         @InjectView(R.id.imgReact1)
         ImageView imgReact1;
+        @Optional
+        @InjectView(R.id.viewBg)
+        View viewBg;
 
         CustomTargetPiki customTargetPiki;
         CustomTargetPiki customTargetReact1;
@@ -502,6 +519,8 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                 customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
                 customTargetReact2 = new CustomTargetPiki(progressBarReact1, imgReact1);
             }
+
+            layoutFront.setOnTouchListener(PikiAdapter.this);
         }
     }
 }

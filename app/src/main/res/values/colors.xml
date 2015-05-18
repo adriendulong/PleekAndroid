@@ -47,6 +47,8 @@
 
     <color name="piki_react_sep">#CAD4DB</color>
     <color name="piki_bg">#E3EAEF</color>
+    <color name="piki_back_active_bg">#EF5350</color>
+    <color name="piki_back_inactive_bg">#F2F5F7</color>
 
     <!-- EMOJI -->
     <color name="emojiGreen">#24E47A</color>
