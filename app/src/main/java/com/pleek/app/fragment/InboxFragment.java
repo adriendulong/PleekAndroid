@@ -438,8 +438,8 @@ public class InboxFragment extends ScrollTabHolderFragment implements PikiAdapte
                                                     downItem = null;
 
                                                     Piki removedPiki = adapter.removePiki(position);
-
-                                                    if (!removedPiki.isPublic()) {
+                                                    boolean me = removedPiki.getName().equals(ParseUser.getCurrentUser().getUsername());
+                                                    if (me) {
                                                         //Parse remove Piki
                                                         HashMap<String, String> params = new HashMap<String, String>();
                                                         params.put("pikiId", removedPiki.getId());

@@ -25,9 +25,9 @@ public class Piki extends VideoBean
     private Date updatedAt;
     private List<String> frinedsId;
     private boolean isPublic;
+    private boolean isBest;
 
-    public Piki(ParseObject parseObject)
-    {
+    public Piki(ParseObject parseObject) {
         if(parseObject == null) return;
 
         id = parseObject.getObjectId();
@@ -51,7 +51,10 @@ public class Piki extends VideoBean
         isPublic = parseObject.getBoolean("isPublic");
         this.parseObject = parseObject;
 
+
         urlVideo = parseObject.getParseFile("video") != null ? parseObject.getParseFile("video").getUrl() : null;
+
+        isBest = false;
     }
 
     public String getName() {
@@ -172,5 +175,13 @@ public class Piki extends VideoBean
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+
+    public boolean isBest() {
+        return isBest;
+    }
+
+    public void setBest(boolean isBest) {
+        this.isBest = isBest;
     }
 }

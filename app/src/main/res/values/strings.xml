@@ -44,7 +44,7 @@
     <string name="adduser_btn_next_done">ALL SET!</string>
 
     <!-- HOME -->
-    <string name="home_firstreply">FIRST REPLY</string>
+    <string name="home_firstreply">REPLY FIRST</string>
     <string name="home_new">NEW</string>
     <string name="home_delete">DELETE</string>
     <string name="home_hide">HIDE</string>
@@ -58,6 +58,9 @@
     <string name="home_inbox">INBOX</string>
     <string name="home_sent">SENT</string>
     <string name="home_best">BEST</string>
+    <string name="home_new_replies">NEW REPLIES</string>
+    <string name="home_new_picture">NEW PICTURE</string>
+    <string name="home_new_video">NEW VIDEO</string>
 
     <!-- PIKI -->
     <string name="piki_friend">friend</string>
@@ -86,6 +89,7 @@
     <string name="piki_react_delete">DELETE</string>
     <string name="piki_react_remove_like_nok">Can\'t remove your like for now.</string>
     <string name="piki_replies">REPLIES</string>
+    <string name="piki_reply">REPLY</string>
     <string name="piki_reply_first">REPLY FIRST</string>
 
     <!-- PIKIFRIENDS -->
