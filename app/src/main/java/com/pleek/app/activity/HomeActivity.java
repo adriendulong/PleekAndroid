@@ -513,8 +513,9 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                                                     downItem = null;
 
                                                     Piki removedPiki = adapter.removePiki(position);
+                                                    boolean me = removedPiki.getName().equals(ParseUser.getCurrentUser().getUsername());
 
-                                                    if (!removedPiki.isPublic()) {
+                                                    if (me) {
                                                         //Parse remove Piki
                                                         HashMap<String, String> params = new HashMap<String, String>();
                                                         params.put("pikiId", removedPiki.getId());

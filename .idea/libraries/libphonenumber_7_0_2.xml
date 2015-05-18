@@ -4,8 +4,6 @@
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.googlecode.libphonenumber/libphonenumber/7.0.2/a5faad429a02b37f3451e9f7d44751f7fa7cb641/libphonenumber-7.0.2.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.googlecode.libphonenumber/libphonenumber/7.0.2/89cd486729827891dce85326b5ca9d3a137bb11a/libphonenumber-7.0.2-sources.jar!/" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>
