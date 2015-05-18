@@ -195,6 +195,9 @@
         <activity android:name="com.mixpanel.android.surveys.SurveyActivity" />
 
         <meta-data android:name="com.parse.push.notification_icon" android:resource="@drawable/picto_notif" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="88d99ad9ad1a2be9b3d545a4ef1aef4066c5d820" />
     </application>
 
 </manifest>
