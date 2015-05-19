@@ -57,45 +57,9 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
         return fragment;
     }
 
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        setup();
-        init();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_inbox, null);
-
-        ButterKnife.inject(this, v);
-
-        return v;
-    }
-
-    private void setup() {
-        scrollListener = new QuickReturnListViewOnScrollListener.Builder()
-                .header(header)
-                .minHeaderTranslation(-getResources().getDimensionPixelSize(R.dimen.top_bar_height))
-                .build();
-
-        View placeHolderView = getActivity().getLayoutInflater().inflate(R.layout.item_empty_header, listViewPiki, false);
-        listViewPiki.addHeaderView(placeHolderView);
+    protected void setup() {
+        super.setup();
         listViewPiki.setOnTouchListener(new MyListTouchListener());
-        listViewPiki.setOnScrollListener(new MyOnScrollListener());
-        listViewPiki.setHeaderDividersEnabled(false);
-        refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
-        refreshSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                shouldReinit = true;
-                init(false);
-            }
-        });
-        refreshSwipe.setProgressViewOffset(false, 0, (int) (getResources().getDimensionPixelSize(R.dimen.header_height) + 20 * screen.getDensity()));
-
-        footer = getActivity().getLayoutInflater().inflate(R.layout.item_footer, null);
-        listViewPiki.addFooterView(footer);
         adapter = new PikiAdapter(new ArrayList<Piki>(), this, getActivity());
         listViewPiki.post(new Runnable() {
             @Override
@@ -106,37 +70,11 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
         });
     }
 
-    private void init() {
-        init(true);
-    }
-    private void init(final boolean withCache) {
-        currentPage = 0;
-        lastItemShow = 0;
-
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        if (currentUser == null) return;
-
-        endOfLoading = false;
-        refreshSwipe.post(new Runnable() {
-            @Override public void run() {
-                //refreshSwipe.setRefreshing(loadNext(withCache));
-                loadNext(withCache);
-            }
-        });
-    }
-
-    private boolean fromCache;
-    private int currentPage;
-    private final int NB_BY_PAGE = 25;
-    private List<Piki> listBeforreRequest;
-    private boolean isLoading;
-    private boolean endOfLoading;
-    private boolean shouldRefreshFriends = true;
-    private boolean loadNext(final boolean withCache) {
-        //si déjà en train de loader, on fait rien
+    protected boolean loadNext(final boolean withCache) {
+        // si déjà en train de loader, on fait rien
         if(isLoading) return false;
 
-        //il n'y a plus rien a charger
+        // il n'y a plus rien a charger
         if(endOfLoading) return false;
 
         //on récupère le currentUser, si il n'existe pas, on fait rien
@@ -199,7 +137,7 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
         return true;
     }
 
-    private void loadPikis(boolean withCache) {
+    protected void loadPikis(boolean withCache) {
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser == null) return;
 
@@ -559,32 +497,6 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
             }
 
             downItem = null;
-        }
-    }
-
-    private int lastItemShow;
-    private class MyOnScrollListener implements AbsListView.OnScrollListener {
-
-        @Override
-        public void onScrollStateChanged(AbsListView absListView, int i) {
-            scrollListener.onScrollStateChanged(absListView, i);
-        }
-
-        @Override
-        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-            scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
-
-            ((InboxActivity) getActivity()).adjustScroll(scrollListener.getPrevScrollY());
-
-            //pagination
-            final int lastItem = firstVisibleItem + visibleItemCount;
-            if (lastItem == totalItemCount) {
-                if (lastItemShow < lastItem) {
-                    if (loadNext(true)) {
-                        lastItemShow = lastItem;
-                    }
-                }
-            }
         }
     }
 

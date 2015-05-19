@@ -497,58 +497,26 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         CustomTargetPiki customTargetReact1;
         CustomTargetPiki customTargetReact2;
 
-        @Optional
-        @InjectView(R.id.progressBarReact11)
-        CircularProgressBar progressBarReact11;
-        @Optional
-        @InjectView(R.id.progressBarReact12)
-        CircularProgressBar progressBarReact12;
-        @Optional
-        @InjectView(R.id.progressBarReact13)
-        CircularProgressBar progressBarReact13;
-        @Optional
-        @InjectView(R.id.progressBarReact21)
-        CircularProgressBar progressBarReact21;
-        @Optional
-        @InjectView(R.id.progressBarReact22)
-        CircularProgressBar progressBarReact22;
-        @Optional
-        @InjectView(R.id.progressBarReact23)
-        CircularProgressBar progressBarReact23;
-
-        @Optional
-        @InjectView(R.id.imgReact11)
-        ImageView imgBestReact11;
-        @Optional
-        @InjectView(R.id.imgReact12)
-        ImageView imgBestReact12;
-        @Optional
-        @InjectView(R.id.imgReact13)
-        ImageView imgBestReact13;
-        @Optional
-        @InjectView(R.id.imgReact21)
-        ImageView imgBestReact21;
-        @Optional
-        @InjectView(R.id.imgReact22)
-        ImageView imgBestReact22;
-        @Optional
-        @InjectView(R.id.imgReact23)
-        ImageView imgBestReact23;
-
-
         public PikiViewHolder(View itemView, int type) {
             super(itemView);
             ButterKnife.inject(this, itemView);
 
             if (type == CELL_WITH_PIKI_WITHOUT_ANSWERS) {
                 customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
+
+                progressBarPiki.setColorSchemeResources(R.color.progressBar);
             } else if (type == CELL_WITH_PIKI_WITH_ONE_ANSWER) {
                 customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
                 customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
+
+                progressBarReact.setColorSchemeResources(R.color.progressBar);
             } else if (type == CELL_WITH_PIKI_WITH_ANSWERS) {
                 customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
                 customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
                 customTargetReact2 = new CustomTargetPiki(progressBarReact1, imgReact1);
+
+                progressBarReact1.setColorSchemeResources(R.color.progressBar);
+                progressBarReact.setColorSchemeResources(R.color.progressBar);
             }
 
             layoutFront.setOnTouchListener(PikiAdapter.this);

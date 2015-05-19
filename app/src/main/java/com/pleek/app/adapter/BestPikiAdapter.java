@@ -47,11 +47,7 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
     private static final int REACT_SIZE = 360;
 
     // CELL TYPES
-    private static final int CELL_WITH_PIKI_WITH_ANSWERS = 0;
-    private static final int CELL_WITH_PIKI_WITH_ONE_ANSWER = 1;
-    private static final int CELL_WITH_PIKI_WITHOUT_ANSWERS = 2;
-    private static final int CELL_WITHOUT_PIKI = 3;
-    private static final int CELL_BEST = 4;
+    private static final int CELL_BEST = 0;
 
     private List<Piki> listPiki;
     private Listener listener;
@@ -59,7 +55,9 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
 
     private int heightListView;
     private Screen screen;
-    private ReadDateProvider readDataProvider;
+
+    private int sizePiki;
+    private int sizeReact;
 
     public BestPikiAdapter(List<Piki> listPiki, Listener listener) {
         this(listPiki, listener, listener instanceof Context ? (Context) listener : null);
@@ -71,42 +69,23 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
         this.context = context;
 
         screen = Screen.getInstance(context);
-        readDataProvider = ReadDateProvider.getInstance(context);
     }
 
     @Override
     public int getItemViewType(int position) {
-        Piki piki = position < listPiki.size() ? listPiki.get(position) : null;
-
-        if (piki.isBest()) {
-            return CELL_BEST;
-        }
-
-        if (piki.getNbReact() == 0) {
-            return CELL_WITH_PIKI_WITHOUT_ANSWERS;
-        }
-
-        if (piki.getNbReact() == 1) {
-            return CELL_WITH_PIKI_WITH_ONE_ANSWER;
-        }
-
-        if (piki.getNbReact() >= 2) {
-            return CELL_WITH_PIKI_WITH_ANSWERS;
-        }
-
-        return CELL_WITH_PIKI_WITHOUT_ANSWERS;
+        return CELL_BEST;
     }
 
     @Override
     public int getViewTypeCount() {
-        return 5;
+        return 1;
     }
 
     @Override
     public int getCount() {
         if (listPiki == null) return 0;
 
-        return listPiki.size();
+        return listPiki.size() / 2;
     }
 
     @Override
@@ -125,192 +104,89 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
 
         if (view == null) {
             switch (viewType) {
-                case CELL_WITH_PIKI_WITHOUT_ANSWERS:
-                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_no_answers, parent, false);
+                case CELL_BEST:
+                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_best, parent, false);
                     PikiViewHolder vh = new PikiViewHolder(view, viewType);
                     view.setTag(R.id.vh, vh);
 
-                    ViewGroup.LayoutParams lp = vh.imgPiki.getLayoutParams();
-                    int size = screen.dpToPx(screen.getWidthDp());
-                    lp.width = size;
-                    lp.height = size;
-                    vh.imgPiki.setLayoutParams(lp);
-
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (2 * screen.getDensity())));
-
-                    break;
-
-                case CELL_WITH_PIKI_WITH_ONE_ANSWER:
-                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_one_answer, parent, false);
-                    vh = new PikiViewHolder(view, viewType);
-                    view.setTag(R.id.vh, vh);
-
-                    int height = (int) (screen.getWidth() * (float) 2 / 3);
-
-                    setLayoutParams(vh.layoutPiki, (int) height, height);
-                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1 / 3), height);
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
-
-                    break;
-
-                case CELL_WITH_PIKI_WITH_ANSWERS:
-                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_with_answers, parent, false);
-                    vh = new PikiViewHolder(view, viewType);
-                    view.setTag(R.id.vh, vh);
-
-                    height = (int) (screen.getWidth() * (float) 2/3);
-                    setLayoutParams(vh.layoutPiki, height, height);
-                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
-
-                    break;
-
-                case CELL_BEST:
-                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_best, parent, false);
-                    vh = new PikiViewHolder(view, viewType);
-                    view.setTag(R.id.vh, vh);
-
-                    height = (int) (screen.getWidth() * (float) 2/3);
-                    setLayoutParams(vh.layoutPiki, height, height);
-                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
+                    sizePiki = screen.getWidth() / 2;
+                    sizeReact = sizePiki / 3;
+                    setLayoutParams(vh.layoutPiki1, sizePiki, sizePiki + sizeReact);
+                    setLayoutParams(vh.layoutPiki2, sizePiki, sizePiki + sizeReact);
+                    setLayoutParams(vh.layoutPikiFrame1, sizePiki, sizePiki - (int) (8 * screen.getDensity()));
+                    setLayoutParams(vh.layoutPikiFrame2, sizePiki, sizePiki - (int) (8 * screen.getDensity()));
+                    setLayoutParams(vh.layoutReact1, ViewGroup.LayoutParams.MATCH_PARENT, sizeReact);
+                    setLayoutParams(vh.layoutReact2, ViewGroup.LayoutParams.MATCH_PARENT, sizeReact);
 
                     break;
             }
         }
 
         PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
-        Piki piki = i < listPiki.size() ? listPiki.get(i) : null;
+        Piki piki = listPiki.get(i);
+        Piki piki2 = listPiki.get(i * 1 + 1);
 
         if (piki != null) { // If is not placeholder
             switch (viewType) {
-                case CELL_WITH_PIKI_WITHOUT_ANSWERS:
-                    vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
-                    vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
-                    vh.progressBarPiki.setVisibility(View.VISIBLE);
+                case CELL_BEST:
+                    vh.progressBarPiki1.setVisibility(View.VISIBLE);
+                    vh.progressBarPiki2.setVisibility(View.VISIBLE);
+                    vh.progressBarReact11.setVisibility(View.VISIBLE);
+                    vh.progressBarReact12.setVisibility(View.VISIBLE);
+                    vh.progressBarReact13.setVisibility(View.VISIBLE);
+                    vh.progressBarReact21.setVisibility(View.VISIBLE);
+                    vh.progressBarReact22.setVisibility(View.VISIBLE);
+                    vh.progressBarReact23.setVisibility(View.VISIBLE);
 
-                    if (vh.customTargetPiki != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetPiki);
+                    if (vh.customTargetPiki1 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetPiki1);
+                    if (vh.customTargetPiki2 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetPiki2);
+                    if (vh.customTargetReact11 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetReact11);
+                    if (vh.customTargetReact12 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetReact12);
+                    if (vh.customTargetReact13 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetReact13);
+                    if (vh.customTargetReact21 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetReact21);
+                    if (vh.customTargetReact22 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetReact22);
+                    if (vh.customTargetReact23 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetReact23);
 
-                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(PIKI_SIZE, PIKI_SIZE).into(vh.customTargetPiki);
-                    break;
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().into(vh.customTargetPiki1);
+                    PicassoUtils.with(context).load(piki2.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().into(vh.customTargetPiki2);
 
-                case CELL_WITH_PIKI_WITH_ONE_ANSWER:
-                    vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
-                    vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
+                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact11);
+                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact12);
+                    PicassoUtils.with(context).load(piki.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact13);
 
-                    vh.progressBarPiki.setVisibility(View.VISIBLE);
-                    vh.progressBarReact.setVisibility(View.VISIBLE);
-
-                    if (vh.customTargetPiki != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetPiki);
-                    if (vh.customTargetReact1 != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetReact1);
-
-                    int resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
-                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
-
-                    int resizeReact = vh.layoutReact.getLayoutParams().width > REACT_SIZE ? REACT_SIZE : vh.layoutReact.getLayoutParams().width;
-                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(resizeReact, resizeReact).centerCrop().into(vh.customTargetReact1);
-
-                    break;
-
-                case CELL_WITH_PIKI_WITH_ANSWERS:
-                    vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
-                    vh.imgPlay.setVisibility(piki.isVideo() ? View.VISIBLE : View.GONE);
-
-                    vh.progressBarPiki.setVisibility(View.VISIBLE);
-                    vh.progressBarReact.setVisibility(View.VISIBLE);
-                    vh.progressBarReact1.setVisibility(View.VISIBLE);
-
-                    if (vh.customTargetPiki != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetPiki);
-                    if (vh.customTargetReact1 != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetReact1);
-                    if (vh.customTargetReact2 != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetReact2);
-
-                    resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
-                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
-
-                    resizeReact = vh.layoutReact.getLayoutParams().width > REACT_SIZE ? REACT_SIZE : vh.layoutReact.getLayoutParams().width;
-                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(resizeReact, resizeReact).into(vh.customTargetReact1);
-                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(resizeReact, resizeReact).into(vh.customTargetReact2);
+                    PicassoUtils.with(context).load(piki2.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact21);
+                    PicassoUtils.with(context).load(piki2.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact22);
+                    PicassoUtils.with(context).load(piki2.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact23);
 
                     break;
-            }
-
-            // Label Piki
-            Date readDate = readDataProvider.getReadDate(piki.getId());
-            Date updateDate = piki.getUpdatedAt();
-            boolean isNew = readDate == null;
-            boolean isUpdated = !isNew && readDate.before(updateDate);
-            boolean isMoreReact = piki.getNbReact() > NB_MAX_REACTS;
-
-            // txtFirst
-            boolean me = piki.getName().equals(ParseUser.getCurrentUser().getUsername());//TODO : crash #7 > NullPointerException
-            if (isNew) {
-                if (piki.getNbReact() == 0) {
-                    if (piki.isVideo()) {
-                        vh.txtType.setText(context.getResources().getString(R.string.home_new_video));
-                        vh.imgType.setImageResource(R.drawable.picto_new_video);
-                        vh.imgType.setVisibility(View.VISIBLE);
-                    } else {
-                        vh.txtType.setText(context.getResources().getString(R.string.home_new_picture));
-                        vh.imgType.setImageResource(R.drawable.picto_new_picture);
-                        vh.imgType.setVisibility(View.VISIBLE);
-                    }
-                }
-            } else {
-                if (isUpdated) {
-                    vh.txtType.setText(context.getResources().getString(R.string.home_new_replies));
-                    vh.imgType.setImageResource(R.drawable.picto_new_replies);
-                    vh.imgType.setVisibility(View.VISIBLE);
-                } else if (piki.getNbReact() == 0 && !me) {
-                    vh.txtType.setText(R.string.piki_reply_first);
-                    vh.imgType.setVisibility(View.GONE);
-                } else {
-                    vh.txtType.setText(Utile.formatBigNumber(piki.getNbReact()) + " " + (piki.getNbReact() > 1 ? context.getString(R.string.piki_replies) : context.getString(R.string.piki_reply)));
-                    vh.imgType.setVisibility(View.GONE);
-                }
             }
         }
 
-            //case CELL_WITHOUT_PIKI :
-            //    view = LayoutInflater.from(context).inflate(R.layout.item_piki_placeholder, parent, false);
-            //    ViewGroup.LayoutParams lp = view.getLayoutParams();
-            //    lp.width = screen.dpToPx(screen.getWidthDp() + 10); // add 10 dp width to item (for horizontal scroll item)
-            //    view.setLayoutParams(lp);
-
-            //    break;
-
-        vh.layoutFront.setTag(new Integer(i));
         view.setTag(new Integer(i));
 
         return view;
     }
-
-    private static int FADE_TIME = 150;//ms
 
     @Override
     public boolean onTouch(View view, MotionEvent event) {
         int action = event.getAction();
 
         if (view.getTag() instanceof Integer) {
-            int position = (Integer)view.getTag();
+            int position = (Integer) view.getTag();
 
-            DownRunnable down = (DownRunnable)view.getTag(R.string.tag_downpresse);
+            DownRunnable down = (DownRunnable) view.getTag(R.string.tag_downpresse);
             if (action == MotionEvent.ACTION_DOWN) {
                 //highlight with 90ms delay. Because I dont want highlight if user scroll
                 handler.postDelayed(down, DOWN_TIME);
-            } else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+            } else if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
                 //finger move, cancel highlight
                 handler.removeCallbacks(down);
 
@@ -326,26 +202,11 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
                 //send to listener
                 if (listener != null) {
                     Piki piki = listPiki.get(position);
-                    //final TextView txtType = (TextView) view.findViewById(R.id.txtType);
-                    //final ImageView imgType = (ImageView) view.findViewById(R.id.imgType);
-
-
-
                     listener.clickOnPiki(piki);
                 }
             }
         }
         return true;
-    }
-
-    public void refactorTitles(Piki piki, TextView txtType, ImageView imgType) {
-
-    }
-
-    public Piki removePiki(int position) {
-        Piki removed = listPiki.remove(position);
-        notifyDataSetChanged();
-        return removed;
     }
 
     //DOWN EFFECT
@@ -368,8 +229,7 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
 
     private void itemMarkDown(View item, boolean down) {
         View layoutOverlay = item.findViewById(R.id.layoutOverlay);
-        if(layoutOverlay != null)
-        {
+        if (layoutOverlay != null) {
             int visibility = down ? View.VISIBLE : View.GONE;
             layoutOverlay.setVisibility(visibility);
         }
@@ -441,76 +301,49 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
     }
 
     class PikiViewHolder extends RecyclerView.ViewHolder {
-        @InjectView(R.id.back)
-        RelativeLayout layoutBack;
-        @InjectView(R.id.backBg)
-        RelativeLayout layoutBackBg;
-        @InjectView(R.id.bgDeleteItemOff)
-        View bgDeleteItemOff;
-        @InjectView(R.id.bgDeleteItemOn)
-        View bgDeleteItemOn;
-        @InjectView(R.id.imgDeleteItemOff)
-        LinearLayout imgDeleteItemOff;
-        @InjectView(R.id.imgDeleteItemOn)
-        LinearLayout imgDeleteItemOn;
-        @InjectView(R.id.front)
-        FrameLayout layoutFront;
-        @InjectView(R.id.imgPiki)
-        ImageView imgPiki;
-        @InjectView(R.id.imgPlay)
-        ImageView imgPlay;
-        @InjectView(R.id.txtUserName)
-        TextViewFont txtUserName;
-        @InjectView(R.id.progressBarPiki)
-        CircleProgressBar progressBarPiki;
-        @Optional
-        @InjectView(R.id.progressBarReact)
-        CircleProgressBar progressBarReact;
-        @Optional
-        @InjectView(R.id.imgReact)
-        ImageView imgReact;
-        @Optional
-        @InjectView(R.id.layoutPiki)
-        ViewGroup layoutPiki;
-        @Optional
-        @InjectView(R.id.layoutReact)
-        ViewGroup layoutReact;
-        @Optional
-        @InjectView(R.id.progressBarReact1)
-        CircleProgressBar progressBarReact1;
-        @Optional
-        @InjectView(R.id.imgReact1)
-        ImageView imgReact1;
-        @Optional
-        @InjectView(R.id.viewBg)
-        View viewBg;
-        @InjectView(R.id.txtType)
-        TextViewFont txtType;
-        @InjectView(R.id.imgType)
-        ImageView imgType;
+        @InjectView(R.id.layoutPiki1)
+        ViewGroup layoutPiki1;
+        @InjectView(R.id.layoutPiki2)
+        ViewGroup layoutPiki2;
 
-        CustomTargetPiki customTargetPiki;
-        CustomTargetPiki customTargetReact1;
-        CustomTargetPiki customTargetReact2;
+        @InjectView(R.id.layoutPikiFrame1)
+        ViewGroup layoutPikiFrame1;
+        @InjectView(R.id.layoutPikiFrame2)
+        ViewGroup layoutPikiFrame2;
+
+        @InjectView(R.id.layoutReact1)
+        LinearLayout layoutReact1;
+        @InjectView(R.id.layoutReact2)
+        LinearLayout layoutReact2;
+
+        @InjectView(R.id.imgPiki1)
+        ImageView imgPiki1;
+        @InjectView(R.id.imgPiki2)
+        ImageView imgPiki2;
+
+        @InjectView(R.id.progressBarPiki1)
+        CircleProgressBar progressBarPiki1;
+        @InjectView(R.id.progressBarPiki2)
+        CircleProgressBar progressBarPiki2;
 
         @Optional
         @InjectView(R.id.progressBarReact11)
-        CircularProgressBar progressBarReact11;
+        CircleProgressBar progressBarReact11;
         @Optional
         @InjectView(R.id.progressBarReact12)
-        CircularProgressBar progressBarReact12;
+        CircleProgressBar progressBarReact12;
         @Optional
         @InjectView(R.id.progressBarReact13)
-        CircularProgressBar progressBarReact13;
+        CircleProgressBar progressBarReact13;
         @Optional
         @InjectView(R.id.progressBarReact21)
-        CircularProgressBar progressBarReact21;
+        CircleProgressBar progressBarReact21;
         @Optional
         @InjectView(R.id.progressBarReact22)
-        CircularProgressBar progressBarReact22;
+        CircleProgressBar progressBarReact22;
         @Optional
         @InjectView(R.id.progressBarReact23)
-        CircularProgressBar progressBarReact23;
+        CircleProgressBar progressBarReact23;
 
         @Optional
         @InjectView(R.id.imgReact11)
@@ -531,23 +364,36 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
         @InjectView(R.id.imgReact23)
         ImageView imgBestReact23;
 
+        CustomTargetPiki customTargetPiki1;
+        CustomTargetPiki customTargetReact11;
+        CustomTargetPiki customTargetReact12;
+        CustomTargetPiki customTargetReact13;
+        CustomTargetPiki customTargetPiki2;
+        CustomTargetPiki customTargetReact21;
+        CustomTargetPiki customTargetReact22;
+        CustomTargetPiki customTargetReact23;
 
         public PikiViewHolder(View itemView, int type) {
             super(itemView);
             ButterKnife.inject(this, itemView);
 
-            if (type == CELL_WITH_PIKI_WITHOUT_ANSWERS) {
-                customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
-            } else if (type == CELL_WITH_PIKI_WITH_ONE_ANSWER) {
-                customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
-                customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
-            } else if (type == CELL_WITH_PIKI_WITH_ANSWERS) {
-                customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
-                customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
-                customTargetReact2 = new CustomTargetPiki(progressBarReact1, imgReact1);
-            }
+            customTargetPiki1 = new CustomTargetPiki(progressBarPiki1, imgPiki1);
+            customTargetPiki2 = new CustomTargetPiki(progressBarPiki2, imgPiki2);
+            customTargetReact11 = new CustomTargetPiki(progressBarReact11, imgBestReact11);
+            customTargetReact12 = new CustomTargetPiki(progressBarReact12, imgBestReact12);
+            customTargetReact13 = new CustomTargetPiki(progressBarReact13, imgBestReact13);
+            customTargetReact21 = new CustomTargetPiki(progressBarReact21, imgBestReact21);
+            customTargetReact22 = new CustomTargetPiki(progressBarReact22, imgBestReact22);
+            customTargetReact23 = new CustomTargetPiki(progressBarReact23, imgBestReact23);
 
-            layoutFront.setOnTouchListener(BestPikiAdapter.this);
+            progressBarPiki1.setColorSchemeResources(R.color.progressBar);
+            progressBarPiki2.setColorSchemeResources(R.color.progressBar);
+            progressBarReact11.setColorSchemeResources(R.color.progressBar);
+            progressBarReact12.setColorSchemeResources(R.color.progressBar);
+            progressBarReact13.setColorSchemeResources(R.color.progressBar);
+            progressBarReact21.setColorSchemeResources(R.color.progressBar);
+            progressBarReact22.setColorSchemeResources(R.color.progressBar);
+            progressBarReact23.setColorSchemeResources(R.color.progressBar);
         }
     }
 }

@@ -94,13 +94,14 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
         return v;
     }
 
-    private void setup() {
+    protected void setup() {
         scrollListener = new QuickReturnListViewOnScrollListener.Builder()
                 .header(header)
                 .minHeaderTranslation(-getResources().getDimensionPixelSize(R.dimen.top_bar_height))
                 .build();
 
         View placeHolderView = getActivity().getLayoutInflater().inflate(R.layout.item_empty_header, listViewPiki, false);
+        listViewPiki.setOnScrollListener(new MyOnScrollListener());
         listViewPiki.addHeaderView(placeHolderView);
         listViewPiki.setHeaderDividersEnabled(false);
         refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
@@ -117,10 +118,10 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
         listViewPiki.addFooterView(footer);
     }
 
-    private void init() {
+    protected void init() {
         init(true);
     }
-    private void init(final boolean withCache) {
+    protected void init(final boolean withCache) {
         currentPage = 0;
         lastItemShow = 0;
 
@@ -143,10 +144,9 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
     protected boolean isLoading;
     protected boolean endOfLoading;
     protected boolean shouldRefreshFriends = true;
+
     protected abstract boolean loadNext(final boolean withCache);
-
     protected abstract void loadPikis(boolean withCache);
-
 
     @Override
     public void clickOnPiki(Piki piki) {
@@ -163,5 +163,30 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    protected class MyOnScrollListener implements AbsListView.OnScrollListener {
+
+        @Override
+        public void onScrollStateChanged(AbsListView absListView, int i) {
+            scrollListener.onScrollStateChanged(absListView, i);
+        }
+
+        @Override
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+
+            ((InboxActivity) getActivity()).adjustScroll(scrollListener.getPrevScrollY());
+
+            //pagination
+            final int lastItem = firstVisibleItem + visibleItemCount;
+            if (lastItem == totalItemCount) {
+                if (lastItemShow < lastItem) {
+                    if (loadNext(true)) {
+                        lastItemShow = lastItem;
+                    }
+                }
+            }
+        }
     }
 }

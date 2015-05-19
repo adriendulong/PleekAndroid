@@ -20,6 +20,7 @@ import android.widget.RelativeLayout;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.pleek.app.R;
+import com.pleek.app.fragment.BestFragment;
 import com.pleek.app.fragment.InboxFragment;
 import com.pleek.app.fragment.ScrollTabHolderFragment;
 import com.pleek.app.interfaces.OnCollapseABListener;
@@ -219,7 +220,13 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
 
         @Override
         public Fragment getItem(int position) {
-            ScrollTabHolderFragment fragment = (ScrollTabHolderFragment) InboxFragment.newInstance(position, header);
+            ScrollTabHolderFragment fragment;
+
+            if (position == 2) {
+                fragment = (ScrollTabHolderFragment) BestFragment.newInstance(position, header);
+            } else {
+                fragment = (ScrollTabHolderFragment) InboxFragment.newInstance(position, header);
+            }
 
             fragments.put(position, fragment);
             if (listener != null) {
