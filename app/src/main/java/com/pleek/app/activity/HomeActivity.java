@@ -245,8 +245,8 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
         query.whereContainedIn("user", friends);
-        if (ParseUser.getCurrentUser().get("pleeksHide") != null) {
-            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHide"));
+        if (ParseUser.getCurrentUser().get("pleeksHided") != null) {
+            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHided"));
         }
         query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
         query.include("user");
@@ -532,7 +532,7 @@ public class HomeActivity extends ParentActivity implements PikiAdapter.Listener
                                                         });
                                                     } else {
                                                         ParseUser user = ParseUser.getCurrentUser();
-                                                        user.add("pleeksHide", removedPiki.getId());
+                                                        user.add("pleeksHided", removedPiki.getId());
                                                         user.saveEventually();
                                                         shouldReinit = true;
                                                         init(false);
