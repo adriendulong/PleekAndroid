@@ -35,6 +35,10 @@ import butterknife.InjectView;
  */
 public class InboxActivity extends ParentActivity implements View.OnClickListener, ScrollTabHolder {
 
+    public static int TYPE_INBOX = 0;
+    public static int TYPE_SENT = 1;
+    public static int TYPE_BEST = 2;
+
     public static boolean AUTO_RELOAD;
 
     @InjectView(R.id.imgSettings)

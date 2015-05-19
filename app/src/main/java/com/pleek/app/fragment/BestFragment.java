@@ -15,7 +15,6 @@ import android.view.animation.Transformation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 
-import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.ListViewScrollingOff;
 import com.parse.FindCallback;
@@ -29,6 +28,7 @@ import com.pleek.app.R;
 import com.pleek.app.activity.InboxActivity;
 import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.activity.PikiActivity;
+import com.pleek.app.adapter.BestPikiAdapter;
 import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.common.Constants;
@@ -46,57 +46,20 @@ import butterknife.InjectView;
 /**
  * Created by tiago on 11/05/2015.
  */
-public class InboxFragment extends PikiFragment implements PikiAdapter.Listener {
+public class BestFragment extends PikiFragment {
 
-    private PikiAdapter adapter;
+    private BestPikiAdapter adapter;
 
-    public static InboxFragment newInstance(int type, View header) {
-        InboxFragment fragment = new InboxFragment();
+    public static BestFragment newInstance(int type, View header) {
+        BestFragment fragment = new BestFragment();
         fragment.type = type;
         fragment.header = header;
         return fragment;
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        setup();
-        init();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_inbox, null);
-
-        ButterKnife.inject(this, v);
-
-        return v;
-    }
-
     private void setup() {
-        scrollListener = new QuickReturnListViewOnScrollListener.Builder()
-                .header(header)
-                .minHeaderTranslation(-getResources().getDimensionPixelSize(R.dimen.top_bar_height))
-                .build();
-
-        View placeHolderView = getActivity().getLayoutInflater().inflate(R.layout.item_empty_header, listViewPiki, false);
-        listViewPiki.addHeaderView(placeHolderView);
-        listViewPiki.setOnTouchListener(new MyListTouchListener());
-        listViewPiki.setOnScrollListener(new MyOnScrollListener());
-        listViewPiki.setHeaderDividersEnabled(false);
-        refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
-        refreshSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                shouldReinit = true;
-                init(false);
-            }
-        });
-        refreshSwipe.setProgressViewOffset(false, 0, (int) (getResources().getDimensionPixelSize(R.dimen.header_height) + 20 * screen.getDensity()));
-
-        footer = getActivity().getLayoutInflater().inflate(R.layout.item_footer, null);
-        listViewPiki.addFooterView(footer);
-        adapter = new PikiAdapter(new ArrayList<Piki>(), this, getActivity());
+        adapter = new BestPikiAdapter(new ArrayList<Piki>(), this, getActivity());
         listViewPiki.post(new Runnable() {
             @Override
             public void run() {
@@ -203,12 +166,12 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser == null) return;
 
-        if (type == InboxActivity.TYPE_INBOX) {
+        if (type == TYPE_INBOX) {
             friends.add(currentUser);
         }
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-        if (type == InboxActivity.TYPE_SENT) {
+        if (type == TYPE_SENT) {
             query.whereEqualTo("user", currentUser);
         } else {
             query.whereContainedIn("user", friends);

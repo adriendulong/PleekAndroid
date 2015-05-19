@@ -40,7 +40,7 @@ import butterknife.Optional;
 /**
  * Created by nicolas on 19/12/14.
  */
-public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
+public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
     private static final int NB_MAX_REACTS = 2;
     private static final int PIKI_SIZE = 640;
@@ -61,11 +61,11 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     private Screen screen;
     private ReadDateProvider readDataProvider;
 
-    public PikiAdapter(List<Piki> listPiki, Listener listener) {
+    public BestPikiAdapter(List<Piki> listPiki, Listener listener) {
         this(listPiki, listener, listener instanceof Context ? (Context) listener : null);
     }
 
-    public PikiAdapter(List<Piki> listPiki, Listener listener, Context context) {
+    public BestPikiAdapter(List<Piki> listPiki, Listener listener, Context context) {
         this.listPiki = listPiki;
         this.listener = listener;
         this.context = context;
@@ -77,10 +77,6 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     @Override
     public int getItemViewType(int position) {
         Piki piki = position < listPiki.size() ? listPiki.get(position) : null;
-
-        //if (piki == null) {
-        //    return CELL_WITHOUT_PIKI;
-        //}
 
         if (piki.isBest()) {
             return CELL_BEST;
@@ -551,7 +547,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                 customTargetReact2 = new CustomTargetPiki(progressBarReact1, imgReact1);
             }
 
-            layoutFront.setOnTouchListener(PikiAdapter.this);
+            layoutFront.setOnTouchListener(BestPikiAdapter.this);
         }
     }
 }
