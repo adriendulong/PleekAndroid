@@ -256,21 +256,18 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
 
                         //initialize backview
                         View backView = downItem.findViewById(R.id.back);
-                        View backBg = downItem.findViewById(R.id.backBg);
                         if (backView != null) {
                             ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
                             lp.setMargins(0, 0, 0, 0);
                             backView.setLayoutParams(lp);
 
                             backView.findViewById(R.id.imgDeleteItemOn).setAlpha(0f);
-                            backBg.findViewById(R.id.bgDeleteItemOn).setAlpha(0f);
                         }
                     } else {
                         // 2) When scroll horizontal to an item.
 
                         View frontView = downItem.findViewById(R.id.front);
                         View backView = downItem.findViewById(R.id.back);
-                        View backBGView = downItem.findViewById(R.id.backBg);
                         if (frontView != null && backView != null) {
                             int moveX = initialX - (int)event.getRawX();
 
@@ -286,10 +283,8 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                                 //calculate actual alpha of imgDeleteItemOn
                                 float alpha = (moveX - screen.dpToPx(WIDTH_BORDER_BACKVIEW_START_ALPHA)) / (float)(screen.dpToPx(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA));
                                 backView.findViewById(R.id.imgDeleteItemOn).setAlpha(Math.min(alpha, 1f));
-                                backBGView.findViewById(R.id.bgDeleteItemOn).setAlpha(Math.min(alpha, 1f));
                             } else {
                                 backView.findViewById(R.id.imgDeleteItemOn).setAlpha(0f);//sure alpha is 0 if under WIDTH_BORDER_BACKVIEW_START_ALPHA
-                                backBGView.findViewById(R.id.bgDeleteItemOn).setAlpha(0f);
                             }
 
                             //move DELETE image
@@ -373,7 +368,7 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                                                         });
                                                     } else {
                                                         ParseUser user = ParseUser.getCurrentUser();
-                                                        user.add("pleeksHide", removedPiki.getId());
+                                                        user.add("pleeksHided", removedPiki.getId());
                                                         user.saveEventually();
                                                         shouldReinit = true;
                                                         init(false);
@@ -459,7 +454,6 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
 
             View frontView = item.findViewById(R.id.front);//fix crash : #41
             View backView = item.findViewById(R.id.back);
-            View backBg = item.findViewById(R.id.backBg);
             if (frontView != null && backView != null) {
                 TranslateAnimation ta = new TranslateAnimation(-moveX,0,0,0);
                 ta.setDuration(DURATION_DELETE_ANIM);
@@ -478,7 +472,6 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                     aa.setDuration(DURATION_DELETE_ANIM);
                     //aa.setFillAfter(true); /!\ BUG
                     backView.findViewById(R.id.imgDeleteItemOn).startAnimation(aa);
-                    backBg.findViewById(R.id.bgDeleteItemOn).startAnimation(aa);
                 }
 
                 //anim position backView to origin

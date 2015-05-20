@@ -51,7 +51,6 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     private static final int CELL_WITH_PIKI_WITH_ONE_ANSWER = 1;
     private static final int CELL_WITH_PIKI_WITHOUT_ANSWERS = 2;
     private static final int CELL_WITHOUT_PIKI = 3;
-    private static final int CELL_BEST = 4;
 
     private List<Piki> listPiki;
     private Listener listener;
@@ -77,15 +76,6 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     @Override
     public int getItemViewType(int position) {
         Piki piki = position < listPiki.size() ? listPiki.get(position) : null;
-
-        //if (piki == null) {
-        //    return CELL_WITHOUT_PIKI;
-        //}
-
-        if (piki.isBest()) {
-            return CELL_BEST;
-        }
-
         if (piki.getNbReact() == 0) {
             return CELL_WITH_PIKI_WITHOUT_ANSWERS;
         }
@@ -103,7 +93,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
     @Override
     public int getViewTypeCount() {
-        return 5;
+        return 4;
     }
 
     @Override
@@ -140,8 +130,12 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     lp.height = size;
                     vh.imgPiki.setLayoutParams(lp);
 
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (2 * screen.getDensity())));
+                    //setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + context.getResources().getDimensionPixelSize(R.dimen.piki_blue_height));
+                    //setLayoutParams(vh.layoutBack, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + context.getResources().getDimensionPixelSize(R.dimen.piki_blue_height));
+
+                    RelativeLayout.LayoutParams lpBlue = (RelativeLayout.LayoutParams) vh.layoutBlue.getLayoutParams();
+                    lpBlue.setMargins(lpBlue.leftMargin, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height), lpBlue.rightMargin, lpBlue.bottomMargin);
+                    vh.layoutBlue.setLayoutParams(lpBlue);
 
                     break;
 
@@ -156,7 +150,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
                     setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1 / 3), height);
                     setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
+                    setLayoutParams(vh.layoutBack, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
 
                     break;
 
@@ -170,21 +164,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
                     setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
                     setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
-
-                    break;
-
-                case CELL_BEST:
-                    view = LayoutInflater.from(context).inflate(R.layout.item_piki_best, parent, false);
-                    vh = new PikiViewHolder(view, viewType);
-                    view.setTag(R.id.vh, vh);
-
-                    height = (int) (screen.getWidth() * (float) 2/3);
-                    setLayoutParams(vh.layoutPiki, height, height);
-                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBackBg, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
+                    setLayoutParams(vh.layoutBack, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
 
                     break;
             }
@@ -192,6 +172,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
         PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
         Piki piki = i < listPiki.size() ? listPiki.get(i) : null;
+        boolean me = piki.getName().equals(ParseUser.getCurrentUser().getUsername());//TODO : crash #7 > NullPointerException
 
         if (piki != null) { // If is not placeholder
             switch (viewType) {
@@ -204,6 +185,17 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                         Picasso.with(context).cancelRequest(vh.customTargetPiki);
 
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(PIKI_SIZE, PIKI_SIZE).into(vh.customTargetPiki);
+
+                    if (vh.txtReplies != null) {
+                        if (piki.getNbReact() == 0 && !me) {
+                            vh.txtReplies.setText(context.getString(R.string.piki_reply_first));
+                        } else if (piki.getNbReact() == 0) {
+                            vh.txtReplies.setText("");
+                        } else {
+                            vh.txtReplies.setText((piki.getNbReact() > 1 ? Utile.formatBigNumber(piki.getNbReact()) + " " + context.getString(R.string.piki_replies) : Utile.formatBigNumber(piki.getNbReact()) + " " + context.getString(R.string.piki_reply)));
+                        }
+                    }
+
                     break;
 
                 case CELL_WITH_PIKI_WITH_ONE_ANSWER:
@@ -259,31 +251,32 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
             boolean isMoreReact = piki.getNbReact() > NB_MAX_REACTS;
 
             // txtFirst
-            boolean me = piki.getName().equals(ParseUser.getCurrentUser().getUsername());//TODO : crash #7 > NullPointerException
             if (isNew) {
                 if (piki.getNbReact() == 0) {
+                    vh.layoutBlue.setVisibility(View.VISIBLE);
                     if (piki.isVideo()) {
                         vh.txtType.setText(context.getResources().getString(R.string.home_new_video));
                         vh.imgType.setImageResource(R.drawable.picto_new_video);
                         vh.imgType.setVisibility(View.VISIBLE);
                     } else {
                         vh.txtType.setText(context.getResources().getString(R.string.home_new_picture));
-                        vh.imgType.setImageResource(R.drawable.picto_new_picture);
+                        vh.imgType.setImageResource(R.drawable.picto_new_image);
                         vh.imgType.setVisibility(View.VISIBLE);
                     }
                 }
             } else {
                 if (isUpdated) {
+                    vh.layoutBlue.setVisibility(View.VISIBLE);
                     vh.txtType.setText(context.getResources().getString(R.string.home_new_replies));
                     vh.imgType.setImageResource(R.drawable.picto_new_replies);
                     vh.imgType.setVisibility(View.VISIBLE);
-                } else if (piki.getNbReact() == 0 && !me) {
-                    vh.txtType.setText(R.string.piki_reply_first);
-                    vh.imgType.setVisibility(View.GONE);
                 } else {
-                    vh.txtType.setText(Utile.formatBigNumber(piki.getNbReact()) + " " + (piki.getNbReact() > 1 ? context.getString(R.string.piki_replies) : context.getString(R.string.piki_reply)));
-                    vh.imgType.setVisibility(View.GONE);
+                    if (vh.layoutBlue != null)
+                        vh.layoutBlue.setVisibility(View.GONE);
                 }
+//                else if (piki.getNbReact() == 0 && !me) {
+//                    vh.txtReplies.setText(R.string.piki_reply_first);
+//                }
             }
         }
 
@@ -447,18 +440,12 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
     class PikiViewHolder extends RecyclerView.ViewHolder {
         @InjectView(R.id.back)
         RelativeLayout layoutBack;
-        @InjectView(R.id.backBg)
-        RelativeLayout layoutBackBg;
-        @InjectView(R.id.bgDeleteItemOff)
-        View bgDeleteItemOff;
-        @InjectView(R.id.bgDeleteItemOn)
-        View bgDeleteItemOn;
         @InjectView(R.id.imgDeleteItemOff)
         LinearLayout imgDeleteItemOff;
         @InjectView(R.id.imgDeleteItemOn)
         LinearLayout imgDeleteItemOn;
         @InjectView(R.id.front)
-        FrameLayout layoutFront;
+        ViewGroup layoutFront;
         @InjectView(R.id.imgPiki)
         ImageView imgPiki;
         @InjectView(R.id.imgPlay)
@@ -492,6 +479,13 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         TextViewFont txtType;
         @InjectView(R.id.imgType)
         ImageView imgType;
+        @Optional
+        @InjectView(R.id.txtReplies)
+        TextViewFont txtReplies;
+
+        @Optional
+        @InjectView(R.id.layoutBlue)
+        ViewGroup layoutBlue;
 
         CustomTargetPiki customTargetPiki;
         CustomTargetPiki customTargetReact1;
@@ -509,6 +503,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                 customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);
                 customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
 
+                progressBarPiki.setColorSchemeResources(R.color.progressBar);
                 progressBarReact.setColorSchemeResources(R.color.progressBar);
             } else if (type == CELL_WITH_PIKI_WITH_ANSWERS) {
                 customTargetPiki = new CustomTargetPiki(progressBarPiki, imgPiki);

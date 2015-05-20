@@ -53,10 +53,9 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = super.onCreateView(inflater, container, savedInstanceState);
+        View v = inflater.inflate(R.layout.fragment_best, null);
 
-        int padding = Screen.getInstance(getActivity()).dpToPx(3);
-        listViewPiki.setPadding(padding, padding, padding, padding);
+        ButterKnife.inject(this, v);
 
         return v;
     }
@@ -103,63 +102,11 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
         //mark loading and add footer
         footer.setVisibility(View.VISIBLE);
         isLoading = true;
-        Date date = currentUser.getDate("lastFriendsModification");
 
-        if (pref.contains(Constants.PREF_LAST_FRIENDS_UPDATE) && date != null) {
-            if (date.getTime() > pref.getLong(Constants.PREF_LAST_FRIENDS_UPDATE, 0)) {
-                shouldRefreshFriends = true;
-                pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date.getTime()).commit();
-            } else shouldRefreshFriends = false;
-        } else {
-            shouldRefreshFriends = true;
-            pref.edit().putLong(Constants.PREF_LAST_FRIENDS_UPDATE, date == null ? System.currentTimeMillis() : date.getTime()).commit();
-        }
-
-        shouldRefreshFriends = true;
-        // Parse Query Friends
-        ParseQuery<ParseObject> innerQuery = ParseQuery.getQuery("Friend");
-        innerQuery.setCachePolicy(shouldRefreshFriends ? ParseQuery.CachePolicy.NETWORK_ONLY : ParseQuery.CachePolicy.CACHE_ONLY);
-        innerQuery.whereEqualTo("user", currentUser);
-        innerQuery.include("friend");
-        innerQuery.findInBackground(new FindCallback<ParseObject>() {
-
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (e == null && list != null) {
-                    if (friends != null) friends.clear();
-                    HashSet<String> friendsIds = new HashSet<String>();
-
-                    for (ParseObject obj : list) {
-                        ParseUser user = (ParseUser) obj.get("friend");
-                        friends.add(user);
-                        friendsIds.add(user.getObjectId());
-                    }
-
-                    // mixpanel update nbFriend;
-                    mixpanel.getPeople().set("Nb Friends", friendsIds.size());
-
-                    ((ParentActivity) getActivity()).setFriendsPrefs(friendsIds);
-                }
-
-                loadPikis(withCache);
-            }
-        });
-
-        return true;
-    }
-
-    protected void loadPikis(boolean withCache) {
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        if (currentUser == null) return;
-
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-        query.whereEqualTo("user", currentUser);
-        if (ParseUser.getCurrentUser().get("pleeksHided") != null) {
-            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHided"));
-        }
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Best");
         query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
-        query.include("user");
-        query.orderByDescending("lastUpdate");
+        query.include("pleek.user");
+        query.orderByDescending("updatedAt");
         query.setSkip(currentPage * NB_BY_PAGE);
         query.setLimit(NB_BY_PAGE);
         query.findInBackground(new FindCallback<ParseObject>() {
@@ -176,9 +123,10 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
                         listPiki = new ArrayList<Piki>(listBeforreRequest);
                     }
 
-                    for (ParseObject parsePiki : parseObjects) {
-                        listPiki.add(new Piki(parsePiki));
+                    for (ParseObject parseBest : parseObjects) {
+                        listPiki.add(new Piki(parseBest.getParseObject("pleek")));
                     }
+                    listPiki.remove(listPiki.size() - 1);
                     adapter.setListPiki(listPiki);
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
@@ -198,6 +146,13 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
                 fromCache = false;
             }
         });
+
+        return true;
+    }
+
+    @Override
+    protected void loadPikis(boolean withCache) {
+
     }
 
     @Override

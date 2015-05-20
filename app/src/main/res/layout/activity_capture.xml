@@ -136,7 +136,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"/>
 
-        <com.makeramen.RoundedImageView
+        <com.pleek.app.views.RoundedImageView
             android:id="@+id/imgGallerie"
             android:scaleType="centerCrop"
             android:layout_width="35dp"

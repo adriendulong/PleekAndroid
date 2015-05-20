@@ -23,6 +23,7 @@ import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ReadDateProvider;
+import com.pleek.app.transformations.RoundedTransformation;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.utils.StringUtils;
 import com.pleek.app.views.CircleProgressBar;
@@ -85,7 +86,11 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
     public int getCount() {
         if (listPiki == null) return 0;
 
-        return listPiki.size() / 2;
+        if (listPiki.size() % 2 == 0) {
+            return listPiki.size() / 2;
+        } else {
+            return (listPiki.size() / 2) + 1;
+        }
     }
 
     @Override
@@ -109,45 +114,76 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
                     PikiViewHolder vh = new PikiViewHolder(view, viewType);
                     view.setTag(R.id.vh, vh);
 
-                    sizePiki = screen.getWidth() / 2;
+                    sizePiki = screen.getWidth() / 2 - (int) (15 * screen.getDensity());
                     sizeReact = sizePiki / 3;
-                    setLayoutParams(vh.layoutPiki1, sizePiki, sizePiki + sizeReact);
-                    setLayoutParams(vh.layoutPiki2, sizePiki, sizePiki + sizeReact);
-                    setLayoutParams(vh.layoutPikiFrame1, sizePiki, sizePiki - (int) (8 * screen.getDensity()));
-                    setLayoutParams(vh.layoutPikiFrame2, sizePiki, sizePiki - (int) (8 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact1, ViewGroup.LayoutParams.MATCH_PARENT, sizeReact);
-                    setLayoutParams(vh.layoutReact2, ViewGroup.LayoutParams.MATCH_PARENT, sizeReact);
+                    setLayoutParams(vh.layoutPiki1, ViewGroup.LayoutParams.MATCH_PARENT, sizePiki + sizeReact);
+                    setLayoutParams(vh.layoutPiki2, ViewGroup.LayoutParams.MATCH_PARENT, sizePiki + sizeReact);
 
                     break;
             }
         }
 
         PikiViewHolder vh = (PikiViewHolder) view.getTag(R.id.vh);
-        Piki piki = listPiki.get(i);
-        Piki piki2 = listPiki.get(i * 1 + 1);
+        Piki piki = listPiki.get(i * 2);
+        Piki piki2 = null;
+
+        if (i * 2 + 1 < listPiki.size()) piki2 = listPiki.get(i * 2 + 1);
 
         if (piki != null) { // If is not placeholder
             switch (viewType) {
                 case CELL_BEST:
                     vh.progressBarPiki1.setVisibility(View.VISIBLE);
-                    vh.progressBarPiki2.setVisibility(View.VISIBLE);
                     vh.progressBarReact11.setVisibility(View.VISIBLE);
                     vh.progressBarReact12.setVisibility(View.VISIBLE);
                     vh.progressBarReact13.setVisibility(View.VISIBLE);
-                    vh.progressBarReact21.setVisibility(View.VISIBLE);
-                    vh.progressBarReact22.setVisibility(View.VISIBLE);
-                    vh.progressBarReact23.setVisibility(View.VISIBLE);
 
                     if (vh.customTargetPiki1 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetPiki1);
-                    if (vh.customTargetPiki2 != null)
-                        Picasso.with(context).cancelRequest(vh.customTargetPiki2);
                     if (vh.customTargetReact11 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact11);
                     if (vh.customTargetReact12 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact12);
                     if (vh.customTargetReact13 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact13);
+
+                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().into(vh.customTargetPiki1);
+
+                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact11);
+                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact12);
+                    PicassoUtils.with(context).load(piki.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact13);
+
+                    if (piki.isVideo()) {
+                        vh.imgPlay.setVisibility(View.VISIBLE);
+                    } else {
+                        vh.imgPlay.setVisibility(View.GONE);
+                    }
+
+//                    PicassoUtils.with(context).load(piki.getUrlPiki()).transform(new RoundedTransformation((int) (15 * screen.getDensity()), false, false, true, true)).into(vh.customTargetPiki1);
+//                    PicassoUtils.with(context).load(piki2.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), false, false, true, true)).into(vh.customTargetPiki2);
+//
+//                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, false, true)).into(vh.customTargetReact11);
+//                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact12);
+//                    PicassoUtils.with(context).load(piki.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, true, false)).into(vh.customTargetReact13);
+//
+//                    PicassoUtils.with(context).load(piki2.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, false, true)).into(vh.customTargetReact21);
+//                    PicassoUtils.with(context).load(piki2.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact22);
+//                    PicassoUtils.with(context).load(piki2.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, true, false)).into(vh.customTargetReact23);
+
+                    break;
+            }
+        }
+
+        if (piki2 != null) { // If is not placeholder
+            vh.layoutPiki2.setVisibility(View.VISIBLE);
+            switch (viewType) {
+                case CELL_BEST:
+                    vh.progressBarPiki2.setVisibility(View.VISIBLE);
+                    vh.progressBarReact21.setVisibility(View.VISIBLE);
+                    vh.progressBarReact22.setVisibility(View.VISIBLE);
+                    vh.progressBarReact23.setVisibility(View.VISIBLE);
+
+                    if (vh.customTargetPiki2 != null)
+                        Picasso.with(context).cancelRequest(vh.customTargetPiki2);
                     if (vh.customTargetReact21 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact21);
                     if (vh.customTargetReact22 != null)
@@ -155,19 +191,22 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
                     if (vh.customTargetReact23 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact23);
 
-                    PicassoUtils.with(context).load(piki.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().into(vh.customTargetPiki1);
                     PicassoUtils.with(context).load(piki2.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().into(vh.customTargetPiki2);
-
-                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact11);
-                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact12);
-                    PicassoUtils.with(context).load(piki.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact13);
 
                     PicassoUtils.with(context).load(piki2.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact21);
                     PicassoUtils.with(context).load(piki2.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact22);
                     PicassoUtils.with(context).load(piki2.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact23);
 
+                    if (piki2.isVideo()) {
+                        vh.imgPlay2.setVisibility(View.VISIBLE);
+                    } else {
+                        vh.imgPlay2.setVisibility(View.GONE);
+                    }
+
                     break;
             }
+        } else {
+            vh.layoutPiki2.setVisibility(View.INVISIBLE);
         }
 
         view.setTag(new Integer(i));
@@ -320,6 +359,11 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
         ImageView imgPiki1;
         @InjectView(R.id.imgPiki2)
         ImageView imgPiki2;
+
+        @InjectView(R.id.imgPlay)
+        ImageView imgPlay;
+        @InjectView(R.id.imgPlay2)
+        ImageView imgPlay2;
 
         @InjectView(R.id.progressBarPiki1)
         CircleProgressBar progressBarPiki1;

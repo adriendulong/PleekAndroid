@@ -5,31 +5,108 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@null"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:paddingTop="10dp">
 
-    <android.support.v7.widget.CardView
+    <LinearLayout
         android:id="@+id/layoutPiki1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_best_shadow"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        app:cardCornerRadius="4dp"
-        app:cardPreventCornerOverlap="true"
-        app:cardUseCompatPadding="true">
+        android:background="@drawable/bg_best_shadow"
+        android:layout_weight="1">
+
+        <RelativeLayout
+            android:id="@+id/layoutPikiFrame1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.75"
+            android:background="@null">
+
+            <com.pleek.app.views.RoundedImageView
+                android:id="@+id/imgPiki1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_rounded_top_right_left"
+                app:riv_corner_radius_top_left="1dp"
+                app:riv_corner_radius_top_right="1dp"
+                android:layout_alignParentTop="true"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/imgPlay"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/picto_play"
+                android:visibility="gone" />
+
+            <com.pleek.app.views.CircleProgressBar
+                android:id="@+id/progressBarPiki1"
+                app:mlpb_show_arrow="false"
+                app:mlpb_enable_circle_background="false"
+                app:mlpb_progress_stoke_width="2dp"
+                app:mlpb_progress_text_visibility="invisible"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_centerInParent="true" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/blancEightyTransparent" />
 
         <LinearLayout
+            android:id="@+id/layoutReact1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.25"
+            android:background="@null">
 
-            <FrameLayout
-                android:id="@+id/layoutPikiFrame1"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:layout_weight="1">
+
+                <com.pleek.app.views.RoundedImageView
+                    android:id="@+id/imgReact11"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_rounded_bottom_left"
+                    app:riv_corner_radius_bottom_left="1dp" />
+
+                <com.pleek.app.views.CircleProgressBar
+                    android:id="@+id/progressBarReact11"
+                    app:mlpb_show_arrow="false"
+                    app:mlpb_enable_circle_background="false"
+                    app:mlpb_progress_stoke_width="1dp"
+                    app:mlpb_progress_text_visibility="invisible"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+
+            <View
+                android:layout_width="0.5dp"
+                android:layout_height="match_parent"
+                android:background="@color/blancEightyTransparent" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:layout_weight="1">
 
                 <com.pleek.app.views.BlockingImageView
-                    android:id="@+id/imgPiki1"
+                    android:id="@+id/imgReact12"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_centerInParent="true"
@@ -37,140 +114,156 @@
                     android:scaleType="centerCrop" />
 
                 <com.pleek.app.views.CircleProgressBar
-                    android:id="@+id/progressBarPiki1"
+                    android:id="@+id/progressBarReact12"
                     app:mlpb_show_arrow="false"
                     app:mlpb_enable_circle_background="false"
-                    app:mlpb_progress_stoke_width="2dp"
+                    app:mlpb_progress_stoke_width="1dp"
                     app:mlpb_progress_text_visibility="invisible"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:visibility="gone" />
-            </FrameLayout>
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
 
             <View
+                android:layout_width="0.5dp"
+                android:layout_height="match_parent"
+                android:background="@color/blancEightyTransparent" />
+
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/blanc" />
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:layout_weight="1">
 
-            <LinearLayout
-                android:id="@+id/layoutReact1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <FrameLayout
+                <com.pleek.app.views.RoundedImageView
+                    android:id="@+id/imgReact13"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1">
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/bg_rounded_bottom_right"
+                    android:scaleType="centerCrop"
+                    app:riv_corner_radius_bottom_right="1dp" />
 
-                    <com.pleek.app.views.BlockingImageView
-                        android:id="@+id/imgReact11"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_centerInParent="true"
-                        android:background="@color/fondBackReact"
-                        android:scaleType="centerCrop" />
-
-                    <com.pleek.app.views.CircleProgressBar
-                        android:id="@+id/progressBarReact11"
-                        app:mlpb_show_arrow="false"
-                        app:mlpb_enable_circle_background="false"
-                        app:mlpb_progress_stoke_width="1dp"
-                        app:mlpb_progress_text_visibility="invisible"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:visibility="gone" />
-                </FrameLayout>
-
-                <View
-                    android:layout_width="0.5dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/blanc" />
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
-
-                    <com.pleek.app.views.BlockingImageView
-                        android:id="@+id/imgReact12"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_centerInParent="true"
-                        android:background="@color/fondBackReact"
-                        android:scaleType="centerCrop" />
-
-                    <com.pleek.app.views.CircleProgressBar
-                        android:id="@+id/progressBarReact12"
-                        app:mlpb_show_arrow="false"
-                        app:mlpb_enable_circle_background="false"
-                        app:mlpb_progress_stoke_width="1dp"
-                        app:mlpb_progress_text_visibility="invisible"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:visibility="gone" />
-                </FrameLayout>
-
-                <View
-                    android:layout_width="0.5dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/blanc" />
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
-
-                    <com.pleek.app.views.BlockingImageView
-                        android:id="@+id/imgReact13"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_centerInParent="true"
-                        android:background="@color/fondBackReact"
-                        android:scaleType="centerCrop" />
-
-                    <com.pleek.app.views.CircleProgressBar
-                        android:id="@+id/progressBarReact13"
-                        app:mlpb_show_arrow="false"
-                        app:mlpb_enable_circle_background="false"
-                        app:mlpb_progress_stoke_width="1dp"
-                        app:mlpb_progress_text_visibility="invisible"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:visibility="gone" />
-                </FrameLayout>
-            </LinearLayout>
+                <com.pleek.app.views.CircleProgressBar
+                    android:id="@+id/progressBarReact13"
+                    app:mlpb_show_arrow="false"
+                    app:mlpb_enable_circle_background="false"
+                    app:mlpb_progress_stoke_width="1dp"
+                    app:mlpb_progress_text_visibility="invisible"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
         </LinearLayout>
-    </android.support.v7.widget.CardView>
+    </LinearLayout>
 
-    <android.support.v7.widget.CardView
+    <View
+        android:layout_width="10dp"
+        android:layout_height="match_parent"
+        android:background="@color/transparent" />
+
+    <LinearLayout
         android:id="@+id/layoutPiki2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_best_shadow"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        app:cardCornerRadius="4dp"
-        app:cardPreventCornerOverlap="true"
-        app:cardUseCompatPadding="true">
+        android:background="@drawable/bg_best_shadow"
+        android:layout_weight="1">
+
+        <RelativeLayout
+            android:id="@+id/layoutPikiFrame2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.75"
+            android:background="@null">
+
+            <com.pleek.app.views.RoundedImageView
+                android:id="@+id/imgPiki2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_rounded_top_right_left"
+                app:riv_corner_radius_top_left="1dp"
+                app:riv_corner_radius_top_right="1dp"
+                android:layout_alignParentTop="true"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/imgPlay2"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/picto_play"
+                android:visibility="gone" />
+
+            <com.pleek.app.views.CircleProgressBar
+                android:id="@+id/progressBarPiki2"
+                app:mlpb_show_arrow="false"
+                app:mlpb_enable_circle_background="false"
+                app:mlpb_progress_stoke_width="2dp"
+                app:mlpb_progress_text_visibility="invisible"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_centerInParent="true" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/blancEightyTransparent" />
 
         <LinearLayout
+            android:id="@+id/layoutReact2"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@null"
-            android:orientation="vertical">
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="0.25"
+            android:background="@null">
 
-            <FrameLayout
-                android:id="@+id/layoutPikiFrame2"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:layout_weight="1">
+
+                <com.pleek.app.views.RoundedImageView
+                    android:id="@+id/imgReact21"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_rounded_bottom_left"
+                    app:riv_corner_radius_bottom_left="1dp" />
+
+                <com.pleek.app.views.CircleProgressBar
+                    android:id="@+id/progressBarReact21"
+                    app:mlpb_show_arrow="false"
+                    app:mlpb_enable_circle_background="false"
+                    app:mlpb_progress_stoke_width="1dp"
+                    app:mlpb_progress_text_visibility="invisible"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
+
+            <View
+                android:layout_width="0.5dp"
+                android:layout_height="match_parent"
+                android:background="@color/blancEightyTransparent" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:layout_weight="1">
 
                 <com.pleek.app.views.BlockingImageView
-                    android:id="@+id/imgPiki2"
+                    android:id="@+id/imgReact22"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_centerInParent="true"
@@ -178,113 +271,50 @@
                     android:scaleType="centerCrop" />
 
                 <com.pleek.app.views.CircleProgressBar
-                    android:id="@+id/progressBarPiki2"
+                    android:id="@+id/progressBarReact22"
                     app:mlpb_show_arrow="false"
                     app:mlpb_enable_circle_background="false"
-                    app:mlpb_progress_stoke_width="2dp"
+                    app:mlpb_progress_stoke_width="1dp"
                     app:mlpb_progress_text_visibility="invisible"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
-                    android:visibility="gone" />
-            </FrameLayout>
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
 
             <View
+                android:layout_width="0.5dp"
+                android:layout_height="match_parent"
+                android:background="@color/blancEightyTransparent" />
+
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/blanc" />
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:layout_weight="1">
 
-            <LinearLayout
-                android:id="@+id/layoutReact2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <FrameLayout
+                <com.pleek.app.views.RoundedImageView
+                    android:id="@+id/imgReact23"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1">
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/bg_rounded_bottom_right"
+                    android:scaleType="centerCrop"
+                    app:riv_corner_radius_bottom_right="1dp" />
 
-                    <com.pleek.app.views.BlockingImageView
-                        android:id="@+id/imgReact21"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_centerInParent="true"
-                        android:background="@color/fondBackReact"
-                        android:scaleType="centerCrop" />
-
-                    <com.pleek.app.views.CircleProgressBar
-                        android:id="@+id/progressBarReact21"
-                        app:mlpb_show_arrow="false"
-                        app:mlpb_enable_circle_background="false"
-                        app:mlpb_progress_stoke_width="1dp"
-                        app:mlpb_progress_text_visibility="invisible"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:visibility="gone" />
-                </FrameLayout>
-
-                <View
-                    android:layout_width="0.5dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/blanc" />
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
-
-                    <com.pleek.app.views.BlockingImageView
-                        android:id="@+id/imgReact22"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_centerInParent="true"
-                        android:background="@color/fondBackReact"
-                        android:scaleType="centerCrop" />
-
-                    <com.pleek.app.views.CircleProgressBar
-                        android:id="@+id/progressBarReact22"
-                        app:mlpb_show_arrow="false"
-                        app:mlpb_enable_circle_background="false"
-                        app:mlpb_progress_stoke_width="1dp"
-                        app:mlpb_progress_text_visibility="invisible"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:visibility="gone" />
-                </FrameLayout>
-
-                <View
-                    android:layout_width="0.5dp"
-                    android:layout_height="match_parent"
-                    android:background="@color/blanc" />
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
-
-                    <com.pleek.app.views.BlockingImageView
-                        android:id="@+id/imgReact23"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_centerInParent="true"
-                        android:background="@color/fondBackReact"
-                        android:scaleType="centerCrop" />
-
-                    <com.pleek.app.views.CircleProgressBar
-                        android:id="@+id/progressBarReact23"
-                        app:mlpb_show_arrow="false"
-                        app:mlpb_enable_circle_background="false"
-                        app:mlpb_progress_stoke_width="1dp"
-                        app:mlpb_progress_text_visibility="invisible"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:visibility="gone" />
-                </FrameLayout>
-            </LinearLayout>
+                <com.pleek.app.views.CircleProgressBar
+                    android:id="@+id/progressBarReact23"
+                    app:mlpb_show_arrow="false"
+                    app:mlpb_enable_circle_background="false"
+                    app:mlpb_progress_stoke_width="1dp"
+                    app:mlpb_progress_text_visibility="invisible"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true"/>
+            </RelativeLayout>
         </LinearLayout>
-    </android.support.v7.widget.CardView>
+    </LinearLayout>
 </LinearLayout>

@@ -19,6 +19,7 @@
     <color name="noirOverlayLight">#60000000</color>
     <color name="blancTouchDown">#33FFFFFF</color>
     <color name="blancBackShare">#D0FFFFFF</color>
+    <color name="blancEightyTransparent">#80FFFFFF</color>
     <color name="transparent">#00000000</color>
     <color name="grisLabele">#D1D4DA</color>
     <color name="grisSeparate">#EAEAEA</color>

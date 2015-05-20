@@ -32,6 +32,7 @@ import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.common.Constants;
 import com.pleek.app.interfaces.QuickReturnListViewOnScrollListener;
+import com.pleek.app.views.CircleProgressBar;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -115,6 +116,7 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
         refreshSwipe.setProgressViewOffset(false, 0, (int) (getResources().getDimensionPixelSize(R.dimen.header_height) + 20 * screen.getDensity()));
 
         footer = getActivity().getLayoutInflater().inflate(R.layout.item_footer, null);
+        ((CircleProgressBar) footer.findViewById(R.id.progressBar)).setColorSchemeResources(R.color.progressBar);
         listViewPiki.addFooterView(footer);
     }
 
