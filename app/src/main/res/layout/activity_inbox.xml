@@ -9,6 +9,25 @@
         android:layout_height="match_parent" />
 
     <RelativeLayout
+        android:id="@+id/layoutSearch"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:background="@color/firstColorDark3"
+        android:layout_marginTop="@dimen/header_height_without_shadow">
+
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/picto_search_disabled"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
         android:id="@+id/header"
         android:layout_height="@dimen/header_height"
         android:layout_width="match_parent">
@@ -52,6 +71,16 @@
                     android:scaleType="center"
                     android:src="@drawable/picto_friends_home_sel"
                     android:layout_marginTop="21dp" />
+
+                <ImageView
+                    android:id="@+id/btnSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleType="centerInside"
+                    android:layout_toLeftOf="@id/imgFriends"
+                    android:src="@drawable/picto_search_disabled"
+                    android:layout_marginTop="21dp"
+                    android:layout_marginRight="28dp" />
             </RelativeLayout>
 
             <!-- PAGER TAB -->

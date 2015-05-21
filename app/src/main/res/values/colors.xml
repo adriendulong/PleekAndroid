@@ -1,6 +1,7 @@
 <resources>
     <color name="firstColor">#3137A2</color>
     <color name="firstColorDark">#2d337f</color>
+    <color name="firstColorDark3">#3949AB</color>
     <color name="firstColorDark2">#ff292f69</color>
     <color name="firstColorLight">#4048B7</color>
     <color name="secondColor">#FC3281</color>

@@ -444,7 +444,6 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                 lp.setMargins(0, 0, 0, 0);
                 backView.setLayoutParams(lp);
             }
-
         }
 
         private void animRestorePositionItem(final View item, int moveX) {
