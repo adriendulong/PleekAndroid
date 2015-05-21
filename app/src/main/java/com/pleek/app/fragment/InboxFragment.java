@@ -154,8 +154,8 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
             me.add(currentUser);
             query.whereNotContainedIn("user", me);
         }
-        if (ParseUser.getCurrentUser().get("pleeksHide") != null) {
-            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHide"));
+        if (ParseUser.getCurrentUser().get("pleeksHided") != null) {
+            query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHided"));
         }
         query.setCachePolicy(withCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
         query.include("user");
@@ -349,7 +349,7 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
 
                                                     Piki removedPiki = adapter.removePiki(position);
                                                     boolean me = removedPiki.getName().equals(ParseUser.getCurrentUser().getUsername());
-                                                    if (me && !removedPiki.isPublic()) {
+                                                    if (me || !removedPiki.isPublic()) {
                                                         //Parse remove Piki
                                                         HashMap<String, String> params = new HashMap<String, String>();
                                                         params.put("pikiId", removedPiki.getId());
