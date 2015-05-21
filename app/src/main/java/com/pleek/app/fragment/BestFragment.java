@@ -168,11 +168,6 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
         listViewPiki.setScrollingEnabled(!show);
     }
 
-    public void reload() {
-        shouldReinit = true;
-        init(false);
-    }
-
     @Override
     public void adjustScroll(int scrollHeight) {
         if (listViewPiki.getFirstVisiblePosition() >= 1) {

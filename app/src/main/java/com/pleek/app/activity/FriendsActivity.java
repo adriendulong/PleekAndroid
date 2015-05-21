@@ -366,7 +366,7 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
 
     private final int DURATION_ANIM = 200;//ms
     public void startAddFriendAnimation() {
-        HomeActivity.AUTO_RELOAD = true;
+        InboxActivity.AUTO_RELOAD = true;
 
         getFriends(false, new FunctionCallback<ArrayList<Friend>>() {
             @Override

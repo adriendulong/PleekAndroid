@@ -22,6 +22,7 @@ import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.fragment.BestFragment;
 import com.pleek.app.fragment.InboxFragment;
+import com.pleek.app.fragment.PikiFragment;
 import com.pleek.app.fragment.ScrollTabHolderFragment;
 import com.pleek.app.interfaces.OnCollapseABListener;
 import com.pleek.app.interfaces.ScrollTabHolder;
@@ -105,7 +106,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
                 btnPlus.setVisibility((position == 0 || position == 1) ? View.VISIBLE : View.GONE);
                 setTab(position == 0 ? btnTab1 : (position == 1 ? btnTab2 : btnTab3));
 
-                SparseArray<ScrollTabHolder> scrollTabHolders = pagerAdapter.getScrollTabHolders();
+                SparseArray<PikiFragment> scrollTabHolders = pagerAdapter.getScrollTabHolders();
                 ScrollTabHolder currentHolder = scrollTabHolders.valueAt(position);
                 currentHolder.adjustScroll(oldScroll);
             }
@@ -148,6 +149,8 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     protected void onResume() {
         if (AUTO_RELOAD) {
             AUTO_RELOAD = false;
+
+            pagerAdapter.reload();
         }
 
         super.onResume();
@@ -196,12 +199,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
 
     public class PagerAdapter extends FragmentPagerAdapter {
 
-        private SparseArray<ScrollTabHolder> fragments;
+        private SparseArray<PikiFragment> fragments;
         private ScrollTabHolder listener;
 
         public PagerAdapter(android.support.v4.app.FragmentManager fm) {
             super(fm);
-            fragments = new SparseArray<ScrollTabHolder>();
+            fragments = new SparseArray<PikiFragment>();
         }
 
         public void setTabHolderScrollingContent(ScrollTabHolder pListener) {
@@ -220,12 +223,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
 
         @Override
         public Fragment getItem(int position) {
-            ScrollTabHolderFragment fragment;
+            PikiFragment fragment;
 
             if (position == 2) {
-                fragment = (ScrollTabHolderFragment) BestFragment.newInstance(position, header);
+                fragment = (PikiFragment) BestFragment.newInstance(position, header);
             } else {
-                fragment = (ScrollTabHolderFragment) InboxFragment.newInstance(position, header);
+                fragment = (PikiFragment) InboxFragment.newInstance(position, header);
             }
 
             fragments.put(position, fragment);
@@ -236,10 +239,15 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             return fragment;
         }
 
-        public SparseArray<ScrollTabHolder> getScrollTabHolders() {
-            return fragments;
+        public void reload() {
+            fragments.valueAt(0).reload();
+            fragments.valueAt(1).reload();
+            fragments.valueAt(2).reload();
         }
 
+        public SparseArray<PikiFragment> getScrollTabHolders() {
+            return fragments;
+        }
     }
 
     private void startAnimation() {

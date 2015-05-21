@@ -130,11 +130,10 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     lp.height = size;
                     vh.imgPiki.setLayoutParams(lp);
 
-                    //setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + context.getResources().getDimensionPixelSize(R.dimen.piki_blue_height));
-                    //setLayoutParams(vh.layoutBack, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + context.getResources().getDimensionPixelSize(R.dimen.piki_blue_height));
+                    setLayoutParams(vh.viewInboxCard, ViewGroup.LayoutParams.MATCH_PARENT, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + (int) (10 * screen.getDensity()));
 
                     RelativeLayout.LayoutParams lpBlue = (RelativeLayout.LayoutParams) vh.layoutBlue.getLayoutParams();
-                    lpBlue.setMargins(lpBlue.leftMargin, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height), lpBlue.rightMargin, lpBlue.bottomMargin);
+                    lpBlue.setMargins(lpBlue.leftMargin, size + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - (int) (2 * screen.getDensity()), lpBlue.rightMargin, lpBlue.bottomMargin);
                     vh.layoutBlue.setLayoutParams(lpBlue);
 
                     break;
@@ -146,11 +145,13 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
                     int height = (int) (screen.getWidth() * (float) 2 / 3);
 
-                    setLayoutParams(vh.layoutPiki, (int) height, height);
-                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1 / 3), height);
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBack, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
+                    setLayoutParams(vh.layoutPiki, -1, height);
+                    setLayoutParams(vh.layoutReact, -1, height);
+                    setLayoutParams(vh.viewInboxCard, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + (int) (10 * screen.getDensity()));
+
+                    lpBlue = (RelativeLayout.LayoutParams) vh.layoutBlue.getLayoutParams();
+                    lpBlue.setMargins(lpBlue.leftMargin, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - (int) (2 * screen.getDensity()), lpBlue.rightMargin, lpBlue.bottomMargin);
+                    vh.layoutBlue.setLayoutParams(lpBlue);
 
                     break;
 
@@ -160,11 +161,13 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     view.setTag(R.id.vh, vh);
 
                     height = (int) (screen.getWidth() * (float) 2/3);
-                    setLayoutParams(vh.layoutPiki, height, height);
-                    setLayoutParams(vh.viewBg, screen.getWidth(), height - (int) (3 * screen.getDensity()));
-                    setLayoutParams(vh.layoutReact, (int) (screen.getWidth() * (float) 1/3), height);
-                    setLayoutParams(vh.layoutFront, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height));
-                    setLayoutParams(vh.layoutBack, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - ((int) (4 * screen.getDensity())));
+                    setLayoutParams(vh.layoutPiki, -1, height);
+                    setLayoutParams(vh.layoutReact, -1, height);
+                    setLayoutParams(vh.viewInboxCard, ViewGroup.LayoutParams.MATCH_PARENT, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) + (int) (10 * screen.getDensity()));
+
+                    lpBlue = (RelativeLayout.LayoutParams) vh.layoutBlue.getLayoutParams();
+                    lpBlue.setMargins(lpBlue.leftMargin, height + context.getResources().getDimensionPixelSize(R.dimen.piki_infos_height) - (int) (2 * screen.getDensity()), lpBlue.rightMargin, lpBlue.bottomMargin);
+                    vh.layoutBlue.setLayoutParams(lpBlue);
 
                     break;
             }
@@ -174,7 +177,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         Piki piki = i < listPiki.size() ? listPiki.get(i) : null;
         boolean me = piki.getName().equals(ParseUser.getCurrentUser().getUsername());//TODO : crash #7 > NullPointerException
 
-        if (piki != null) { // If is not placeholder
+        if (piki != null) {
             switch (viewType) {
                 case CELL_WITH_PIKI_WITHOUT_ANSWERS:
                     vh.txtUserName.setText(!StringUtils.isStringEmpty(piki.getFirstName()) ? piki.getFirstName() : piki.getName());
@@ -185,16 +188,6 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                         Picasso.with(context).cancelRequest(vh.customTargetPiki);
 
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(PIKI_SIZE, PIKI_SIZE).into(vh.customTargetPiki);
-
-                    if (vh.txtReplies != null) {
-                        if (piki.getNbReact() == 0 && !me) {
-                            vh.txtReplies.setText(context.getString(R.string.piki_reply_first));
-                        } else if (piki.getNbReact() == 0) {
-                            vh.txtReplies.setText("");
-                        } else {
-                            vh.txtReplies.setText((piki.getNbReact() > 1 ? Utile.formatBigNumber(piki.getNbReact()) + " " + context.getString(R.string.piki_replies) : Utile.formatBigNumber(piki.getNbReact()) + " " + context.getString(R.string.piki_reply)));
-                        }
-                    }
 
                     break;
 
@@ -210,10 +203,11 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     if (vh.customTargetReact1 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact1);
 
-                    int resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
+                    int height = (int) (screen.getWidth() * (float) 2/3);
+                    int resize = height > PIKI_SIZE ? PIKI_SIZE : height;
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
 
-                    int resizeReact = vh.layoutReact.getLayoutParams().width > REACT_SIZE ? REACT_SIZE : vh.layoutReact.getLayoutParams().width;
+                    int resizeReact = height> REACT_SIZE ? REACT_SIZE : height;
                     PicassoUtils.with(context).load(piki.getUrlReact1()).resize(resizeReact, resizeReact).centerCrop().into(vh.customTargetReact1);
 
                     break;
@@ -233,14 +227,23 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     if (vh.customTargetReact2 != null)
                         Picasso.with(context).cancelRequest(vh.customTargetReact2);
 
-                    resize = vh.layoutPiki.getLayoutParams().width > PIKI_SIZE ? PIKI_SIZE : vh.layoutPiki.getLayoutParams().width;
+                    height = (int) (screen.getWidth() * (float) 2/3);
+                    resize = height > PIKI_SIZE ? PIKI_SIZE : height;
                     PicassoUtils.with(context).load(piki.getUrlPiki()).resize(resize, resize).centerCrop().into(vh.customTargetPiki);
 
-                    resizeReact = vh.layoutReact.getLayoutParams().width > REACT_SIZE ? REACT_SIZE : vh.layoutReact.getLayoutParams().width;
+                    resizeReact = height> REACT_SIZE ? REACT_SIZE : height;
                     PicassoUtils.with(context).load(piki.getUrlReact1()).resize(resizeReact, resizeReact).into(vh.customTargetReact1);
                     PicassoUtils.with(context).load(piki.getUrlReact2()).resize(resizeReact, resizeReact).into(vh.customTargetReact2);
 
                     break;
+            }
+
+            if (piki.getNbReact() == 0 && !me) {
+                vh.txtReplies.setText(context.getString(R.string.piki_reply_first));
+            } else if (piki.getNbReact() == 0) {
+                vh.txtReplies.setText("");
+            } else {
+                vh.txtReplies.setText((piki.getNbReact() > 1 ? Utile.formatBigNumber(piki.getNbReact()) + " " + context.getString(R.string.piki_replies) : Utile.formatBigNumber(piki.getNbReact()) + " " + context.getString(R.string.piki_reply)));
             }
 
             // Label Piki
@@ -271,12 +274,8 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                     vh.imgType.setImageResource(R.drawable.picto_new_replies);
                     vh.imgType.setVisibility(View.VISIBLE);
                 } else {
-                    if (vh.layoutBlue != null)
-                        vh.layoutBlue.setVisibility(View.GONE);
+                    vh.layoutBlue.setVisibility(View.GONE);
                 }
-//                else if (piki.getNbReact() == 0 && !me) {
-//                    vh.txtReplies.setText(R.string.piki_reply_first);
-//                }
             }
         }
 
@@ -323,10 +322,11 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                 //send to listener
                 if (listener != null) {
                     Piki piki = listPiki.get(position);
-                    //final TextView txtType = (TextView) view.findViewById(R.id.txtType);
-                    //final ImageView imgType = (ImageView) view.findViewById(R.id.imgType);
+                    final ViewGroup layoutBlue = (ViewGroup) view.findViewById(R.id.layoutBlue);
 
-
+                    if (layoutBlue.getVisibility() == View.VISIBLE) {
+                        Utile.fadeOut(layoutBlue, FADE_TIME);
+                    }
 
                     listener.clickOnPiki(piki);
                 }
@@ -384,8 +384,9 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
     private void setLayoutParams(View v, int width, int height) {
         ViewGroup.LayoutParams lp = v.getLayoutParams();
-        lp.width = width;
-        lp.height = height;
+
+        if (width != -1) lp.width = width;
+        if (height != -1) lp.height = height;
         v.setLayoutParams(lp);
     }
 
@@ -472,9 +473,6 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         @Optional
         @InjectView(R.id.imgReact1)
         ImageView imgReact1;
-        @Optional
-        @InjectView(R.id.viewBg)
-        View viewBg;
         @InjectView(R.id.txtType)
         TextViewFont txtType;
         @InjectView(R.id.imgType)
@@ -482,6 +480,9 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         @Optional
         @InjectView(R.id.txtReplies)
         TextViewFont txtReplies;
+        @Optional
+        @InjectView(R.id.viewInboxCard)
+        View viewInboxCard;
 
         @Optional
         @InjectView(R.id.layoutBlue)
@@ -510,6 +511,7 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
                 customTargetReact1 = new CustomTargetPiki(progressBarReact, imgReact);
                 customTargetReact2 = new CustomTargetPiki(progressBarReact1, imgReact1);
 
+                progressBarPiki.setColorSchemeResources(R.color.progressBar);
                 progressBarReact1.setColorSchemeResources(R.color.progressBar);
                 progressBarReact.setColorSchemeResources(R.color.progressBar);
             }

@@ -1306,7 +1306,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         Reaction newReact = new Reaction(react);
                         newReact.setTmpPhoto(tmpReact.getTmpPhoto());
                         listReact = adapter.addReact(newReact, tmpReact);
-                        HomeActivity.AUTO_RELOAD = true;
+                        InboxActivity.AUTO_RELOAD = true;
 
                         ParseObject pikiParse = piki.getParseObject();
 

@@ -150,6 +150,9 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
             query.whereEqualTo("user", currentUser);
         } else {
             query.whereContainedIn("user", friends);
+            ArrayList<ParseUser> me = new ArrayList<ParseUser>();
+            me.add(currentUser);
+            query.whereNotContainedIn("user", me);
         }
         if (ParseUser.getCurrentUser().get("pleeksHide") != null) {
             query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHide"));
@@ -209,11 +212,6 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
     {
         listViewPiki.setVerticalScrollBarEnabled(!show);
         listViewPiki.setScrollingEnabled(!show);
-    }
-
-    public void reload() {
-        shouldReinit = true;
-        init(false);
     }
 
     private class MyListTouchListener implements View.OnTouchListener {

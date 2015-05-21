@@ -158,16 +158,9 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
                         vh.imgPlay.setVisibility(View.GONE);
                     }
 
-//                    PicassoUtils.with(context).load(piki.getUrlPiki()).transform(new RoundedTransformation((int) (15 * screen.getDensity()), false, false, true, true)).into(vh.customTargetPiki1);
-//                    PicassoUtils.with(context).load(piki2.getUrlPiki()).resize(sizePiki, sizePiki).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), false, false, true, true)).into(vh.customTargetPiki2);
-//
-//                    PicassoUtils.with(context).load(piki.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, false, true)).into(vh.customTargetReact11);
-//                    PicassoUtils.with(context).load(piki.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact12);
-//                    PicassoUtils.with(context).load(piki.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, true, false)).into(vh.customTargetReact13);
-//
-//                    PicassoUtils.with(context).load(piki2.getUrlReact1()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, false, true)).into(vh.customTargetReact21);
-//                    PicassoUtils.with(context).load(piki2.getUrlReact2()).resize(sizeReact, sizeReact).centerCrop().into(vh.customTargetReact22);
-//                    PicassoUtils.with(context).load(piki2.getUrlReact3()).resize(sizeReact, sizeReact).centerCrop().transform(new RoundedTransformation((int) (15 * screen.getDensity()), true, true, true, false)).into(vh.customTargetReact23);
+                    vh.layoutPiki1.setOnTouchListener(this);
+                    view.setTag(new Integer(i * 2));
+                    vh.layoutPiki1.setTag(new Integer(i * 2));
 
                     break;
             }
@@ -203,13 +196,15 @@ public class BestPikiAdapter extends BaseAdapter implements View.OnTouchListener
                         vh.imgPlay2.setVisibility(View.GONE);
                     }
 
+                    vh.layoutPiki2.setOnTouchListener(this);
+                    view.setTag(new Integer(i * 2 + 1));
+                    vh.layoutPiki2.setTag(new Integer(i * 2 + 1));
+
                     break;
             }
         } else {
             vh.layoutPiki2.setVisibility(View.INVISIBLE);
         }
-
-        view.setTag(new Integer(i));
 
         return view;
     }

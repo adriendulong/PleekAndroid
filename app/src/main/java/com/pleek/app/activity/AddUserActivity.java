@@ -172,7 +172,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
     private void goHome()
     {
         if (!isFromFriends) {
-            Intent i = new Intent(AddUserActivity.this, HomeActivity.class);
+            Intent i = new Intent(AddUserActivity.this, InboxActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(i);
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);

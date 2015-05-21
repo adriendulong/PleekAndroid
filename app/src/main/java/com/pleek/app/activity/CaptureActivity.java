@@ -719,7 +719,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         if(CLOSE_ME)
         {
             CLOSE_ME = false;
-            HomeActivity.AUTO_RELOAD = true;
+            InboxActivity.AUTO_RELOAD = true;
             finish();
         }
 
