@@ -111,7 +111,7 @@ import java.util.regex.Pattern;
  */
 public class PikiActivity extends ParentActivity implements View.OnClickListener, ReactAdapter.Listener, SurfaceHolder.Callback, VideoBean.LoadVideoEndListener, CameraView.ListenerStarted
 {
-    private final int DURATION_SHOWSHARE_ANIM = 300;//ms
+    private final int DURATION_SHOWSHARE_ANIM = 300; //ms
 
     private View rootView;
     private View btnBack;

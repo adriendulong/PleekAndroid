@@ -32,6 +32,7 @@ ADDED from AndroidManifest.xml:8:5
 uses-permission#android.permission.INTERNET
 ADDED from AndroidManifest.xml:11:5
 MERGED from com.mixpanel.android:mixpanel-android:4.5.3:17:5
+MERGED from com.crashlytics.sdk.android:crashlytics:2.2.4:9:5
 	android:name
 		ADDED from AndroidManifest.xml:11:22
 uses-permission#android.permission.ACCESS_NETWORK_STATE
@@ -87,6 +88,11 @@ MERGED from com.android.support:support-v4:21.0.0:16:5
 MERGED from com.mixpanel.android:mixpanel-android:4.5.3:44:5
 MERGED from com.android.support:recyclerview-v7:21.0.0:17:5
 MERGED from com.android.support:support-v4:21.0.0:16:5
+MERGED from com.crashlytics.sdk.android:crashlytics:2.2.4:11:5
+MERGED from com.crashlytics.sdk.android:answers:1.2.0:9:5
+MERGED from io.fabric.sdk.android:fabric:1.3.1:9:5
+MERGED from com.crashlytics.sdk.android:beta:1.1.2:9:5
+MERGED from io.fabric.sdk.android:fabric:1.3.1:9:5
 	android:label
 		ADDED from AndroidManifest.xml:30:9
 	android:hardwareAccelerated
@@ -315,32 +321,38 @@ ADDED from AndroidManifest.xml:179:9
 		ADDED from AndroidManifest.xml:179:58
 	android:name
 		ADDED from AndroidManifest.xml:179:20
-provider#android.support.v4.content.FileProvider
-ADDED from AndroidManifest.xml:182:9
-	android:authorities
-		ADDED from AndroidManifest.xml:184:13
-	android:grantUriPermissions
-		ADDED from AndroidManifest.xml:185:13
-	android:exported
-		ADDED from AndroidManifest.xml:186:13
-	android:name
-		ADDED from AndroidManifest.xml:183:13
-meta-data#android.support.FILE_PROVIDER_PATHS
-ADDED from AndroidManifest.xml:187:13
-	android:resource
-		ADDED from AndroidManifest.xml:189:17
-	android:name
-		ADDED from AndroidManifest.xml:188:17
 activity#com.mixpanel.android.surveys.SurveyActivity
-ADDED from AndroidManifest.xml:193:9
+ADDED from AndroidManifest.xml:182:9
 	android:name
-		ADDED from AndroidManifest.xml:193:19
-meta-data#com.parse.push.notification_icon
-ADDED from AndroidManifest.xml:195:9
+		ADDED from AndroidManifest.xml:182:19
+provider#android.support.v4.content.FileProvider
+ADDED from AndroidManifest.xml:184:9
+	android:authorities
+		ADDED from AndroidManifest.xml:186:13
+	android:grantUriPermissions
+		ADDED from AndroidManifest.xml:187:13
+	android:exported
+		ADDED from AndroidManifest.xml:188:13
+	android:name
+		ADDED from AndroidManifest.xml:185:13
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from AndroidManifest.xml:189:13
 	android:resource
-		ADDED from AndroidManifest.xml:195:68
+		ADDED from AndroidManifest.xml:191:17
 	android:name
-		ADDED from AndroidManifest.xml:195:20
+		ADDED from AndroidManifest.xml:190:17
+meta-data#com.parse.push.notification_icon
+ADDED from AndroidManifest.xml:197:9
+	android:resource
+		ADDED from AndroidManifest.xml:197:68
+	android:name
+		ADDED from AndroidManifest.xml:197:20
+meta-data#io.fabric.ApiKey
+ADDED from AndroidManifest.xml:198:9
+	android:value
+		ADDED from AndroidManifest.xml:200:13
+	android:name
+		ADDED from AndroidManifest.xml:199:13
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from PleekAndroid:lib-android:unspecified:7:5
@@ -356,6 +368,11 @@ MERGED from com.android.support:recyclerview-v7:21.0.0:15:5
 MERGED from com.android.support:support-v4:21.0.0:15:5
 MERGED from fr.avianey.com.viewpagerindicator:library:2.4.1:8:5
 MERGED from me.grantland:autofittextview:0.2.1:7:5
+MERGED from com.crashlytics.sdk.android:crashlytics:2.2.4:7:5
+MERGED from com.crashlytics.sdk.android:answers:1.2.0:7:5
+MERGED from io.fabric.sdk.android:fabric:1.3.1:7:5
+MERGED from com.crashlytics.sdk.android:beta:1.1.2:7:5
+MERGED from io.fabric.sdk.android:fabric:1.3.1:7:5
 	android:targetSdkVersion
 		INJECTED from AndroidManifest.xml:0:0
 		INJECTED from AndroidManifest.xml:0:0
