@@ -61,6 +61,7 @@
     <string name="home_new_replies">NEW REPLIES</string>
     <string name="home_new_picture">NEW PICTURE</string>
     <string name="home_new_video">NEW VIDEO</string>
+    <string name="home_hint_search">Search</string>
 
     <!-- PIKI -->
     <string name="piki_friend">friend</string>

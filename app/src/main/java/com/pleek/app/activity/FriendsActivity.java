@@ -86,7 +86,6 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     private FriendsFindFragment page1;
     private FriendsAllFragment page2;
     private FriendsAllFragment page3;
-    private FriendsFindFragment searchFragment;
 
     private FragmentPagerAdapter pagerAdapter;
 

@@ -3,34 +3,120 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.pleek.app.views.ViewPagerUnswippable
-        android:id="@+id/viewPager"
+    <FrameLayout
+        android:id="@+id/layoutContent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <RelativeLayout
+        <com.pleek.app.views.ViewPagerUnswippable
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:id="@+id/layoutInboxSearchFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <fragment android:name="com.pleek.app.fragment.InboxSearchFragment"
+                android:id="@+id/fragmentSearchInbox"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/layoutOverlayWhite"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/blancEightyTransparent"
+            android:alpha="0" />
+    </FrameLayout>
+
+    <LinearLayout
         android:id="@+id/layoutSearch"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:background="@color/firstColorDark3"
-        android:layout_marginTop="@dimen/header_height_without_shadow">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:focusableInTouchMode="true"
+        android:focusable="true"
+        android:clickable="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/search_height"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:background="@color/firstColorDark3"
+            android:layout_marginTop="@dimen/header_height_without_shadow">
+
+            <ImageView
+                android:id="@+id/imgSearch"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/picto_search_disabled"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:clickable="true" />
+
+            <ImageView
+                android:id="@+id/imgErase"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/picto_erase"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:clickable="true" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:id="@+id/txtNBResults"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textSize="12dp"
+                app:customFont="montserrat-regular.ttf"
+                android:gravity="center"
+                android:layout_marginRight="15dp"
+                android:textColor="@color/blanc"
+                android:layout_toLeftOf="@id/imgErase"
+                android:text="Coucou"/>
+
+            <com.goandup.lib.widget.EditTextFont
+                android:id="@+id/editSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16dp"
+                app:customFont="proximanova_sbold.ttf"
+                android:layout_centerVertical="true"
+                android:lines="1"
+                android:singleLine="true"
+                android:hint="@string/home_hint_search"
+                android:textColorHint="@color/blancTenTransparent"
+                android:textColor="@color/blanc"
+                android:background="@null"
+                android:layout_toRightOf="@id/imgSearch"
+                android:layout_toLeftOf="@id/txtNBResults"
+                android:layout_marginRight="15dp"
+                android:layout_marginLeft="15dp"
+                android:imeOptions="actionSearch" />
+
+        </RelativeLayout>
 
         <ImageView
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/picto_search_disabled"
-            android:layout_centerVertical="true"
-            android:layout_alignParentLeft="true" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shadow_bot" />
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/header"
         android:layout_height="@dimen/header_height"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:focusableInTouchMode="true"
+        android:focusable="true"
+        android:clickable="true">
 
         <LinearLayout
             android:id="@+id/subHeader"
@@ -80,7 +166,8 @@
                     android:layout_toLeftOf="@id/imgFriends"
                     android:src="@drawable/picto_search_disabled"
                     android:layout_marginTop="21dp"
-                    android:layout_marginRight="28dp" />
+                    android:layout_marginRight="28dp"
+                    android:clickable="true" />
             </RelativeLayout>
 
             <!-- PAGER TAB -->
@@ -228,6 +315,7 @@
         </LinearLayout>
 
         <ImageView
+            android:id="@+id/shadowBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/shadow_bot"

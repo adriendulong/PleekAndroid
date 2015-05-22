@@ -353,8 +353,7 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
     private static int TIMER_QUERY = 500;//ms
     final Handler handler = new Handler();
     private QueryRunnable lastQueryRunnable;
-    class QueryRunnable implements Runnable
-    {
+    class QueryRunnable implements Runnable {
         private String username;
 
         public QueryRunnable(String username) {
@@ -362,29 +361,21 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
         }
 
         @Override
-        public void run()
-        {
-            if(username == null)
-            {
+        public void run() {
+            if (username == null) {
                 adapter.removePikiUser();
                 return;
             }
 
             ParseQuery<ParseUser> query = ParseUser.getQuery();
             query.whereEqualTo("username", username);
-            query.findInBackground(new FindCallback<ParseUser>()
-            {
-                public void done(List<ParseUser> list, ParseException e)
-                {
-                    if(e == null && username.equals(currentFiltreSearch))
-                    {
-                        if(list.size() > 0)
-                        {
+            query.findInBackground(new FindCallback<ParseUser>() {
+                public void done(List<ParseUser> list, ParseException e) {
+                    if (e == null && username.equals(currentFiltreSearch)) {
+                        if (list.size() > 0) {
                             txtNoContact.setVisibility(View.GONE);
                             adapter.addPikiUser(new Friend(list.get(0), R.string.friends_section_pikiuser));
-                        }
-                        else
-                        {
+                        } else {
                             adapter.removePikiUser();
                         }
                     }

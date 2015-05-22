@@ -48,7 +48,7 @@ import butterknife.InjectView;
  */
 public class InboxFragment extends PikiFragment implements PikiAdapter.Listener {
 
-    private PikiAdapter adapter;
+    protected PikiAdapter adapter;
 
     public static InboxFragment newInstance(int type, View header) {
         InboxFragment fragment = new InboxFragment();

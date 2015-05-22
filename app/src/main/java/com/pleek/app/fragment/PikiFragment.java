@@ -67,6 +67,8 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
     protected int initialX;
     protected int lastItemShow;
 
+    protected boolean isHeaderScrollEnabled = true;
+
     public static PikiFragment newInstance(int type, View header) {
         PikiFragment fragment;
 
@@ -171,12 +173,16 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
 
         @Override
         public void onScrollStateChanged(AbsListView absListView, int i) {
-            scrollListener.onScrollStateChanged(absListView, i);
+            if (isHeaderScrollEnabled) {
+                scrollListener.onScrollStateChanged(absListView, i);
+            }
         }
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-            scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+            if (isHeaderScrollEnabled) {
+                scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+            }
 
             ((InboxActivity) getActivity()).adjustScroll(scrollListener.getPrevScrollY());
 
@@ -190,5 +196,13 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
                 }
             }
         }
+    }
+
+    public boolean isHeaderScrollEnabled() {
+        return isHeaderScrollEnabled;
+    }
+
+    public void setIsHeaderScrollEnabled(boolean isHeaderScrollEnabled) {
+        this.isHeaderScrollEnabled = isHeaderScrollEnabled;
     }
 }

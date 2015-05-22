@@ -4,11 +4,15 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.SparseArray;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.OvershootInterpolator;
@@ -16,17 +20,27 @@ import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.goandup.lib.widget.EditTextFont;
+import com.goandup.lib.widget.TextViewFont;
+import com.parse.FindCallback;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
+import com.pleek.app.bean.Friend;
 import com.pleek.app.fragment.BestFragment;
 import com.pleek.app.fragment.InboxFragment;
+import com.pleek.app.fragment.InboxSearchFragment;
 import com.pleek.app.fragment.PikiFragment;
 import com.pleek.app.fragment.ScrollTabHolderFragment;
 import com.pleek.app.interfaces.OnCollapseABListener;
 import com.pleek.app.interfaces.ScrollTabHolder;
+import com.pleek.app.utils.StringUtils;
 import com.pleek.app.views.ViewPagerUnswippable;
 import com.viewpagerindicator.UnderlinePageIndicator;
+
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -48,6 +62,16 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     View btnFriends;
     @InjectView(R.id.imgLogo)
     View btnLogo;
+    @InjectView(R.id.btnSearch)
+    ImageView btnSearch;
+    @InjectView(R.id.shadowBar)
+    View shadowBar;
+    @InjectView(R.id.editSearch)
+    EditTextFont editSearch;
+    @InjectView(R.id.imgErase)
+    View btnErase;
+    @InjectView(R.id.txtNBResults)
+    TextViewFont txtNBResults;
     @InjectView(R.id.btnTab1)
     View btnTab1;
     @InjectView(R.id.btnTab2)
@@ -56,6 +80,10 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     View btnTab3;
     @InjectView(R.id.tabIndicator)
     UnderlinePageIndicator tabIndicator;
+    @InjectView(R.id.layoutContent)
+    ViewGroup layoutContent;
+    @InjectView(R.id.layoutOverlayWhite)
+    View layoutOverlayWhite;
     @InjectView(R.id.viewPager)
     ViewPagerUnswippable viewPager;
     @InjectView(R.id.imgInboxSel)
@@ -72,8 +100,14 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     View header;
     @InjectView(R.id.btnPlus)
     ImageView btnPlus;
+    @InjectView(R.id.layoutSearch)
+    ViewGroup layoutSearch;
+    @InjectView(R.id.layoutInboxSearchFragment)
+    ViewGroup layoutInboxSearchFragment;
 
     private PagerAdapter pagerAdapter;
+
+    private InboxSearchFragment inboxSearchFragment;
 
     private int actionBarHeight;
     private int headerHeightOG;
@@ -81,6 +115,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     int oldScroll = 0;
 
     boolean pendingAnimations = true;
+    boolean isSearchEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +133,23 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         btnTab2.setOnClickListener(this);
         btnTab3.setOnClickListener(this);
         btnPlus.setOnClickListener(this);
+        btnErase.setOnClickListener(this);
+        btnSearch.setOnClickListener(this);
+
+        editSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                launchSearch();
+            }
+        });
 
         tabIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -137,6 +189,8 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         if (userInfos != null) mixpanel.getPeople().set("$phone", userInfos.getString("phoneNumber"));
         mixpanel.flush();
 
+        layoutSearch.setTranslationY(- 2 * getResources().getDimensionPixelSize(R.dimen.header_height_without_shadow));
+
         if (pendingAnimations) {
             btnPlus.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_size));
             startAnimation();
@@ -172,6 +226,34 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         } else if (v == btnPlus) {
             startActivity(new Intent(this, CaptureActivity.class));
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+        } else if (v == btnSearch) {
+            if (isSearchEnabled) {
+                pagerAdapter.setIsHeaderScrollEnabled(isSearchEnabled);
+                btnSearch.setImageResource(R.drawable.picto_search_disabled);
+                layoutSearch.animate().translationY(-2 * getResources().getDimensionPixelSize(R.dimen.header_height_without_shadow));
+                shadowBar.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        shadowBar.setVisibility(View.VISIBLE);
+                    }
+                }, 100);
+                layoutContent.animate().setDuration(300).translationY(0);
+                layoutOverlayWhite.animate().alpha(0);
+            } else {
+                pagerAdapter.setIsHeaderScrollEnabled(isSearchEnabled);
+                btnSearch.setImageResource(R.drawable.picto_search);
+                layoutSearch.animate().translationY(0);
+                shadowBar.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        shadowBar.setVisibility(View.GONE);
+                    }
+                }, 100);
+                layoutContent.animate().setDuration(400).translationY(getResources().getDimensionPixelSize(R.dimen.search_height));
+                layoutOverlayWhite.animate().alpha(1);
+            }
+
+            isSearchEnabled = !isSearchEnabled;
         }
     }
 
@@ -244,6 +326,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             fragments.valueAt(2).reload();
         }
 
+        public void setIsHeaderScrollEnabled(boolean enabled) {
+            fragments.valueAt(0).setIsHeaderScrollEnabled(enabled);
+            fragments.valueAt(1).setIsHeaderScrollEnabled(enabled);
+            fragments.valueAt(2).setIsHeaderScrollEnabled(enabled);
+        }
+
         public SparseArray<PikiFragment> getScrollTabHolders() {
             return fragments;
         }
@@ -262,5 +350,47 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     protected void onDestroy() {
         mixpanel.flush();
         super.onDestroy();
+    }
+
+    private void launchSearch() {
+        String filtreSearch = editSearch.getText().toString();
+
+        if (filtreSearch != null && filtreSearch.length() >= 3) {
+            layoutOverlayWhite.setVisibility(View.GONE);
+            if (lastQueryRunnable != null) handler.removeCallbacks(lastQueryRunnable);
+            lastQueryRunnable = new QueryRunnable(filtreSearch);
+            handler.postDelayed(lastQueryRunnable, TIMER_QUERY);
+        } else {
+            layoutOverlayWhite.setVisibility(View.VISIBLE);
+            layoutInboxSearchFragment.setVisibility(View.GONE);
+        }
+    }
+
+    private static int TIMER_QUERY = 500;
+    final Handler handler = new Handler();
+    private QueryRunnable lastQueryRunnable;
+    class QueryRunnable implements Runnable {
+
+        private String username;
+
+        public QueryRunnable(String username) {
+            this.username = username;
+        }
+
+        @Override
+        public void run() {
+            ParseQuery<ParseUser> query = ParseUser.getQuery();
+            query.whereEqualTo("username", username);
+            query.findInBackground(new FindCallback<ParseUser>() {
+                public void done(List<ParseUser> list, ParseException e) {
+                    if (e == null && username.equals(editSearch.getText().toString())) {
+                        layoutInboxSearchFragment.setVisibility(View.VISIBLE);
+                        inboxSearchFragment.filtreSearchChange(username);
+                    } else {
+                        System.out.println("COUCOU");
+                    }
+                }
+            });
+        }
     }
 }
