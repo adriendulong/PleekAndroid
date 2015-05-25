@@ -1,8 +1,6 @@
 package com.pleek.app.activity;
 
-import android.app.FragmentManager;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -13,30 +11,24 @@ import android.text.TextWatcher;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.OvershootInterpolator;
-import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.goandup.lib.widget.EditTextFont;
 import com.goandup.lib.widget.TextViewFont;
+import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
-import com.pleek.app.bean.Friend;
 import com.pleek.app.fragment.BestFragment;
 import com.pleek.app.fragment.InboxFragment;
 import com.pleek.app.fragment.InboxSearchFragment;
 import com.pleek.app.fragment.PikiFragment;
-import com.pleek.app.fragment.ScrollTabHolderFragment;
-import com.pleek.app.interfaces.OnCollapseABListener;
 import com.pleek.app.interfaces.ScrollTabHolder;
-import com.pleek.app.utils.StringUtils;
 import com.pleek.app.views.ViewPagerUnswippable;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
@@ -175,6 +167,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     }
 
     private void init() {
+        inboxSearchFragment = (InboxSearchFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentSearchInbox);
         pagerAdapter = new PagerAdapter(getSupportFragmentManager());
         pagerAdapter.setTabHolderScrollingContent(this);
         viewPager.setAdapter(pagerAdapter);
@@ -239,6 +232,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
                 }, 100);
                 layoutContent.animate().setDuration(300).translationY(0);
                 layoutOverlayWhite.animate().alpha(0);
+                layoutInboxSearchFragment.setVisibility(View.GONE);
             } else {
                 pagerAdapter.setIsHeaderScrollEnabled(isSearchEnabled);
                 btnSearch.setImageResource(R.drawable.picto_search);
@@ -383,9 +377,20 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             query.whereEqualTo("username", username);
             query.findInBackground(new FindCallback<ParseUser>() {
                 public void done(List<ParseUser> list, ParseException e) {
-                    if (e == null && username.equals(editSearch.getText().toString())) {
+                    if (e == null && list != null && list.size() > 0 && username.equals(editSearch.getText().toString())) {
+                        ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
+                        query.whereEqualTo("user", list.get(0));
+                        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ELSE_CACHE);
+                        query.countInBackground(new CountCallback() {
+                            @Override
+                            public void done(int i, ParseException e) {
+                                if (e == null)
+                                    txtNBResults.setText("" + i);
+                            }
+                        });
+
                         layoutInboxSearchFragment.setVisibility(View.VISIBLE);
-                        inboxSearchFragment.filtreSearchChange(username);
+                        inboxSearchFragment.filtreSearchChange(username, list.get(0));
                     } else {
                         System.out.println("COUCOU");
                     }

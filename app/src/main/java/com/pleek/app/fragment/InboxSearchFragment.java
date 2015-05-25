@@ -1,38 +1,21 @@
 package com.pleek.app.fragment;
 
-import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Handler;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
-import android.view.animation.TranslateAnimation;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
+import com.parse.CountCallback;
 import com.parse.FindCallback;
-import com.parse.FunctionCallback;
-import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
-import com.pleek.app.activity.InboxActivity;
-import com.pleek.app.activity.ParentActivity;
-import com.pleek.app.activity.PikiActivity;
 import com.pleek.app.adapter.PikiAdapter;
-import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.Piki;
-import com.pleek.app.common.Constants;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -41,16 +24,24 @@ import java.util.List;
 public class InboxSearchFragment extends InboxFragment implements PikiAdapter.Listener {
 
     private String currentFiltreSearch;
+    private ParseUser user;
 
     public static InboxSearchFragment newInstance(int type, View header) {
         InboxSearchFragment fragment = new InboxSearchFragment();
         fragment.type = type;
         fragment.header = header;
+        fragment.isHeaderScrollEnabled = false;
         return fragment;
+    }
+
+    protected boolean loadNext(ParseUser user, boolean withCache) {
+        this.user = user;
+        return loadNext(withCache);
     }
 
     @Override
     protected boolean loadNext(final boolean withCache) {
+        setIsHeaderScrollEnabled(false);
         if (isLoading) return false;
 
         // il n'y a plus rien a charger
@@ -77,14 +68,59 @@ public class InboxSearchFragment extends InboxFragment implements PikiAdapter.Li
     }
 
     protected void loadPikis(boolean withCache) {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null) return;
 
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
+        query.whereEqualTo("user", user);
+        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ELSE_CACHE);
+        query.include("user");
+        query.orderByDescending("lastUpdate");
+        query.setSkip(currentPage * NB_BY_PAGE);
+        query.setLimit(NB_BY_PAGE);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> parseObjects, ParseException e) {
+                if (e == null && parseObjects != null) {
+                    if (!fromCache) currentPage++;
+
+                    // Copie de la liste d'avant la request
+                    if (shouldReinit) {
+                        listPiki.clear();
+                        shouldReinit = false;
+                    } else {
+                        listPiki = new ArrayList<Piki>(listBeforreRequest);
+                    }
+
+                    for (ParseObject parsePiki : parseObjects) {
+                        listPiki.add(new Piki(parsePiki));
+                    }
+                    adapter.setListPiki(listPiki);
+
+                    //si moins de résultat que d'el par page alors c'est la dernière page
+                    endOfLoading = parseObjects.size() < NB_BY_PAGE;
+                } else if (e != null) {
+                    if (!fromCache) Utile.showToast(R.string.home_piki_nok, getActivity());
+                    e.printStackTrace();
+                }
+
+                //si réponse network (2eme reponse)
+                if (!fromCache) {
+                    refreshSwipe.setRefreshing(false);
+                    footer.setVisibility(View.GONE);
+                    isLoading = false;
+                }
+
+                fromCache = false;
+            }
+        });
     }
 
-    public void filtreSearchChange(String filtreSearch) {
+    public void filtreSearchChange(String filtreSearch, ParseUser parseUser) {
         try {
             currentFiltreSearch = filtreSearch;
             if(lastQueryRunnable != null) handler.removeCallbacks(lastQueryRunnable);
-            lastQueryRunnable = new QueryRunnable(filtreSearch);
+            lastQueryRunnable = new QueryRunnable(parseUser);
             handler.postDelayed(lastQueryRunnable, TIMER_QUERY);
         }
         catch (Exception e) {
@@ -97,19 +133,25 @@ public class InboxSearchFragment extends InboxFragment implements PikiAdapter.Li
     final Handler handler = new Handler();
     private QueryRunnable lastQueryRunnable;
     class QueryRunnable implements Runnable {
-        private String username;
+        private ParseUser user;
 
-        public QueryRunnable(String username) {
-            this.username = username;
+        public QueryRunnable(ParseUser user) {
+            this.user = user;
         }
 
         @Override
         public void run() {
-            if (username == null) {
+            if (user == null) {
                 return;
             }
 
-            loadNext(false);
+            isLoading = false;
+            currentPage = 0;
+            endOfLoading = false;
+            listPiki = null;
+            shouldReinit = true;
+
+            loadNext(user, false);
         }
     }
 }
