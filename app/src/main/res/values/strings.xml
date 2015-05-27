@@ -62,6 +62,11 @@
     <string name="home_new_picture">NEW PICTURE</string>
     <string name="home_new_video">NEW VIDEO</string>
     <string name="home_hint_search">Search</string>
+    <string name="home_search_no_pleeks">NO PUBLIC\nPLEEKS YET!</string>
+    <string name="home_search_no_user">NO SO-CALLED\nUSER BRO</string>
+    <string name="no_pleeks">NO PLEEKS</string>
+    <string name="one_pleek">ONE PLEEK</string>
+    <string name="pleeks">PLEEKS</string>
 
     <!-- PIKI -->
     <string name="piki_friend">friend</string>

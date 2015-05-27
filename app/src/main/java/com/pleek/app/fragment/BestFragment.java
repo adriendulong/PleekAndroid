@@ -60,7 +60,7 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
         return v;
     }
 
-    public static BestFragment newInstance(int type, View header) {
+    public static BestFragment newInstance(int type, View header, View viewNew) {
         BestFragment fragment = new BestFragment();
         fragment.type = type;
         fragment.header = header;
@@ -126,8 +126,21 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
                     for (ParseObject parseBest : parseObjects) {
                         listPiki.add(new Piki(parseBest.getParseObject("pleek")));
                     }
-                    listPiki.remove(listPiki.size() - 1);
+
                     adapter.setListPiki(listPiki);
+
+                    if (!fromCache && currentPage == 1 && parseObjects.size() > 0) {
+                        if (pref.contains(prefsKey)) {
+                            long timeStamp = pref.getLong(prefsKey, 0L);
+                            if (timeStamp != listPiki.get(0).getUpdatedAt().getTime()) {
+                                if (onNewContentListener != null) onNewContentListener.onNewContent(type, true);
+                                pref.edit().putLong(prefsKey, listPiki.get(0).getUpdatedAt().getTime()).commit();
+                            }
+                        } else {
+                            if (onNewContentListener != null) onNewContentListener.onNewContent(type, true);
+                            pref.edit().putLong(prefsKey, listPiki.get(0).getUpdatedAt().getTime()).commit();
+                        }
+                    }
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
                     endOfLoading = parseObjects.size() < NB_BY_PAGE;
@@ -158,7 +171,9 @@ public class BestFragment extends PikiFragment implements BestPikiAdapter.Listen
     @Override
     public void clickOnPiki(Piki piki) {
         PikiActivity.initActivity(piki);
-        startActivity(new Intent(getActivity(), PikiActivity.class));
+        Intent intent = new Intent(getActivity(), PikiActivity.class);
+        intent.putExtra(Constants.EXTRA_FROM_INBOX, type);
+        startActivity(intent);
         getActivity().overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
 

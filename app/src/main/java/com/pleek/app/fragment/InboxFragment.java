@@ -50,7 +50,7 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
 
     protected PikiAdapter adapter;
 
-    public static InboxFragment newInstance(int type, View header) {
+    public static InboxFragment newInstance(int type, View header, View viewNew) {
         InboxFragment fragment = new InboxFragment();
         fragment.type = type;
         fragment.header = header;
@@ -166,7 +166,9 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
             @Override
             public void done(List<ParseObject> parseObjects, ParseException e) {
                 if (e == null && parseObjects != null) {
-                    if (!fromCache) currentPage++;
+                    if (!fromCache) {
+                        currentPage++;
+                    }
 
                     //copie de la liste d'avant la request
                     if (shouldReinit) {
@@ -180,6 +182,21 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                         listPiki.add(new Piki(parsePiki));
                     }
                     adapter.setListPiki(listPiki);
+
+                    if (!fromCache) {
+                        if (currentPage == 1 && parseObjects.size() > 0) {
+                            if (pref.contains(prefsKey)) {
+                                long timeStamp = pref.getLong(prefsKey, 0L);
+                                if (timeStamp != listPiki.get(0).getUpdatedAt().getTime()) {
+                                    if (onNewContentListener != null) onNewContentListener.onNewContent(type, true);
+                                    pref.edit().putLong(prefsKey, listPiki.get(0).getUpdatedAt().getTime()).commit();
+                                }
+                            } else {
+                                if (onNewContentListener != null) onNewContentListener.onNewContent(type, true);
+                                pref.edit().putLong(prefsKey, listPiki.get(0).getUpdatedAt().getTime()).commit();
+                            }
+                        }
+                    }
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
                     endOfLoading = parseObjects.size() < NB_BY_PAGE;
@@ -203,7 +220,9 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
     @Override
     public void clickOnPiki(Piki piki) {
         PikiActivity.initActivity(piki);
-        startActivity(new Intent(getActivity(), PikiActivity.class));
+        Intent intent = new Intent(getActivity(), PikiActivity.class);
+        intent.putExtra(Constants.EXTRA_FROM_INBOX, type);
+        startActivity(intent);
         getActivity().overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
     }
 

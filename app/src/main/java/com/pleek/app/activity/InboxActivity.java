@@ -1,5 +1,8 @@
 package com.pleek.app.activity;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,9 +15,11 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.EditTextFont;
 import com.goandup.lib.widget.TextViewFont;
 import com.parse.CountCallback;
@@ -28,10 +33,13 @@ import com.pleek.app.fragment.BestFragment;
 import com.pleek.app.fragment.InboxFragment;
 import com.pleek.app.fragment.InboxSearchFragment;
 import com.pleek.app.fragment.PikiFragment;
+import com.pleek.app.interfaces.OnNewContentListener;
+import com.pleek.app.interfaces.OnRefreshInboxListener;
 import com.pleek.app.interfaces.ScrollTabHolder;
 import com.pleek.app.views.ViewPagerUnswippable;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -40,11 +48,12 @@ import butterknife.InjectView;
 /**
  * Created by tiago on 11/05/2015.
  */
-public class InboxActivity extends ParentActivity implements View.OnClickListener, ScrollTabHolder {
+public class InboxActivity extends ParentActivity implements View.OnClickListener, ScrollTabHolder, OnRefreshInboxListener, OnNewContentListener {
 
     public static int TYPE_INBOX = 0;
     public static int TYPE_SENT = 1;
     public static int TYPE_BEST = 2;
+    public static int TYPE_SEARCH = 3;
 
     public static boolean AUTO_RELOAD;
 
@@ -62,8 +71,6 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     EditTextFont editSearch;
     @InjectView(R.id.imgErase)
     View btnErase;
-    @InjectView(R.id.txtNBResults)
-    TextViewFont txtNBResults;
     @InjectView(R.id.btnTab1)
     View btnTab1;
     @InjectView(R.id.btnTab2)
@@ -96,6 +103,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     ViewGroup layoutSearch;
     @InjectView(R.id.layoutInboxSearchFragment)
     ViewGroup layoutInboxSearchFragment;
+    @InjectView(R.id.viewInboxNew)
+    View viewInboxNew;
+    @InjectView(R.id.viewSentNew)
+    View viewSentNew;
+    @InjectView(R.id.viewBestNew)
+    View viewBestNew;
 
     private PagerAdapter pagerAdapter;
 
@@ -131,10 +144,12 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         editSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+
             }
 
             @Override
@@ -152,6 +167,17 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
                 SparseArray<PikiFragment> scrollTabHolders = pagerAdapter.getScrollTabHolders();
                 ScrollTabHolder currentHolder = scrollTabHolders.valueAt(position);
                 currentHolder.adjustScroll(oldScroll);
+
+                if (position == TYPE_INBOX) {
+                    viewInboxNew.setVisibility(View.GONE);
+                    mixpanel.track("Inbox View", null);
+                } else if (position == TYPE_SENT) {
+                    viewSentNew.setVisibility(View.GONE);
+                    mixpanel.track("Sent View", null);
+                } else {
+                    viewBestNew.setVisibility(View.GONE);
+                    mixpanel.track("Best View", null);
+                }
             }
 
             @Override
@@ -182,7 +208,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         if (userInfos != null) mixpanel.getPeople().set("$phone", userInfos.getString("phoneNumber"));
         mixpanel.flush();
 
-        layoutSearch.setTranslationY(- 2 * getResources().getDimensionPixelSize(R.dimen.header_height_without_shadow));
+        layoutSearch.setTranslationY(-2 * getResources().getDimensionPixelSize(R.dimen.header_height_without_shadow));
 
         if (pendingAnimations) {
             btnPlus.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_size));
@@ -211,52 +237,81 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             startActivity(new Intent(this, ParameterActivity.class));
             overridePendingTransition( R.anim.slide_in_up, R.anim.slide_out_up);
         } else if (v == btnTab1) {
-            viewPager.setCurrentItem(0, true);
+            if (!isSearchEnabled)
+                viewPager.setCurrentItem(0, true);
         } else if (v == btnTab2) {
-            viewPager.setCurrentItem(1, true);
+            if (!isSearchEnabled)
+                viewPager.setCurrentItem(1, true);
         } else if (v == btnTab3) {
-            viewPager.setCurrentItem(2, true);
+            if (!isSearchEnabled)
+                viewPager.setCurrentItem(2, true);
         } else if (v == btnPlus) {
             startActivity(new Intent(this, CaptureActivity.class));
             overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
         } else if (v == btnSearch) {
-            if (isSearchEnabled) {
-                pagerAdapter.setIsHeaderScrollEnabled(isSearchEnabled);
-                btnSearch.setImageResource(R.drawable.picto_search_disabled);
-                layoutSearch.animate().translationY(-2 * getResources().getDimensionPixelSize(R.dimen.header_height_without_shadow));
-                shadowBar.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        shadowBar.setVisibility(View.VISIBLE);
-                    }
-                }, 100);
-                layoutContent.animate().setDuration(300).translationY(0);
-                layoutOverlayWhite.animate().alpha(0);
-                layoutInboxSearchFragment.setVisibility(View.GONE);
-            } else {
-                pagerAdapter.setIsHeaderScrollEnabled(isSearchEnabled);
-                btnSearch.setImageResource(R.drawable.picto_search);
-                layoutSearch.animate().translationY(0);
-                shadowBar.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        shadowBar.setVisibility(View.GONE);
-                    }
-                }, 100);
-                layoutContent.animate().setDuration(400).translationY(getResources().getDimensionPixelSize(R.dimen.search_height));
-                layoutOverlayWhite.animate().alpha(1);
-            }
+            showEditTextSearch();
+        } else if (v == btnErase) {
+            eraseSearchResults();
+        }
+    }
 
-            isSearchEnabled = !isSearchEnabled;
+    private void showEditTextSearch() {
+        if (isSearchEnabled) {
+            pagerAdapter.setIsHeaderScrollEnabled(true);
+            btnSearch.setImageResource(R.drawable.picto_search_disabled);
+            layoutSearch.animate().translationY(-2 * getResources().getDimensionPixelSize(R.dimen.header_height_without_shadow));
+            shadowBar.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    shadowBar.setVisibility(View.VISIBLE);
+                }
+            }, 100);
+            layoutContent.animate().setDuration(300).translationY(0);
+            layoutOverlayWhite.animate().alpha(0);
+            layoutOverlayWhite.setVisibility(View.GONE);
+            layoutInboxSearchFragment.setVisibility(View.GONE);
+
+            ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
+            isSearchEnabled = false;
+        } else {
+            editSearch.setText("");
+            btnSearch.setImageResource(R.drawable.picto_search);
+            layoutSearch.animate().translationY(0);
+            shadowBar.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    shadowBar.setVisibility(View.GONE);
+                }
+            }, 100);
+            layoutContent.animate().setDuration(400).translationY(getResources().getDimensionPixelSize(R.dimen.search_height));
+            layoutOverlayWhite.animate().alpha(1);
+            layoutOverlayWhite.setVisibility(View.VISIBLE);
+
+            editSearch.requestFocus();
+            editSearch.postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    InputMethodManager keyboard = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    keyboard.showSoftInput(editSearch, 0);
+                }
+            }, 200);
+            isSearchEnabled = true;
         }
     }
 
     private void setTab(View tab) {
+        if (isSearchEnabled) {
+            showEditTextSearch();
+        }
+
         if (tab == btnTab1) {
+            btnSearch.setVisibility(View.VISIBLE);
             imgInboxSel.setVisibility(View.VISIBLE);
             imgSentSel.setVisibility(View.INVISIBLE);
             imgBestSel.setVisibility(View.INVISIBLE);
         } else if (tab == btnTab2) {
+            btnSearch.setVisibility(View.GONE);
             imgSentSel.setVisibility(View.VISIBLE);
             imgInboxSel.setVisibility(View.INVISIBLE);
             imgBestSel.setVisibility(View.INVISIBLE);
@@ -267,9 +322,27 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         }
     }
 
+    private void eraseSearchResults() {
+        editSearch.setText("");
+        launchSearch();
+    }
+
     @Override
     public void adjustScroll(int scrollHeight) {
         oldScroll = scrollHeight;
+    }
+
+    @Override
+    public void onNewContent(int type, boolean show) {
+        if (type == viewPager.getCurrentItem()) return;
+
+        if (type == TYPE_INBOX) {
+            viewInboxNew.setVisibility(View.VISIBLE);
+        } else if (type == TYPE_SENT) {
+            viewSentNew.setVisibility(View.VISIBLE);
+        } else {
+            viewBestNew.setVisibility(View.VISIBLE);
+        }
     }
 
     public class PagerAdapter extends FragmentPagerAdapter {
@@ -301,14 +374,16 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             PikiFragment fragment;
 
             if (position == 2) {
-                fragment = (PikiFragment) BestFragment.newInstance(position, header);
+                fragment = (PikiFragment) BestFragment.newInstance(position, header, viewBestNew);
             } else {
-                fragment = (PikiFragment) InboxFragment.newInstance(position, header);
+                fragment = (PikiFragment) InboxFragment.newInstance(position, header, position == 0 ? viewInboxNew : viewSentNew);
             }
 
             fragments.put(position, fragment);
             if (listener != null) {
                 fragment.setScrollTabHolder(listener);
+                fragment.setOnRefreshInboxListener(InboxActivity.this);
+                fragment.setOnNewContentListener(InboxActivity.this);
             }
 
             return fragment;
@@ -341,6 +416,11 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
     }
 
     @Override
+    public void onRefresh() {
+        pagerAdapter.reload();
+    }
+
+    @Override
     protected void onDestroy() {
         mixpanel.flush();
         super.onDestroy();
@@ -358,6 +438,14 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             layoutOverlayWhite.setVisibility(View.VISIBLE);
             layoutInboxSearchFragment.setVisibility(View.GONE);
         }
+
+        editSearch.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                InputMethodManager keyboard = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                keyboard.showSoftInput(editSearch, 0);
+            }
+        }, 200);
     }
 
     private static int TIMER_QUERY = 500;
@@ -368,7 +456,8 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         private String username;
 
         public QueryRunnable(String username) {
-            this.username = username;
+            if (username != null && !username.isEmpty())
+                this.username = username.toLowerCase();
         }
 
         @Override
@@ -378,24 +467,27 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             query.findInBackground(new FindCallback<ParseUser>() {
                 public void done(List<ParseUser> list, ParseException e) {
                     if (e == null && list != null && list.size() > 0 && username.equals(editSearch.getText().toString())) {
-                        ParseQuery<ParseObject> query = ParseQuery.getQuery("Piki");
-                        query.whereEqualTo("user", list.get(0));
-                        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ELSE_CACHE);
-                        query.countInBackground(new CountCallback() {
-                            @Override
-                            public void done(int i, ParseException e) {
-                                if (e == null)
-                                    txtNBResults.setText("" + i);
-                            }
-                        });
-
-                        layoutInboxSearchFragment.setVisibility(View.VISIBLE);
                         inboxSearchFragment.filtreSearchChange(username, list.get(0));
                     } else {
-                        System.out.println("COUCOU");
+                        inboxSearchFragment.filtreSearchChange(username, null);
                     }
+
+                    layoutInboxSearchFragment.setVisibility(View.VISIBLE);
                 }
             });
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isSearchEnabled) {
+            showEditTextSearch();
+        }
+        else
+            super.onBackPressed();
+    }
+
+    public void hideKeyboard() {
+        ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(editSearch.getWindowToken(), 0);
     }
 }

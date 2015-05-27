@@ -390,6 +390,12 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
         v.setLayoutParams(lp);
     }
 
+    public void clear() {
+        if (listPiki != null)
+            listPiki.clear();
+        notifyDataSetChanged();
+    }
+
     // INTERFACE
     public interface Listener {
         public void clickOnPiki(Piki piki);

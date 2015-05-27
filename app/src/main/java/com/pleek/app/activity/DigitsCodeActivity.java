@@ -134,6 +134,7 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
                         {
                             //create alias (Adrien)
                             mixpanel.identify(parseUser.getObjectId());
+                            mixpanel.getPeople().identify(parseUser.getObjectId());
                             mixpanel.track("Log In", null);
 
                             ParseInstallation installation = ParseInstallation.getCurrentInstallation();

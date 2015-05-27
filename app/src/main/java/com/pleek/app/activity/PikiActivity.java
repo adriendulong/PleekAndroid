@@ -79,6 +79,7 @@ import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.VideoBean;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.common.Constants;
 import com.pleek.app.utils.PicassoUtils;
 import com.pleek.app.views.CircleProgressBar;
 import com.pleek.app.views.CustomGridView;
@@ -207,7 +208,26 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         setup();
         init();
 
-        mixpanel.track("View Piki", null);
+        if (getIntent().hasExtra(Constants.EXTRA_FROM_INBOX)) {
+            JSONObject props = new JSONObject();
+            try {
+                String view = "";
+                int type = getIntent().getIntExtra(Constants.EXTRA_FROM_INBOX, 0);
+                if (type == InboxActivity.TYPE_INBOX)
+                    props.put("From", "Inbox");
+                else if (type == InboxActivity.TYPE_SENT)
+                    props.put("From", "Sent");
+                else if (type == InboxActivity.TYPE_BEST)
+                    props.put("From", "Best");
+                else if (type == InboxActivity.TYPE_SEARCH)
+                    props.put("From", "Search");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            mixpanel.track("View Piki", props);
+        } else {
+            mixpanel.track("View Piki", null);
+        }
         fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_VIEWED_CONTENT);
     }
 

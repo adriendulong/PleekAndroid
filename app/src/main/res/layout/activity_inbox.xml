@@ -30,7 +30,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/blancEightyTransparent"
-            android:alpha="0" />
+            android:alpha="0"
+            android:clickable="true"
+            android:focusableInTouchMode="true"
+            android:visibility="gone" />
     </FrameLayout>
 
     <LinearLayout
@@ -46,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/search_height"
             android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingRight="5dp"
             android:background="@color/firstColorDark3"
             android:layout_marginTop="@dimen/header_height_without_shadow">
 
@@ -62,25 +65,12 @@
 
             <ImageView
                 android:id="@+id/imgErase"
-                android:layout_width="15dp"
-                android:layout_height="15dp"
+                android:layout_width="@dimen/search_height"
+                android:layout_height="match_parent"
                 android:scaleType="centerInside"
                 android:src="@drawable/picto_erase"
-                android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:clickable="true" />
-
-            <com.goandup.lib.widget.TextViewFont
-                android:id="@+id/txtNBResults"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:textSize="12dp"
-                app:customFont="montserrat-regular.ttf"
-                android:gravity="center"
-                android:layout_marginRight="15dp"
-                android:textColor="@color/blanc"
-                android:layout_toLeftOf="@id/imgErase"
-                android:text="Coucou"/>
 
             <com.goandup.lib.widget.EditTextFont
                 android:id="@+id/editSearch"
@@ -96,7 +86,6 @@
                 android:textColor="@color/blanc"
                 android:background="@null"
                 android:layout_toRightOf="@id/imgSearch"
-                android:layout_toLeftOf="@id/txtNBResults"
                 android:layout_marginRight="15dp"
                 android:layout_marginLeft="15dp"
                 android:imeOptions="actionSearch" />
@@ -160,13 +149,12 @@
 
                 <ImageView
                     android:id="@+id/btnSearch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:scaleType="centerInside"
                     android:layout_toLeftOf="@id/imgFriends"
                     android:src="@drawable/picto_search_disabled"
-                    android:layout_marginTop="21dp"
-                    android:layout_marginRight="28dp"
+                    android:layout_marginRight="5dp"
                     android:clickable="true" />
             </RelativeLayout>
 
@@ -217,6 +205,15 @@
                             android:textColor="@color/blanc"
                             android:layout_toRightOf="@id/imgInboxSel" />
 
+                        <View
+                            android:id="@+id/viewInboxNew"
+                            android:layout_width="5dp"
+                            android:layout_height="5dp"
+                            android:background="@drawable/ind_best_new"
+                            android:layout_centerVertical="true"
+                            android:layout_toRightOf="@id/txtInbox"
+                            android:visibility="gone" />
+
                     </RelativeLayout>
 
                     <RelativeLayout
@@ -255,6 +252,15 @@
                             android:padding="5dp"
                             android:textColor="@color/blanc"
                             android:layout_toRightOf="@id/imgSentSel" />
+
+                        <View
+                            android:id="@+id/viewSentNew"
+                            android:layout_width="5dp"
+                            android:layout_height="5dp"
+                            android:background="@drawable/ind_best_new"
+                            android:layout_centerVertical="true"
+                            android:layout_toRightOf="@id/txtSent"
+                            android:visibility="gone" />
 
                     </RelativeLayout>
 
@@ -296,11 +302,13 @@
                             android:layout_toRightOf="@id/imgBestSel" />
 
                         <View
+                            android:id="@+id/viewBestNew"
                             android:layout_width="5dp"
                             android:layout_height="5dp"
                             android:background="@drawable/ind_best_new"
                             android:layout_centerVertical="true"
-                            android:layout_toRightOf="@id/txtBest" />
+                            android:layout_toRightOf="@id/txtBest"
+                            android:visibility="gone" />
 
                     </RelativeLayout>
                 </LinearLayout>

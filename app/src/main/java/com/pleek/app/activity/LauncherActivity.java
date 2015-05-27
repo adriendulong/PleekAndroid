@@ -31,7 +31,7 @@ public class LauncherActivity extends ParentActivity
 
         if(ParseUser.getCurrentUser() != null)
         {
-            mixpanel.identify(ParseUser.getCurrentUser().getObjectId());
+            //mixpanel.identify(ParseUser.getCurrentUser().getObjectId());
             startActivity(new Intent(this, InboxActivity.class));
             finish();
         }

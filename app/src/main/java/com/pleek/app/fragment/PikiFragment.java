@@ -1,43 +1,27 @@
 package com.pleek.app.fragment;
 
 import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
-import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 
-import com.goandup.lib.utile.Utile;
 import com.goandup.lib.widget.ListViewScrollingOff;
-import com.parse.FindCallback;
-import com.parse.FunctionCallback;
-import com.parse.ParseCloud;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
 import com.pleek.app.activity.InboxActivity;
-import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.activity.PikiActivity;
 import com.pleek.app.adapter.PikiAdapter;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.common.Constants;
+import com.pleek.app.interfaces.OnNewContentListener;
+import com.pleek.app.interfaces.OnRefreshInboxListener;
 import com.pleek.app.interfaces.QuickReturnListViewOnScrollListener;
 import com.pleek.app.views.CircleProgressBar;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -50,7 +34,9 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
 
     protected int type;
     protected View header;
+    protected String prefsKey;
     protected QuickReturnListViewOnScrollListener scrollListener;
+    protected MyOnScrollListener onScrollListener;
 
     @InjectView(R.id.listViewPiki)
     ListViewScrollingOff listViewPiki;
@@ -68,14 +54,16 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
     protected int lastItemShow;
 
     protected boolean isHeaderScrollEnabled = true;
+    protected OnRefreshInboxListener onRefreshInboxListener;
+    protected OnNewContentListener onNewContentListener;
 
-    public static PikiFragment newInstance(int type, View header) {
+    public static PikiFragment newInstance(int type, View header, View viewNew) {
         PikiFragment fragment;
 
         if (type == InboxActivity.TYPE_BEST) {
-            fragment = BestFragment.newInstance(type, header);
+            fragment = BestFragment.newInstance(type, header, viewNew);
         } else {
-            fragment = InboxFragment.newInstance(type, header);
+            fragment = InboxFragment.newInstance(type, header, viewNew);
         }
 
         return fragment;
@@ -86,6 +74,14 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
         super.onViewCreated(view, savedInstanceState);
         setup();
         init();
+
+        if (type == InboxActivity.TYPE_INBOX) {
+            prefsKey = Constants.PREF_LAST_INBOX_UPDATE;
+        } else if (type == InboxActivity.TYPE_SENT) {
+            prefsKey = Constants.PREF_LAST_SENT_UPDATE;
+        } else if (type == InboxActivity.TYPE_BEST) {
+            prefsKey = Constants.PREF_LAST_BEST_UPDATE;
+        }
     }
 
     @Override
@@ -98,13 +94,14 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
     }
 
     protected void setup() {
+        onScrollListener = new MyOnScrollListener();
         scrollListener = new QuickReturnListViewOnScrollListener.Builder()
                 .header(header)
                 .minHeaderTranslation(-getResources().getDimensionPixelSize(R.dimen.top_bar_height))
                 .build();
 
         View placeHolderView = getActivity().getLayoutInflater().inflate(R.layout.item_empty_header, listViewPiki, false);
-        listViewPiki.setOnScrollListener(new MyOnScrollListener());
+        listViewPiki.setOnScrollListener(onScrollListener);
         listViewPiki.addHeaderView(placeHolderView);
         listViewPiki.setHeaderDividersEnabled(false);
         refreshSwipe.setColorSchemeResources(R.color.secondColor, R.color.firstColor, R.color.secondColor, R.color.firstColor);
@@ -113,6 +110,10 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
             public void onRefresh() {
                 shouldReinit = true;
                 init(false);
+
+                if (onRefreshInboxListener != null) {
+                    onRefreshInboxListener.onRefresh();
+                }
             }
         });
         refreshSwipe.setProgressViewOffset(false, 0, (int) (getResources().getDimensionPixelSize(R.dimen.header_height) + 20 * screen.getDensity()));
@@ -164,6 +165,14 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
         init(false);
     }
 
+    public OnRefreshInboxListener getOnRefreshInboxListener() {
+        return onRefreshInboxListener;
+    }
+
+    public void setOnRefreshInboxListener(OnRefreshInboxListener onRefreshInboxListener) {
+        this.onRefreshInboxListener = onRefreshInboxListener;
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -204,5 +213,13 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
 
     public void setIsHeaderScrollEnabled(boolean isHeaderScrollEnabled) {
         this.isHeaderScrollEnabled = isHeaderScrollEnabled;
+    }
+
+    public OnNewContentListener getOnNewContentListener() {
+        return onNewContentListener;
+    }
+
+    public void setOnNewContentListener(OnNewContentListener onNewContentListener) {
+        this.onNewContentListener = onNewContentListener;
     }
 }

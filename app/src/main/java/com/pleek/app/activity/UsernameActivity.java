@@ -200,6 +200,8 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                     ParseUser currentUser = ParseUser.getCurrentUser();
                                     if(currentUser != null)
                                     {
+                                        mixpanel.identify(currentUser.getObjectId());
+                                        mixpanel.getPeople().identify(currentUser.getObjectId());
                                         mixpanel.alias(currentUser.getObjectId(), mixpanel.getDistinctId());
                                     }
 
@@ -219,6 +221,8 @@ public class UsernameActivity extends ParentActivity implements View.OnClickList
                                     installation.saveInBackground();
 
                                     mixpanel.track("Sign Up", null);
+                                    mixpanel.getPeople().set("Username", sendingUsername);
+                                    mixpanel.getPeople().set("Phone Number", phoneNumber);
                                     fbAppEventsLogger.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_REGISTRATION);
 
                                     ParseCloud.callFunctionInBackground("addToFirstUsePiki", new HashMap<String, Object>(), new FunctionCallback() {
