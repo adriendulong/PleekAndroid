@@ -255,17 +255,15 @@ public class PikiAdapter extends BaseAdapter implements View.OnTouchListener {
 
             // txtFirst
             if (isNew) {
-                if (piki.getNbReact() == 0) {
-                    vh.layoutBlue.setVisibility(View.VISIBLE);
-                    if (piki.isVideo()) {
-                        vh.txtType.setText(context.getResources().getString(R.string.home_new_video));
-                        vh.imgType.setImageResource(R.drawable.picto_new_video);
-                        vh.imgType.setVisibility(View.VISIBLE);
-                    } else {
-                        vh.txtType.setText(context.getResources().getString(R.string.home_new_picture));
-                        vh.imgType.setImageResource(R.drawable.picto_new_image);
-                        vh.imgType.setVisibility(View.VISIBLE);
-                    }
+                vh.layoutBlue.setVisibility(View.VISIBLE);
+                if (piki.isVideo()) {
+                    vh.txtType.setText(context.getResources().getString(R.string.home_new_video));
+                    vh.imgType.setImageResource(R.drawable.picto_new_video);
+                    vh.imgType.setVisibility(View.VISIBLE);
+                } else {
+                    vh.txtType.setText(context.getResources().getString(R.string.home_new_picture));
+                    vh.imgType.setImageResource(R.drawable.picto_new_image);
+                    vh.imgType.setVisibility(View.VISIBLE);
                 }
             } else {
                 if (isUpdated) {

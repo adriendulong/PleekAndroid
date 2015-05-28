@@ -91,6 +91,8 @@
     <string name="piki_tuto_react">This is a reaction</string>
     <string name="piki_public">Public</string>
     <string name="piki_tutorial_add_react">TAP TO REPLY</string>
+    <string name="piki_tutorial_add_video_react_1">TAP LONG FOR</string>
+    <string name="piki_tutorial_add_video_react_2">VIDEO</string>
     <string name="piki_react_preview">PREVIEW</string>
     <string name="piki_react_delete">DELETE</string>
     <string name="piki_react_remove_like_nok">Can\'t remove your like for now.</string>

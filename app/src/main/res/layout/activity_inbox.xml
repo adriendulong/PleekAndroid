@@ -127,7 +127,8 @@
                     android:scaleType="center"
                     android:src="@drawable/picto_logo_home"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginTop="15dp" />
+                    android:layout_marginTop="15dp"
+                    android:clickable="true" />
 
                 <ImageView
                     android:id="@+id/imgSettings"
@@ -136,7 +137,8 @@
                     android:scaleType="center"
                     android:src="@drawable/picto_settings"
                     android:layout_alignParentLeft="true"
-                    android:layout_marginTop="21dp" />
+                    android:layout_marginTop="21dp"
+                    android:clickable="true" />
 
                 <ImageView
                     android:id="@+id/imgFriends"
@@ -145,7 +147,8 @@
                     android:layout_alignParentRight="true"
                     android:scaleType="center"
                     android:src="@drawable/picto_friends_home_sel"
-                    android:layout_marginTop="21dp" />
+                    android:layout_marginTop="21dp"
+                    android:clickable="true" />
 
                 <ImageView
                     android:id="@+id/btnSearch"

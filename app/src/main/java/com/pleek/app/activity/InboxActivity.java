@@ -12,6 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.SparseArray;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
@@ -132,6 +133,7 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         headerHeightOG = getResources().getDimensionPixelSize(R.dimen.header_height);
         minHeaderTranslation = -getResources().getDimensionPixelSize(R.dimen.top_bar_height);
 
+        btnLogo.setOnClickListener(this);
         btnSettings.setOnClickListener(this);
         btnFriends.setOnClickListener(this);
         btnTab1.setOnClickListener(this);
@@ -140,6 +142,17 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         btnPlus.setOnClickListener(this);
         btnErase.setOnClickListener(this);
         btnSearch.setOnClickListener(this);
+        layoutOverlayWhite.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (isSearchEnabled) {
+                    showEditTextSearch();
+                    return true;
+                }
+
+                return false;
+            }
+        });
 
         editSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -252,6 +265,9 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
             showEditTextSearch();
         } else if (v == btnErase) {
             eraseSearchResults();
+        } else if (v == btnLogo) {
+            startActivity(new Intent(this, VideoActivity.class));
+            overridePendingTransition( R.anim.slide_in_up, R.anim.slide_out_up);
         }
     }
 

@@ -88,23 +88,19 @@ public class DigitsCodeActivity extends ParentActivity implements View.OnClickLi
         txtBadCode.setVisibility(View.INVISIBLE);
     }
 
-    private void init()
-    {
+    private void init() {
         //Toast.makeText(this, "Code : " + goodCode, Toast.LENGTH_SHORT).show();//TODO : remove
 
-//        try
-//        {
-//            Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, "");
-//            String phoneNumberFormated = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
-//            txtPhoneNumber.setText(phoneNumberFormated);
-//        }
-//        catch (Exception e)
-//        {
-//            L.e("NumberParseException was thrown: " + e.toString());
-//            e.printStackTrace();
-//            finish();
-//            return;
-//        }
+        try {
+            Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, "");
+            String phoneNumberFormated = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+            txtPhoneNumber.setText(phoneNumberFormated);
+        } catch (Exception e) {
+            L.e("NumberParseException was thrown: " + e.toString());
+            e.printStackTrace();
+            finish();
+            return;
+        }
     }
 
     @Override

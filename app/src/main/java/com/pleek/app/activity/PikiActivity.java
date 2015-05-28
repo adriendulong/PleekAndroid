@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.util.TypedValue;
@@ -151,7 +152,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     private SwipeRefreshLayoutScrollingOff refreshSwipe;
 
     // NEW ELEMENTS
-    private LinearLayout layoutTutorialReact;
+    private LinearLayout layoutTutorialVideo;
     private View imgAddReact;
     private RelativeLayout layoutActionBarKeyboard;
     private ImageView imgStickers;
@@ -423,7 +424,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         refreshSwipe.setScrollingEnabled(false);
 
         // NEW ELEMENTS
-        layoutTutorialReact = (LinearLayout) findViewById(R.id.layoutTutorialReact);
+        layoutTutorialVideo = (LinearLayout) findViewById(R.id.layoutTutorialVideo);
         imgAddReact = findViewById(R.id.imgAddReact);
         layoutActionBarKeyboard = (RelativeLayout) findViewById(R.id.layoutActionBarKeyboard);
         imgFonts = (ImageView) findViewById(R.id.imgFonts);
@@ -598,9 +599,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
                     //si moins de résultat que d'el par page alors c'est la dernière page
                     endOfLoading = parseObjects.size() < (currentPage > 1 ? NB_BY_PAGE : NB_BY_PAGE-1);//pour first load
-
-                    //show tuto
-                    //if (listReact != null && listReact.size() > 0) showTuto();
 
                 } else if (e != null) {
                     if(!fromCache) Utile.showToast(R.string.piki_react_nok, PikiActivity.this);
@@ -931,7 +929,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             }
         } else if (view == layoutCamera) {
             imgAddReact.setVisibility(View.GONE);
-            layoutTutorialReact.setVisibility(View.GONE);
             isReplyButtonsShow = true;
 
             if (cameraView.isFaceCamera()) {
@@ -1059,10 +1056,12 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void finish() {
-        super.finish();
         Reaction.deleteAllTempFileVideo(this);
-        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
+        if (edittexteReact != null) {
+            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
+        }
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
+        super.finish();
     }
 
     @Override
@@ -1074,7 +1073,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     public void started() {
         if (!isReplyButtonsShow) {
             imgAddReact.setVisibility(View.VISIBLE);
-            layoutTutorialReact.setVisibility(View.VISIBLE);
         }
     }
 
@@ -1163,7 +1161,6 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                             if (isVisible && !isPreviewVisible) {
                                 startCamera();
                                 imgAddReact.setVisibility(View.GONE);
-                                layoutTutorialReact.setVisibility(View.GONE);
                                 isPreviewVisible = true;
                             }
                         } else {
@@ -1536,17 +1533,25 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         edittexteReact.setVisibility(View.VISIBLE);
         edittexteReact.requestFocus();
         layoutOverlayReply.setVisibility(View.VISIBLE);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showTuto();
+            }
+        }, 300);
+
         ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(edittexteReact, 0);
     }
 
     private void endEditText() {
+        layoutTutorialVideo.setVisibility(View.GONE);
         edittexteReact.setVisibility(View.GONE);
         edittexteReact.clearFocus();
         edittexteReact.setText("");
         layoutOverlayReply.setVisibility(View.GONE);
         ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
         imgAddReact.setVisibility(View.VISIBLE);
-        layoutTutorialReact.setVisibility(View.VISIBLE);
         imgViewReact.setVisibility(View.GONE);
         imgViewReact.setImageDrawable(null);
         edittexteReact.setTranslationY(0);
@@ -1918,12 +1923,15 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 timeDown = System.currentTimeMillis();
                 imgReply.setImageResource(R.drawable.picto_reply_sel);
+                Utile.fadeOut(layoutTutorialVideo, 100, null);
                 isDown = true;
                 handler.postDelayed(recordVideoRunnable, longClickDuration);
 
             } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
                 imgReply.setImageResource(R.drawable.picto_reply);
                 isDown = false;
+
+                Utile.fadeOut(layoutTutorialVideo, 100, null);
 
                 if (event.getAction() == MotionEvent.ACTION_UP && !isRecording && (System.currentTimeMillis() - timeDown) < longClickDuration) {
                     final Bitmap bitmapLayerReact = getBitmapLayerReact();
@@ -2229,4 +2237,34 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             handler.post(runnableTimeRecording);
         }
     };
+
+    private void showTuto()  {
+        if (layoutTutorialVideo.getVisibility() == View.GONE) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            if (preferences.getBoolean("first_tuto_piki", true)) {
+                Utile.fadeIn(layoutTutorialVideo, 300, new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        layoutTutorialVideo.setAnimation(AnimationUtils.loadAnimation(PikiActivity.this, R.anim.floating));
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("first_tuto_piki", false);
+                editor.commit();
+            } else {
+                layoutTutorialVideo.setVisibility(View.GONE);
+            }
+        }
+    }
+
 }

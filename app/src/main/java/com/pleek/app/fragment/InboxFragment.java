@@ -155,7 +155,6 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
             query.whereContainedIn("user", friends);
             ArrayList<ParseUser> me = new ArrayList<ParseUser>();
             me.add(currentUser);
-            query.whereNotContainedIn("user", me);
         }
         if (ParseUser.getCurrentUser().get("pleeksHided") != null) {
             query.whereNotContainedIn("objectId", (ArrayList<String>) ParseUser.getCurrentUser().get("pleeksHided"));
@@ -245,174 +244,183 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
 
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            try {
-                int action = event.getAction();
+            if (!(InboxFragment.this instanceof InboxSearchFragment)) {
+                try {
+                    int action = event.getAction();
 
-                if (action == MotionEvent.ACTION_MOVE && listViewPiki.isScrollingHorizontalLeft()) {
-                    if (downItem == null) {
-                        // 1) first scroll horizontal to an item (initialize)
+                    if (action == MotionEvent.ACTION_MOVE && listViewPiki.isScrollingHorizontalLeft()) {
+                        if (downItem == null) {
+                            // 1) first scroll horizontal to an item (initialize)
 
-                        initialX = (int) event.getRawX();
+                            initialX = (int) event.getRawX();
 
-                        // Find the child view that was touched (perform a hit test)
-                        Rect rect = new Rect();
-                        int childCount = listViewPiki.getChildCount();
-                        int[] listViewCoords = new int[2];
-                        listViewPiki.getLocationOnScreen(listViewCoords);
-                        int x = (int) event.getRawX() - listViewCoords[0];
-                        int y = (int) event.getRawY() - listViewCoords[1];
-                        for (int i = 0; i < childCount; i++) {
-                            View child = listViewPiki.getChildAt(i);
-                            child.getHitRect(rect);
+                            // Find the child view that was touched (perform a hit test)
+                            Rect rect = new Rect();
+                            int childCount = listViewPiki.getChildCount();
+                            int[] listViewCoords = new int[2];
+                            listViewPiki.getLocationOnScreen(listViewCoords);
+                            int x = (int) event.getRawX() - listViewCoords[0];
+                            int y = (int) event.getRawY() - listViewCoords[1];
+                            for (int i = 0; i < childCount; i++) {
+                                View child = listViewPiki.getChildAt(i);
+                                child.getHitRect(rect);
 
-                            if (rect.contains(x, y)) {
-                                downItem = child;
-                                break;
-                            }
-                        }
-
-                        //fake view for no loop
-                        if (downItem == null) downItem = new View(getActivity());
-
-                        //initialize backview
-                        View backView = downItem.findViewById(R.id.back);
-                        if (backView != null) {
-                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                            lp.setMargins(0, 0, 0, 0);
-                            backView.setLayoutParams(lp);
-
-                            backView.findViewById(R.id.imgDeleteItemOn).setAlpha(0f);
-                        }
-                    } else {
-                        // 2) When scroll horizontal to an item.
-
-                        View frontView = downItem.findViewById(R.id.front);
-                        View backView = downItem.findViewById(R.id.back);
-                        if (frontView != null && backView != null) {
-                            int moveX = initialX - (int)event.getRawX();
-
-                            refreshSwipe.setEnabled(false);
-                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                            lp.setMargins(-moveX,0,moveX,0);
-                            frontView.setLayoutParams(lp);
-
-                            backView.setVisibility(moveX < 0 ? View.GONE : View.VISIBLE);
-
-                            //change alpha DELETE image rouge
-                            if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW_START_ALPHA)) {
-                                //calculate actual alpha of imgDeleteItemOn
-                                float alpha = (moveX - screen.dpToPx(WIDTH_BORDER_BACKVIEW_START_ALPHA)) / (float)(screen.dpToPx(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA));
-                                backView.findViewById(R.id.imgDeleteItemOn).setAlpha(Math.min(alpha, 1f));
-                            } else {
-                                backView.findViewById(R.id.imgDeleteItemOn).setAlpha(0f);//sure alpha is 0 if under WIDTH_BORDER_BACKVIEW_START_ALPHA
+                                if (rect.contains(x, y)) {
+                                    downItem = child;
+                                    break;
+                                }
                             }
 
-                            //move DELETE image
-                            if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW)) {
-                                //move item frontview of position X with margin
-                                moveX -= screen.dpToPx(WIDTH_BORDER_BACKVIEW);
-                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                                lp.setMargins(-moveX, 0, moveX, 0);
-                                backView.setLayoutParams(lp);
-                            } else {
-                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
+                            //fake view for no loop
+                            if (downItem == null) downItem = new View(getActivity());
+
+                            //initialize backview
+                            View backView = downItem.findViewById(R.id.back);
+                            if (backView != null) {
+                                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
                                 lp.setMargins(0, 0, 0, 0);
                                 backView.setLayoutParams(lp);
-                            }
 
-                            return true;//consume touch event
+                                backView.findViewById(R.id.imgDeleteItemOn).setAlpha(0f);
+                            }
+                        } else {
+                            // 2) When scroll horizontal to an item.
+
+                            View frontView = downItem.findViewById(R.id.front);
+                            View backView = downItem.findViewById(R.id.back);
+                            if (frontView != null && backView != null) {
+                                int moveX = initialX - (int) event.getRawX();
+
+                                refreshSwipe.setEnabled(false);
+                                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
+                                lp.setMargins(-moveX, 0, moveX, 0);
+                                frontView.setLayoutParams(lp);
+
+                                backView.setVisibility(moveX < 0 ? View.GONE : View.VISIBLE);
+
+                                //change alpha DELETE image rouge
+                                if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW_START_ALPHA)) {
+                                    //calculate actual alpha of imgDeleteItemOn
+                                    float alpha = (moveX - screen.dpToPx(WIDTH_BORDER_BACKVIEW_START_ALPHA)) / (float) (screen.dpToPx(WIDTH_BORDER_BACKVIEW - WIDTH_BORDER_BACKVIEW_START_ALPHA));
+                                    backView.findViewById(R.id.imgDeleteItemOn).setAlpha(Math.min(alpha, 1f));
+                                } else {
+                                    backView.findViewById(R.id.imgDeleteItemOn).setAlpha(0f);//sure alpha is 0 if under WIDTH_BORDER_BACKVIEW_START_ALPHA
+                                }
+
+                                //move DELETE image
+                                if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW)) {
+                                    //move item frontview of position X with margin
+                                    moveX -= screen.dpToPx(WIDTH_BORDER_BACKVIEW);
+                                    lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
+                                    lp.setMargins(-moveX, 0, moveX, 0);
+                                    backView.setLayoutParams(lp);
+                                } else {
+                                    lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
+                                    lp.setMargins(0, 0, 0, 0);
+                                    backView.setLayoutParams(lp);
+                                }
+
+                                return true;//consume touch event
+                            }
                         }
                     }
-                }
 
-                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                    refreshSwipe.setEnabled(true);
+                    if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                        refreshSwipe.setEnabled(true);
 
-                    if (downItem != null) {
-                        //3) return item view to original state
-                        View frontView = downItem.findViewById(R.id.front);
-                        View backView = downItem.findViewById(R.id.back);
+                        if (downItem != null) {
+                            //3) return item view to original state
+                            View frontView = downItem.findViewById(R.id.front);
+                            View backView = downItem.findViewById(R.id.back);
 
-                        if (frontView != null && backView != null) {
-                            final int moveX = initialX - (int) event.getRawX();
-                            if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW) && action == MotionEvent.ACTION_UP) {
-                                ///////////////
-                                // POPUP DELETE
-                                final int position = (Integer)downItem.getTag();
-                                ((ParentActivity) getActivity()).showDialog(R.string.home_popup_remove_title, R.string.home_popup_remove_texte, new ParentActivity.MyDialogListener() {
-                                    @Override
-                                    public void closed(boolean accept) {
-                                        // DELETE
-                                        if (accept) {
-                                            if (downItem == null) return;
+                            if (frontView != null && backView != null) {
+                                final int moveX = initialX - (int) event.getRawX();
+                                if (moveX > screen.dpToPx(WIDTH_BORDER_BACKVIEW) && action == MotionEvent.ACTION_UP) {
+                                    ///////////////
+                                    // POPUP DELETE
+                                    final int position = (Integer) downItem.getTag();
+                                    ((ParentActivity) getActivity()).showDialog(R.string.home_popup_remove_title, R.string.home_popup_remove_texte, new ParentActivity.MyDialogListener() {
+                                        @Override
+                                        public void closed(boolean accept) {
+                                            // DELETE
+                                            if (accept) {
+                                                if (downItem == null) return;
 
-                                            final int initialHeight = downItem.getMeasuredHeight();//fix crash : #57
-                                            animItemDisappear(downItem, moveX, new Animation.AnimationListener() {
-                                                @Override
-                                                public void onAnimationEnd(Animation a) {
-                                                    if (downItem != null) {
-                                                        //reset view for next
-                                                        downItem.getLayoutParams().height = initialHeight;//fix : crash #29
-                                                        downItem.requestLayout();
-                                                        downItem.invalidate();
-                                                        View frontView = downItem.findViewById(R.id.front);
-                                                        View backView = downItem.findViewById(R.id.back);
-                                                        if (frontView != null && backView != null) {
-                                                            //reset margin
-                                                            ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
-                                                            lp.setMargins(0, 0, 0, 0);
-                                                            frontView.setLayoutParams(lp);
-                                                            lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
-                                                            lp.setMargins(0, 0, 0, 0);
-                                                            backView.setLayoutParams(lp);
+                                                final int initialHeight = downItem.getMeasuredHeight();//fix crash : #57
+                                                animItemDisappear(downItem, moveX, new Animation.AnimationListener() {
+                                                    @Override
+                                                    public void onAnimationEnd(Animation a) {
+                                                        if (downItem != null) {
+                                                            //reset view for next
+                                                            downItem.getLayoutParams().height = initialHeight;//fix : crash #29
+                                                            downItem.requestLayout();
+                                                            downItem.invalidate();
+                                                            View frontView = downItem.findViewById(R.id.front);
+                                                            View backView = downItem.findViewById(R.id.back);
+                                                            if (frontView != null && backView != null) {
+                                                                //reset margin
+                                                                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) frontView.getLayoutParams();
+                                                                lp.setMargins(0, 0, 0, 0);
+                                                                frontView.setLayoutParams(lp);
+                                                                lp = (ViewGroup.MarginLayoutParams) backView.getLayoutParams();
+                                                                lp.setMargins(0, 0, 0, 0);
+                                                                backView.setLayoutParams(lp);
+                                                            }
+                                                        }
+                                                        downItem = null;
+
+                                                        Piki removedPiki = adapter.removePiki(position);
+                                                        boolean me = removedPiki.getName().equals(ParseUser.getCurrentUser().getUsername());
+                                                        if (me || !removedPiki.isPublic()) {
+                                                            //Parse remove Piki
+                                                            HashMap<String, String> params = new HashMap<String, String>();
+                                                            params.put("pikiId", removedPiki.getId());
+                                                            ParseCloud.callFunctionInBackground("hideOrRemovePikiV2", params, new FunctionCallback<Object>() {
+                                                                @Override
+                                                                public void done(Object o, ParseException e) {
+                                                                    if (e != null)
+                                                                        Utile.showToast(R.string.home_piki_remove_nok, getActivity());
+                                                                    else {
+                                                                        shouldReinit = true;
+                                                                        init(false);
+                                                                    }
+                                                                }
+                                                            });
+                                                        } else {
+                                                            ParseUser user = ParseUser.getCurrentUser();
+                                                            user.add("pleeksHided", removedPiki.getId());
+                                                            user.saveEventually();
+                                                            shouldReinit = true;
+                                                            init(false);
                                                         }
                                                     }
-                                                    downItem = null;
 
-                                                    Piki removedPiki = adapter.removePiki(position);
-                                                    boolean me = removedPiki.getName().equals(ParseUser.getCurrentUser().getUsername());
-                                                    if (me || !removedPiki.isPublic()) {
-                                                        //Parse remove Piki
-                                                        HashMap<String, String> params = new HashMap<String, String>();
-                                                        params.put("pikiId", removedPiki.getId());
-                                                        ParseCloud.callFunctionInBackground("hideOrRemovePikiV2", params, new FunctionCallback<Object>() {
-                                                            @Override
-                                                            public void done(Object o, ParseException e) {
-                                                                if (e != null)
-                                                                    Utile.showToast(R.string.home_piki_remove_nok, getActivity());
-                                                                else {
-                                                                    shouldReinit = true;
-                                                                    init(false);
-                                                                }
-                                                            }
-                                                        });
-                                                    } else {
-                                                        ParseUser user = ParseUser.getCurrentUser();
-                                                        user.add("pleeksHided", removedPiki.getId());
-                                                        user.saveEventually();
-                                                        shouldReinit = true;
-                                                        init(false);
+                                                    @Override
+                                                    public void onAnimationRepeat(Animation animation) {
                                                     }
-                                                }
-                                                @Override public void onAnimationRepeat(Animation animation) {}
-                                                @Override public void onAnimationStart(Animation animation) {}
-                                            });
+
+                                                    @Override
+                                                    public void onAnimationStart(Animation animation) {
+                                                    }
+                                                });
+                                            } else { // NOT DELETE
+                                                animRestorePositionItem(downItem, moveX);
+                                            }
                                         }
-                                        else { // NOT DELETE
-                                            animRestorePositionItem(downItem, moveX);
-                                        }
-                                    }
-                                });
-                            } else {
-                                animRestorePositionItem(downItem, moveX);
+                                    });
+                                } else {
+                                    animRestorePositionItem(downItem, moveX);
+                                }
                             }
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                return false;//no consume touch event
+            } else {
+                return false;
             }
-            return false;//no consume touch event
         }
 
         private void animItemDisappear(final View item, int moveX, final Animation.AnimationListener animListener) {

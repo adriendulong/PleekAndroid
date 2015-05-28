@@ -39,7 +39,7 @@ public class VideoActivity extends Activity implements MediaPlayer.OnCompletionL
             }
         });
 
-        //if (!playFileRes(R.raw.app_preview)) return;
+        if (!playFileRes(R.raw.demo)) return;
 
         videoView.start();
     }

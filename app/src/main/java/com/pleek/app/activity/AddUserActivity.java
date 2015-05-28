@@ -94,7 +94,7 @@ public class AddUserActivity extends ParentActivity implements View.OnClickListe
         }
         query.whereEqualTo("recommendLocalisation", locale);
         query.include("user");
-        query.orderByDescending("recommendOrder");
+        query.orderByAscending("recommendOrder");
 
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override

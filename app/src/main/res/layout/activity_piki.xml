@@ -66,31 +66,6 @@
                         android:visibility="gone"
                         android:clickable="false" />
 
-                    <LinearLayout
-                        android:id="@+id/layoutTutorialReact"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerHorizontal="true"
-                        android:orientation="vertical"
-                        android:layout_below="@id/imgAddReact"
-                        android:layout_marginTop="30dp"
-                        android:gravity="center"
-                        android:visibility="gone">
-
-                        <com.goandup.lib.widget.TextViewFont
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/piki_tutorial_add_react"
-                            android:textSize="11dp"
-                            app:customFont="montserrat-regular.ttf"
-                            android:textColor="@color/blanc"
-                            android:shadowDx="2"
-                            android:shadowDy="2"
-                            android:shadowColor="@color/noir"
-                            android:gravity="center" />
-
-                    </LinearLayout>
-
                     <RelativeLayout
                         android:id="@+id/layoutTextReact"
                         android:layout_width="match_parent"
@@ -265,6 +240,39 @@
                 android:clickable="true" />
 
         </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutTutorialVideo"
+            android:layout_width="145dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_tutorial_hint_bottom"
+            android:layout_above="@id/layoutActionBarKeyboard"
+            android:visibility="gone"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="15dp">
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/piki_tutorial_add_video_react_1"
+                android:textSize="11dp"
+                app:customFont="montserrat-regular.ttf"
+                android:textColor="@color/progressBar"
+                android:gravity="center" />
+
+            <com.goandup.lib.widget.TextViewFont
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/piki_tutorial_add_video_react_2"
+                android:textSize="11dp"
+                app:customFont="montserrat-regular.ttf"
+                android:textColor="@color/noir"
+                android:gravity="center"
+                android:layout_marginLeft="4dp" />
+
+        </LinearLayout>
     </RelativeLayout>
 
     <RelativeLayout

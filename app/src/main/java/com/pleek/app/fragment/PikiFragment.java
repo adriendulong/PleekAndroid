@@ -189,7 +189,7 @@ public abstract class PikiFragment extends ScrollTabHolderFragment implements Pi
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-            if (isHeaderScrollEnabled) {
+            if (isHeaderScrollEnabled && ((PikiFragment.this instanceof BestFragment && totalItemCount >= 5) || (!(PikiFragment.this instanceof BestFragment) && totalItemCount > 1))) {
                 scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
             }
 
