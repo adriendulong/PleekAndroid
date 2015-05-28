@@ -1037,10 +1037,13 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
 
     @Override
     public void finish() {
-        super.finish();
         Reaction.deleteAllTempFileVideo(this);
-        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
+        if (edittexteReact != null) {
+            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(edittexteReact.getWindowToken(), 0);
+        }
         overridePendingTransition(R.anim.activity_in_reverse, R.anim.activity_out_reverse);
+
+        super.finish();
     }
 
     @Override
