@@ -121,7 +121,10 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                     for (ParseObject obj : list) {
                         ParseUser user = (ParseUser) obj.get("friend");
                         friends.add(user);
-                        friendsIds.add(user.getObjectId());
+
+                        if (user != null) {
+                            friendsIds.add(user.getObjectId());
+                        }
                     }
 
                     // mixpanel update nbFriend;

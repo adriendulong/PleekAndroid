@@ -400,7 +400,9 @@ public class ParentActivity extends FragmentActivity
 
                     for (ParseObject obj : list) {
                         ParseUser user = (ParseUser) obj.get("friend");
-                        friendsIds.add(user.getObjectId());
+
+                        if (user != null)
+                            friendsIds.add(user.getObjectId());
                     }
 
                     setFriendsPrefs(friendsIds);
