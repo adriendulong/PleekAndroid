@@ -42,6 +42,7 @@ import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.Reaction;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.utils.StringUtils;
+import com.pleek.app.views.CircleProgressBar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,7 +78,7 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
     private View layoutTxtButton;
     private TextView txtEveryone;
     private TextView txtNbFriendSelected;
-    private ViewLoadingFooter footer;
+    private View footer;
 
     private static byte[] _pikiData;
     private byte[] pikiData;
@@ -170,11 +171,9 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         btnSendAll = findViewById(R.id.btnSendAll);
         btnSendAll.setOnTouchListener(new DownTouchListener(getResources().getColor(R.color.secondColorDark2), getResources().getColor(R.color.secondColorDark)));
         btnSendAll.setOnClickListener(this);
-        btnSendAll.post(new Runnable()
-        {
+        btnSendAll.post(new Runnable() {
             @Override
-            public void run()
-            {
+            public void run() {
                 showBtnSendAll(false, 0);
             }
         });
@@ -182,7 +181,8 @@ public class RecipientsActivity extends ParentActivity implements View.OnClickLi
         txtEveryone = (TextView) findViewById(R.id.txtEveryone);
         txtNbFriendSelected = (TextView) findViewById(R.id.txtNbFriendSelected);
 
-        footer = new ViewLoadingFooter(this);
+        footer = getLayoutInflater().inflate(R.layout.item_footer, null);
+        ((CircleProgressBar) footer.findViewById(R.id.progressBar)).setColorSchemeResources(R.color.progressBar);
     }
 
     private void init() {

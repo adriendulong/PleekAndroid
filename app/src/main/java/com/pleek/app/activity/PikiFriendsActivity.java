@@ -20,6 +20,7 @@ import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.Piki;
 import com.pleek.app.bean.ViewLoadingFooter;
 import com.pleek.app.utils.PicassoUtils;
+import com.pleek.app.views.CircleProgressBar;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     private ImageView imgPiki;
     private TextView txtNbFriend;
     private ListView listView;
-    private ViewLoadingFooter footer;
+    private View footer;
 
     private static Piki _piki;
     private Piki piki;
@@ -73,7 +74,8 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
         listView = (ListView) findViewById(R.id.listView);
         listView.setOnScrollListener(new MyOnScrollListener());
 
-        footer = new ViewLoadingFooter(this);
+        footer = getLayoutInflater().inflate(R.layout.item_footer, null);
+        ((CircleProgressBar) footer.findViewById(R.id.progressBar)).setColorSchemeResources(R.color.progressBar);
     }
 
     private void init()

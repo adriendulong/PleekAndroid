@@ -1335,7 +1335,7 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                         params.put("recipients", pikiParse.getList("recipients"));
 
                         if (newReact.isVideo()) {
-                            File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+                            File videosDir = new File(getFilesDir() + "/reacts/");
                             if (videosDir.exists()) videosDir.delete();
                         }
 
@@ -1923,7 +1923,11 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 timeDown = System.currentTimeMillis();
                 imgReply.setImageResource(R.drawable.picto_reply_sel);
-                Utile.fadeOut(layoutTutorialVideo, 100, null);
+
+                if (layoutTutorialVideo.getVisibility() == View.VISIBLE) {
+                    Utile.fadeOut(layoutTutorialVideo, 100, null);
+                }
+
                 isDown = true;
                 handler.postDelayed(recordVideoRunnable, longClickDuration);
 
@@ -1931,7 +1935,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
                 imgReply.setImageResource(R.drawable.picto_reply);
                 isDown = false;
 
-                Utile.fadeOut(layoutTutorialVideo, 100, null);
+                if (layoutTutorialVideo.getVisibility() == View.VISIBLE) {
+                    Utile.fadeOut(layoutTutorialVideo, 100, null);
+                }
 
                 if (event.getAction() == MotionEvent.ACTION_UP && !isRecording && (System.currentTimeMillis() - timeDown) < longClickDuration) {
                     final Bitmap bitmapLayerReact = getBitmapLayerReact();
@@ -1999,8 +2005,9 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
         profile.videoFrameHeight = size.height;
         mediaRecorder.setProfile(profile);
 
-        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
+        File videosDir = new File(getFilesDir() + "/reacts/");
         if (!videosDir.exists()) videosDir.mkdir();
+        else videosDir.delete();
 
         File tmpFile = new File(videosDir, "myvideo.mp4");
 
@@ -2117,83 +2124,91 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     }
 
     public void processVideo() {
-        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
-        try {
-            final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
-            final File tmpFile = new File(videosDir, "myvideo.mp4");
+        if (Constants.isFFMpegSupported) {
+            final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+            try {
+                final File videosDir = new File(getFilesDir() + "/reacts/");
+                final File tmpFile = new File(videosDir, "myvideo.mp4");
 
-            ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360" + (optimalSize.width > SIZE_REACT + 100 ? ",crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) : "") + ",transpose=" + (cameraView.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+                ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:360" + (optimalSize.width > SIZE_REACT + 100 ? ",crop=" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) + ":" + (SIZE_REACT > optimalSize.height ? optimalSize.height : SIZE_REACT) : "") + ",transpose=" + (cameraView.isFaceCamera() ? 3 : 1) + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
 
-                @Override
-                public void onProgress(String message) {
-                    if (message.contains("Duration")) {
-                        String temp = message.substring(message.indexOf("Duration"), message.indexOf(",", message.indexOf("Duration")));
+                    @Override
+                    public void onProgress(String message) {
+                        if (message.contains("Duration")) {
+                            String temp = message.substring(message.indexOf("Duration"), message.indexOf(",", message.indexOf("Duration")));
 
-                        Pattern p = Pattern.compile("\\d+");
-                        Matcher m = p.matcher(temp);
-                        int i = 0;
-                        while(m.find()) {
-                            if (i == 2) {
-                                totalTimeProcessing = Double.valueOf(m.group());
-                            } else if (i == 3) {
-                                totalTimeProcessing += Double.valueOf("0." + m.group());
+                            Pattern p = Pattern.compile("\\d+");
+                            Matcher m = p.matcher(temp);
+                            int i = 0;
+                            while (m.find()) {
+                                if (i == 2) {
+                                    totalTimeProcessing = Double.valueOf(m.group());
+                                } else if (i == 3) {
+                                    totalTimeProcessing += Double.valueOf("0." + m.group());
+                                }
+                                i++;
                             }
-                            i++;
-                        }
-                    } else if (message.contains("time=")) {
-                        String temp = message.substring(message.indexOf("time=") + "time=".length(), message.indexOf(" ", message.indexOf("time")));
-                        Pattern p = Pattern.compile("\\d+");
-                        Matcher m = p.matcher(temp);
-                        int i = 0;
-                        while(m.find()) {
-                            if (i == 2) {
-                                currentProgress = Double.valueOf(m.group());
-                            } else if (i == 3) {
-                                currentProgress += Double.valueOf("0." + m.group());
-                                adapter.updateProgressTempVideo(totalTimeProcessing, currentProgress);
-                            }
+                        } else if (message.contains("time=")) {
+                            String temp = message.substring(message.indexOf("time=") + "time=".length(), message.indexOf(" ", message.indexOf("time")));
+                            Pattern p = Pattern.compile("\\d+");
+                            Matcher m = p.matcher(temp);
+                            int i = 0;
+                            while (m.find()) {
+                                if (i == 2) {
+                                    currentProgress = Double.valueOf(m.group());
+                                } else if (i == 3) {
+                                    currentProgress += Double.valueOf("0." + m.group());
+                                    adapter.updateProgressTempVideo(totalTimeProcessing, currentProgress);
+                                }
 
-                            i++;
+                                i++;
+                            }
                         }
                     }
-                }
 
-                @Override
-                public void onFinish() {
-                    tmpReactVideo.setTmpPathVideo(videosDir + "/out.mp4");
-                    sendReact(tmpReactVideo);
-                }
-            });
-        } catch (FFmpegCommandAlreadyRunningException e) {
-            e.printStackTrace();
+                    @Override
+                    public void onFinish() {
+                        tmpReactVideo.setTmpPathVideo(videosDir + "/out.mp4");
+                        sendReact(tmpReactVideo);
+                    }
+                });
+            } catch (FFmpegCommandAlreadyRunningException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, R.string.error_ffmpeg, Toast.LENGTH_LONG).show();
         }
     }
 
     private void generateTempReact() {
-        loader = showLoader();
-        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
-        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/reacts/");
-        File tmpFile = new File(videosDir, "myvideo.mp4");
-        try {
-            ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
+        if (Constants.isFFMpegSupported) {
+            loader = showLoader();
+            final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+            final File videosDir = new File(getFilesDir() + "/reacts/");
+            File tmpFile = new File(videosDir, "myvideo.mp4");
+            try {
+                ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
 
-                @Override
-                public void onFinish() {
-                    File tmpFileImg = new File(videosDir, "out1.jpg");
-                    Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                    byte[] byteArray = stream.toByteArray();
-                    byte[] decode = getReactData(new BitmapDrawable(cameraView.convertPicture(byteArray)), null);
-                    tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), BitmapFactory.decodeByteArray(decode, 0, decode.length), tmpFileImg.getAbsolutePath());
-                    tmpReactVideo.setType(Reaction.Type.VIDEO);
-                    listReact = adapter.addReact(tmpReactVideo);
-                    hideDialog(loader);
-                    processVideo();
-                }
-            });
-        } catch (FFmpegCommandAlreadyRunningException e) {
-            e.printStackTrace();
+                    @Override
+                    public void onFinish() {
+                        File tmpFileImg = new File(videosDir, "out1.jpg");
+                        Bitmap bitmap = BitmapFactory.decodeFile(tmpFileImg.getAbsolutePath());
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                        byte[] byteArray = stream.toByteArray();
+                        byte[] decode = getReactData(new BitmapDrawable(cameraView.convertPicture(byteArray)), null);
+                        tmpReactVideo = new Reaction(ParseUser.getCurrentUser().getUsername(), BitmapFactory.decodeByteArray(decode, 0, decode.length), tmpFileImg.getAbsolutePath());
+                        tmpReactVideo.setType(Reaction.Type.VIDEO);
+                        listReact = adapter.addReact(tmpReactVideo);
+                        hideDialog(loader);
+                        processVideo();
+                    }
+                });
+            } catch (FFmpegCommandAlreadyRunningException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, R.string.error_ffmpeg, Toast.LENGTH_LONG).show();
         }
     }
 

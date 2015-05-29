@@ -13,6 +13,7 @@ import com.parse.ParseInstallation;
 import com.parse.ParsePush;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.pleek.app.common.Constants;
 
 /**
  * Created by nicolas on 21/08/2014.
@@ -46,9 +47,15 @@ public class PleekApplication extends Application {
         FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
         try {
             ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
+                @Override
+                public void onSuccess() {
+                    super.onSuccess();
+                    Constants.isFFMpegSupported = true;
+                }
             });
         } catch (FFmpegNotSupportedException e) {
             System.out.println("FFMPEG NOT SUPPORTED");
+            Constants.isFFMpegSupported = false;
         }
 
         super.onCreate();

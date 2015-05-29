@@ -18,4 +18,6 @@ public class Constants {
     // INTENT
     public static final String EXTRA_FROM_FRIENDS = "EXTRA_FROM_FRIENDS";
     public static final String EXTRA_FROM_INBOX = "EXTRA_FROM_INBOX";
+
+    public static boolean isFFMpegSupported = true;
 }

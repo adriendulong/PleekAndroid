@@ -54,6 +54,7 @@ import com.goandup.lib.widget.FlipImageView;
 import com.goandup.lib.widget.SquareOverlay;
 import com.pleek.app.R;
 import com.pleek.app.bean.AutoResizeFontTextWatcher;
+import com.pleek.app.common.Constants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -200,7 +201,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
                     if (!isVideo) {
                         RecipientsActivity.initActivity(pikiData);
                     } else {
-                        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+                        final File videosDir = new File(getFilesDir() + "/pikis/");
                         final File tmpFile = new File(videosDir, "out.mp4");
                         RecipientsActivity.initActivity(tmpFile.getAbsolutePath());
                     }
@@ -781,8 +782,12 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         profile.videoFrameHeight = size.height;
         mediaRecorder.setProfile(profile);
 
-        File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+        File videosDir = new File(getFilesDir() + "/pikis/");
         if (!videosDir.exists()) videosDir.mkdir();
+        else {
+            videosDir.delete();
+            videosDir.mkdir();
+        }
 
         File tmpFile = new File(videosDir, "myvideo.mp4");
 
@@ -891,21 +896,25 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     }
 
     public void processVideo() {
-        loader = showLoader();
-        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
-        try {
-            final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
-            final File tmpFile = new File(videosDir, "myvideo.mp4");
+        if (Constants.isFFMpegSupported) {
+            loader = showLoader();
+            final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+            try {
+                final File videosDir = new File(getFilesDir() + "/pikis/");
+                final File tmpFile = new File(videosDir, "myvideo.mp4");
 
-            ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:480" + (optimalSize.width > SIZE_PIKI_VIDEO + 100 ? ",crop=" + (SIZE_PIKI_VIDEO > optimalSize.height ? optimalSize.height : SIZE_PIKI_VIDEO) + ":" + (SIZE_PIKI_VIDEO > optimalSize.height ? optimalSize.height : SIZE_PIKI_VIDEO) : "") + ",transpose=" + (camera.isFaceCamera() ? 3:1)  + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
+                ffmpeg.execute("-y -i " + tmpFile + " -vf scale=-2:480" + (optimalSize.width > SIZE_PIKI_VIDEO + 100 ? ",crop=" + (SIZE_PIKI_VIDEO > optimalSize.height ? optimalSize.height : SIZE_PIKI_VIDEO) + ":" + (SIZE_PIKI_VIDEO > optimalSize.height ? optimalSize.height : SIZE_PIKI_VIDEO) : "") + ",transpose=" + (camera.isFaceCamera() ? 3 : 1) + " -threads 5 -preset ultrafast -strict -2 " + videosDir + "/out.mp4", new ExecuteBinaryResponseHandler() {
 
-                @Override
-                public void onFinish() {
-                    generateTempPiki();
-                }
-            });
-        } catch (FFmpegCommandAlreadyRunningException e) {
-            e.printStackTrace();
+                    @Override
+                    public void onFinish() {
+                        generateTempPiki();
+                    }
+                });
+            } catch (FFmpegCommandAlreadyRunningException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, R.string.error_ffmpeg, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -924,20 +933,24 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
     };
 
     private void generateTempPiki() {
-        final FFmpeg ffmpeg = FFmpeg.getInstance(this);
-        final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
-        File tmpFile = new File(videosDir, "out.mp4");
-        try {
-            ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
+        if (Constants.isFFMpegSupported) {
+            final FFmpeg ffmpeg = FFmpeg.getInstance(this);
+            final File videosDir = new File(getFilesDir() + "/pikis/");
+            File tmpFile = new File(videosDir, "out.mp4");
+            try {
+                ffmpeg.execute("-y -ss 00:00:01 -i " + tmpFile + " -frames:v 1 " + videosDir + "/out1.jpg", new ExecuteBinaryResponseHandler() {
 
-                @Override
-                public void onFinish() {
-                    hideDialog(loader);
-                    playVideo();
-                }
-            });
-        } catch (FFmpegCommandAlreadyRunningException e) {
-            e.printStackTrace();
+                    @Override
+                    public void onFinish() {
+                        hideDialog(loader);
+                        playVideo();
+                    }
+                });
+            } catch (FFmpegCommandAlreadyRunningException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, R.string.error_ffmpeg, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -993,7 +1006,7 @@ public class CaptureActivity extends ParentActivity implements View.OnClickListe
         mediaPlayer.setLooping(true);
         mediaPlayer.setSurface(s);
         try {
-            final File videosDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/pikis/");
+            final File videosDir = new File(getFilesDir() + "/pikis/");
             final File tmpFile = new File(videosDir, "out.mp4");
             FileInputStream fis = new FileInputStream(tmpFile.getAbsolutePath());
             FileDescriptor fd = fis.getFD();

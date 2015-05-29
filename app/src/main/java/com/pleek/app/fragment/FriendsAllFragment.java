@@ -22,6 +22,7 @@ import com.pleek.app.activity.ParentActivity;
 import com.pleek.app.adapter.FriendsAdapter;
 import com.pleek.app.bean.Friend;
 import com.pleek.app.bean.ViewLoadingFooter;
+import com.pleek.app.views.CircleProgressBar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
 
     private StickyListHeadersListView listView;
     private TextView txtNoFriends;
-    private ViewLoadingFooter footer;
+    private View footer;
 
     private FriendsAdapter adapter;
     private List<Friend> listFriend;
@@ -83,7 +84,8 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
         listView.setOnScrollListener(new MyOnScrollListener());
         txtNoFriends = (TextView) getView().findViewById(R.id.txtNoFriends);
 
-        footer = new ViewLoadingFooter(getActivity());
+        footer = getActivity().getLayoutInflater().inflate(R.layout.item_footer, null);
+        ((CircleProgressBar) footer.findViewById(R.id.progressBar)).setColorSchemeResources(R.color.progressBar);
         header = getActivity().getLayoutInflater().inflate(R.layout.header_friend, null);
         txtHeader = (TextView) header.findViewById(R.id.txtHeader);
         txtHeader.setText(type == TYPE_YOU_ADDED ? R.string.friends_you_added : R.string.friends_added_you);

@@ -203,4 +203,7 @@
     <string name="craft">Crafted by</string>
     <string name="goandup"><![CDATA[<font color="#83a848"><b>Go</b></font> <small>and</small> <font color="#f89446"><b>Up</b></font>]]></string>
 
+    <!-- FFMPEG ERROR -->
+    <string name="error_ffmpeg">Sorry, you can\'t take videos on this phone</string>
+
 </resources>
