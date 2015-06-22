@@ -110,6 +110,7 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
         innerQuery.setCachePolicy(shouldRefreshFriends ? ParseQuery.CachePolicy.NETWORK_ONLY : ParseQuery.CachePolicy.CACHE_ONLY);
         innerQuery.whereEqualTo("user", currentUser);
         innerQuery.include("friend");
+        innerQuery.setLimit(1000);
         innerQuery.findInBackground(new FindCallback<ParseObject>() {
 
             @Override
@@ -130,7 +131,9 @@ public class InboxFragment extends PikiFragment implements PikiAdapter.Listener 
                     // mixpanel update nbFriend;
                     mixpanel.getPeople().set("Nb Friends", friendsIds.size());
 
-                    ((ParentActivity) getActivity()).setFriendsPrefs(friendsIds);
+                    if (getActivity() != null && isAdded()) {
+                        ((ParentActivity) getActivity()).setFriendsPrefs(friendsIds);
+                    }
                 }
 
                 loadPikis(withCache);

@@ -332,29 +332,26 @@ public class FriendsAllFragment extends ParentFragment implements FriendsActivit
             public void done(Object o, ParseException e) {
                 if (isAdded()) {
                     if (e == null) {
-                        ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
-                            @Override
-                            public void done(Object o, ParseException e) {
-                                if (friend.image == R.drawable.picto_add_user) {
-                                    friend.image = R.drawable.picto_added;
-                                } else {
-                                    friend.image = R.drawable.picto_add_user;
-                                }
+                        if (o != null && o instanceof ParseObject) {
+                            friend.image = R.drawable.picto_added;
+                            ((ParentActivity) getActivity()).addFriendPrefs(((ParseObject) o).getObjectId());
+                        } else {
+                            friend.image = R.drawable.picto_add_user;
+                            ((ParentActivity) getActivity()).removeFriendPrefs(friend.parseId);
+                        }
 
-                                adapter.removeFriend(friend);
-                                ((FriendsActivity) getActivity()).startAddFriendAnimation();
+                        adapter.removeFriend(friend);
+                        ((FriendsActivity) getActivity()).startAddFriendAnimation();
 
-                                if (type == TYPE_ADDED_YOU) {
-                                    ((FriendsActivity) getActivity()).initPage2();
-                                }
+                        if (type == TYPE_ADDED_YOU) {
+                            ((FriendsActivity) getActivity()).initPage2();
+                        }
 
-                                ((FriendsActivity) getActivity()).reloadPage3();
+                        ((FriendsActivity) getActivity()).reloadPage3();
 
-                                if (friend.image == R.drawable.picto_added || type == TYPE_ADDED_YOU) {
-                                    adapter.addPikiUser(friend);
-                                }
-                            }
-                        });
+                        if (friend.image == R.drawable.picto_added || type == TYPE_ADDED_YOU) {
+                            adapter.addPikiUser(friend);
+                        }
                     } else {
                         adapter.removeFriend(friend);
                         Utile.showToast(R.string.pikifriends_action_nok, getActivity());

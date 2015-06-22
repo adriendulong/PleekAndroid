@@ -328,7 +328,7 @@ public class ParentActivity extends FragmentActivity
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogLoaderAnimation;
         dialog.setCanceledOnTouchOutside(false);
 
-        if(!isFinishing() && (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1 || !isDestroyed()))
+        if (!isFinishing() && (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1 || !isDestroyed()))
         {
             dialog.show();
         }
@@ -371,6 +371,7 @@ public class ParentActivity extends FragmentActivity
         innerQuery.setCachePolicy(fromCache ? ParseQuery.CachePolicy.CACHE_THEN_NETWORK : ParseQuery.CachePolicy.NETWORK_ONLY);
         innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
         innerQuery.include("friend");
+        innerQuery.setLimit(1000);
         innerQuery.findInBackground(new FindCallback<ParseObject>() {
 
             @Override
@@ -391,6 +392,7 @@ public class ParentActivity extends FragmentActivity
         innerQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
         innerQuery.whereEqualTo("user", ParseUser.getCurrentUser());
         innerQuery.include("friend");
+        innerQuery.setLimit(1000);
         innerQuery.findInBackground(new FindCallback<ParseObject>() {
 
             @Override
@@ -421,6 +423,18 @@ public class ParentActivity extends FragmentActivity
         } else {
             return new HashSet<String>();
         }
+    }
+
+    public void addFriendPrefs(String friend) {
+        Set<String> set = pref.getStringSet(Constants.PREF_FRIENDS, new HashSet<String>());
+        set.add(friend);
+        pref.edit().putStringSet(Constants.PREF_FRIENDS, set).commit();
+    }
+
+    public void removeFriendPrefs(String friend) {
+        Set<String> set = pref.getStringSet(Constants.PREF_FRIENDS, new HashSet<String>());
+        set.remove(friend);
+        pref.edit().putStringSet(Constants.PREF_FRIENDS, set).commit();
     }
 
     public void setFriendsPrefs(HashSet<String> friends) {

@@ -52,7 +52,7 @@ dependencies {
     compile 'fr.avianey.com.viewpagerindicator:library:2.4.1@aar'
     compile 'me.grantland:autofittextview:0.2.+'
     compile 'com.github.hiteshsondhi88.libffmpeg:FFmpegAndroid:0.2.5'
-    compile('com.crashlytics.sdk.android:crashlytics:2.2.4@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.3.2@aar') {
         transitive = true;
     }
 }

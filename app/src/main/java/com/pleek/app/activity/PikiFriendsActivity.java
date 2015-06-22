@@ -12,6 +12,7 @@ import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
@@ -186,30 +187,22 @@ public class PikiFriendsActivity extends ParentActivity implements View.OnClickL
     {
         adapter.addFriendLoading(friend);
 
-        final FunctionCallback callback = new FunctionCallback<Object>()
-        {
+        final FunctionCallback callback = new FunctionCallback<Object>() {
             @Override
-            public void done(Object o, ParseException e)
-            {
-                if (e == null)
-                {
-                    getFriendsBg(new FunctionCallback() {
-                        @Override
-                        public void done(Object o, ParseException e) {
-                            adapter.removeFriendLoading(friend);
+            public void done(Object o, ParseException e) {
+                if (e == null) {
+                    adapter.removeFriendLoading(friend);
 
-                            if (friend.image == R.drawable.picto_add_user) {
-                                friend.image = R.drawable.picto_added;
-                            } else {
-                                friend.image = R.drawable.picto_add_user;
-                            }
+                    if (o != null && o instanceof ParseObject) {
+                        addFriendPrefs(((ParseObject) o).getObjectId());
+                        friend.image = R.drawable.picto_added;
+                    } else {
+                        removeFriendPrefs(friend.parseId);
+                        friend.image = R.drawable.picto_add_user;
+                    }
 
-                            adapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-                else
-                {
+                    adapter.notifyDataSetChanged();
+                } else {
                     Utile.showToast(R.string.pikifriends_action_nok, PikiFriendsActivity.this);
                 }
             }

@@ -11,14 +11,12 @@ import android.widget.AbsListView;
 
 import com.goandup.lib.utile.L;
 import com.goandup.lib.utile.Utile;
-import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
-import com.pleek.app.activity.HomeActivity;
 import com.pleek.app.activity.InboxActivity;
 import com.pleek.app.activity.PikiActivity;
 import com.pleek.app.adapter.PikiAdapter;

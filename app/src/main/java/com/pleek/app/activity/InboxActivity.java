@@ -406,15 +406,19 @@ public class InboxActivity extends ParentActivity implements View.OnClickListene
         }
 
         public void reload() {
-            fragments.valueAt(0).reload();
-            fragments.valueAt(1).reload();
-            fragments.valueAt(2).reload();
+            if (fragments != null && fragments.size() >= 3) {
+                fragments.valueAt(0).reload();
+                fragments.valueAt(1).reload();
+                fragments.valueAt(2).reload();
+            }
         }
 
         public void setIsHeaderScrollEnabled(boolean enabled) {
-            fragments.valueAt(0).setIsHeaderScrollEnabled(enabled);
-            fragments.valueAt(1).setIsHeaderScrollEnabled(enabled);
-            fragments.valueAt(2).setIsHeaderScrollEnabled(enabled);
+            if (fragments != null && fragments.size() >= 3) {
+                fragments.valueAt(0).setIsHeaderScrollEnabled(enabled);
+                fragments.valueAt(1).setIsHeaderScrollEnabled(enabled);
+                fragments.valueAt(2).setIsHeaderScrollEnabled(enabled);
+            }
         }
 
         public SparseArray<PikiFragment> getScrollTabHolders() {

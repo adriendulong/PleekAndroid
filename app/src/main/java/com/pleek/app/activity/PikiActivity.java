@@ -62,6 +62,7 @@ import com.parse.CountCallback;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.GetCallback;
+import com.parse.Parse;
 import com.parse.ParseACL;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -690,28 +691,25 @@ public class PikiActivity extends ParentActivity implements View.OnClickListener
     public void onAddFriend(int position, final Reaction react, final ProgressBar pg, final ImageView img, final TextViewFontAutoResize txt) {
         pg.setVisibility(View.VISIBLE);
         final String friendId = adapter.getReaction(position).getUserId();
-        Set<String> friendsIds = getFriendsPrefs();
+        final Set<String> friendsIds = getFriendsPrefs();
 
         final FunctionCallback callback = new FunctionCallback<Object>() {
             @Override
             public void done(Object o, ParseException e) {
                 if (e == null) {
-                    getFriendsBg(new FunctionCallback() {
-                        @Override
-                        public void done(Object o, ParseException e) {
-                            if (getFriendsPrefs() != null && getFriendsPrefs().contains(react.getUserId())) {
-                                txt.setTextColor(Color.BLACK);
-                                img.setVisibility(View.VISIBLE);
-                                img.setImageResource(R.drawable.picto_added);
-                            } else {
-                                img.setVisibility(View.VISIBLE);
-                                txt.setTextColor(getResources().getColor(R.color.grisTextDisable));
-                                img.setImageResource(R.drawable.picto_add_user);
-                            }
+                    if (o != null && o instanceof ParseObject) {
+                        txt.setTextColor(Color.BLACK);
+                        img.setVisibility(View.VISIBLE);
+                        img.setImageResource(R.drawable.picto_added);
+                        addFriendPrefs(((ParseObject) o).getObjectId());
+                    } else {
+                        img.setVisibility(View.VISIBLE);
+                        txt.setTextColor(getResources().getColor(R.color.grisTextDisable));
+                        img.setImageResource(R.drawable.picto_add_user);
+                        removeFriendPrefs(friendId);
+                    }
 
-                            pg.setVisibility(View.GONE);
-                        }
-                    });
+                    pg.setVisibility(View.GONE);
                 } else {
                     pg.setVisibility(View.GONE);
                     img.setVisibility(View.VISIBLE);

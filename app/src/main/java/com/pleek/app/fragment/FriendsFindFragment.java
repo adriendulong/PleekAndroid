@@ -33,6 +33,7 @@ import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.pleek.app.R;
@@ -394,19 +395,15 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
             ParseCloud.callFunctionInBackground("addFriendV2", param, new FunctionCallback<Object>() {
                 @Override
                 public void done(Object o, ParseException e) {
-                    if (e == null) {
-                        ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
-                            @Override
-                            public void done(Object o, ParseException e) {
-                                adapter.removeFriend(friend);
+                    if (e == null && o != null && o instanceof ParseObject) {
+                        ((ParentActivity) getActivity()).addFriendPrefs(((ParseObject) o).getObjectId());
+                        adapter.removeFriend(friend);
 
-                                if (getActivity() instanceof FriendsActivity) {
-                                    ((FriendsActivity) getActivity()).startAddFriendAnimation();
-                                    ((FriendsActivity) getActivity()).initPage2();
-                                    ((FriendsActivity) getActivity()).reloadPage3();
-                                }
-                            }
-                        });
+                        if (getActivity() instanceof FriendsActivity) {
+                            ((FriendsActivity) getActivity()).startAddFriendAnimation();
+                            ((FriendsActivity) getActivity()).initPage2();
+                            ((FriendsActivity) getActivity()).reloadPage3();
+                        }
                     } else {
                         adapter.removeFriend(friend);
                         Utile.showToast(R.string.pikifriends_action_nok, getActivity());
@@ -516,22 +513,19 @@ public class FriendsFindFragment extends ParentFragment implements FriendsAdapte
                 @Override
                 public void done(Object o, ParseException e) {
                     if (e == null) {
-                        ((ParentActivity) getActivity()).getFriendsBg(new FunctionCallback() {
-                            @Override
-                            public void done(Object o, ParseException e) {
-                                if (friend.image == R.drawable.picto_add_user) {
-                                    friend.image = R.drawable.picto_added;
-                                } else {
-                                    friend.image = R.drawable.picto_add_user;
-                                }
+                        if (o != null && o instanceof ParseObject) {
+                            friend.image = R.drawable.picto_added;
+                            ((ParentActivity) getActivity()).addFriendPrefs(((ParseObject) o).getObjectId());
+                        } else {
+                            friend.image = R.drawable.picto_add_user;
+                            ((ParentActivity) getActivity()).removeFriendPrefs(friend.parseId);
+                        }
 
-                                adapter.removeFriend(friend);
-                                ((FriendsActivity) getActivity()).startAddFriendAnimation();
-                                ((FriendsActivity) getActivity()).initPage2();
-                                ((FriendsActivity) getActivity()).reloadPage3();
-                                adapter.addPikiUser(friend);
-                            }
-                        });
+                        adapter.removeFriend(friend);
+                        ((FriendsActivity) getActivity()).startAddFriendAnimation();
+                        ((FriendsActivity) getActivity()).initPage2();
+                        ((FriendsActivity) getActivity()).reloadPage3();
+                        adapter.addPikiUser(friend);
                     } else {
                         adapter.removeFriend(friend);
                         Utile.showToast(R.string.pikifriends_action_nok, getActivity());

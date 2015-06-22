@@ -138,22 +138,12 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
         txtAdded3Enabled = (TextView) findViewById(R.id.txtAdded3Enabled);
 
         // My Friends
-        ParseQuery<ParseObject> youAddedQuery = ParseQuery.getQuery("Friend");
-        youAddedQuery.setCachePolicy(ParseQuery.CachePolicy.CACHE_THEN_NETWORK);
-        youAddedQuery.whereEqualTo("user", ParseUser.getCurrentUser());
-        youAddedQuery.findInBackground(new FindCallback<ParseObject>() {
-
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (e == null && list != null) {
-                    updateNbYouAdded(list.size());
-                }
-            }
-        });
+        updateNbYouAdded(getFriendsPrefs().size());
 
         ParseQuery<ParseObject> addedYouQuery = ParseQuery.getQuery("Friend");
         addedYouQuery.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
         addedYouQuery.whereEqualTo("friend", ParseUser.getCurrentUser());
+        addedYouQuery.setLimit(1000);
         addedYouQuery.findInBackground(new FindCallback<ParseObject>() {
 
             @Override
@@ -367,50 +357,46 @@ public class FriendsActivity extends ParentActivity implements View.OnClickListe
     public void startAddFriendAnimation() {
         InboxActivity.AUTO_RELOAD = true;
 
-        getFriends(false, new FunctionCallback<ArrayList<Friend>>() {
+        Set<String> friends = getFriendsPrefs();
+        updateNbYouAdded(friends != null ? friends.size() : 0);
+        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend);
+        animation.setInterpolator(new AccelerateInterpolator());
+        animation.setDuration(DURATION_ANIM);
+        animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void done(ArrayList<Friend> friends, ParseException e) {
-                updateNbYouAdded(friends != null ? friends.size() : 0);
-                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend);
-                animation.setInterpolator(new AccelerateInterpolator());
-                animation.setDuration(DURATION_ANIM);
-                animation.setAnimationListener(new Animation.AnimationListener() {
-                    @Override
-                    public void onAnimationStart(Animation animation) {
-                        txtTab2Add.setAlpha(1);
-                    }
+            public void onAnimationStart(Animation animation) {
+                txtTab2Add.setAlpha(1);
+            }
 
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                Animation animationReverse = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend_reverse);
+                animationReverse.setInterpolator(new DecelerateInterpolator());
+                animationReverse.setFillAfter(true);
+                animationReverse.setDuration(DURATION_ANIM);
+                txtTab2Add.startAnimation(animationReverse);
+                (new Timer()).schedule(new TimerTask() {
                     @Override
-                    public void onAnimationEnd(Animation animation) {
-                        Animation animationReverse = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.add_friend_reverse);
-                        animationReverse.setInterpolator(new DecelerateInterpolator());
-                        animationReverse.setFillAfter(true);
-                        animationReverse.setDuration(DURATION_ANIM);
-                        txtTab2Add.startAnimation(animationReverse);
-                        (new Timer()).schedule(new TimerTask() {
+                    public void run() {
+                        runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Utile.fadeIn(txtNbFriend2Disabled, DURATION_ANIM >> 1);
-                                        Utile.fadeIn(txtNbFriend2Enabled, DURATION_ANIM >> 1);
-                                    }
-                                });
+                                Utile.fadeIn(txtNbFriend2Disabled, DURATION_ANIM >> 1);
+                                Utile.fadeIn(txtNbFriend2Enabled, DURATION_ANIM >> 1);
                             }
-                        }, DURATION_ANIM >> 1);
+                        });
                     }
+                }, DURATION_ANIM >> 1);
+            }
 
-                    @Override
-                    public void onAnimationRepeat(Animation animation) {
+            @Override
+            public void onAnimationRepeat(Animation animation) {
 
-                    }
-                });
-                txtTab2Add.startAnimation(animation);
-                Utile.fadeOutWithoutGone(txtNbFriend2Disabled, DURATION_ANIM >> 1, null);
-                Utile.fadeOutWithoutGone(txtNbFriend2Enabled, DURATION_ANIM >> 1, null);
             }
         });
+        txtTab2Add.startAnimation(animation);
+        Utile.fadeOutWithoutGone(txtNbFriend2Disabled, DURATION_ANIM >> 1, null);
+        Utile.fadeOutWithoutGone(txtNbFriend2Enabled, DURATION_ANIM >> 1, null);
     }
 
     public void initPage2() {
